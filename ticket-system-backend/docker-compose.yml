@@ -1,0 +1,31 @@
+services:
+  api:
+    build:
+      context: .
+      target: ${BUILD_TARGET:-dev}
+    container_name: nest-api
+    env_file: .env
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    depends_on: [mongodb]
+    environment:
+      - MONGO_URI=${MONGO_URI}
+    volumes:
+      - .:/app
+      - /app/node_modules
+
+  mongodb:
+    image: mongo:8.0
+    container_name: mongodb
+    restart: unless-stopped
+    ports:
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASS}
+      MONGO_INITDB_DATABASE: ${MONGO_DB}
+    volumes:
+      - mongo-data:/data/db
+volumes:
+  mongo-data:
+

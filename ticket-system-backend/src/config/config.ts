@@ -39,5 +39,4 @@ export class Config {
   }
 }
 
-// Export singleton instance
 export const config = Config.getInstance();

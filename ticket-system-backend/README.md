@@ -9,8 +9,6 @@ The backend of this project will be using MongoDB for database. NestJS for backe
 
 ```bash
 $ cp .env.example .env 
-$ npm install
-$ npx prisma generate
 $ docker compose up -d
 ```
 **On the first step, please make sure the .env is configured**

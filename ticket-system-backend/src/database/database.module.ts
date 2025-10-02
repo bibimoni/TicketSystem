@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { config } from 'src/config/config';
 
 @Module({
   imports: [
-    MongooseModule.forRoot(process.env.MONGO_URI!, {
-      dbName: process.env.MONGO_DB,
+    MongooseModule.forRoot(config.mongoUri, {
+      dbName: config.mongoDB,
     }),
   ],
   exports: [MongooseModule],

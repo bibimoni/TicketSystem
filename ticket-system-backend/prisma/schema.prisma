@@ -1,0 +1,151 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGO_URI")
+}
+
+generator client {
+  provider      = "prisma-client-js"
+  // It's good practice to keep the generated client separate
+  output        = "../generated/prisma"
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+}
+
+// ---- Step 1: Define Composite Types for Embedding ----
+// This type replaces the EventTime and EventTicketTime models.
+// It will be embedded directly into the Event model.
+type TimeSlot {
+  date DateTime
+  hour String
+}
+
+// ---- Step 2: Define Your Main Models (Collections) ----
+
+model Admin {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  name            String?
+  email           String    @unique
+  sex             String?
+  address         String?
+  birth_date      DateTime?
+  information     String?
+  phone_number    String?
+  hashed_password String
+  username        String    @unique
+  // account_id      String    @unique
+  events          Event[]
+}
+
+model Customer {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  name            String?
+  email           String        @unique
+  sex             String?
+  address         String?
+  birth_date      DateTime?
+  information     String?
+  phone_number    String?
+  hashed_password String
+  username        String        @unique
+  // account_id      String        @unique
+  events          Event[]
+  transactions    Transaction[]
+}
+
+model Event {
+  id              String  @id @default(auto()) @map("_id") @db.ObjectId
+  information     String?
+  count_carry_out Int?
+  destination     String?
+  organizer       String?
+
+  // --- Relationships to Admin and Customer ---
+  admin_id    String   @db.ObjectId
+  admin       Admin    @relation(fields: [admin_id], references: [id])
+  customer_id String   @db.ObjectId
+  customer    Customer @relation(fields: [customer_id], references: [id])
+
+  // --- Embedded Data using Composite Types ---
+  // EventTime and EventTicketTime are now arrays of TimeSlot objects
+  // within the Event document itself. This is much more efficient.
+  eventTimes       TimeSlot[]
+  eventTicketTimes TimeSlot[]
+
+  tickets Ticket[]
+}
+
+model TicketPrice {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  name         String?
+  price        Float
+  benefit_info String?
+  tickets      Ticket[]
+}
+
+model Ticket {
+  id     String  @id @default(auto()) @map("_id") @db.ObjectId
+  status String
+  seat   String?
+  amount Int
+
+  // --- Relationships to other collections ---
+  event_id        String      @db.ObjectId
+  event           Event       @relation(fields: [event_id], references: [id])
+  ticket_price_id String      @db.ObjectId
+  ticketPrice     TicketPrice @relation(fields: [ticket_price_id], references: [id])
+
+  transactions TransactionHasTicket[]
+}
+
+model Transaction {
+  id                   String                    @id @default(auto()) @map("_id") @db.ObjectId
+  time_date            DateTime
+  method               String
+  price_before_voucher Float
+  total_price          Float
+  customer_id          String                    @db.ObjectId
+  customer             Customer                  @relation(fields: [customer_id], references: [id])
+  tickets              TransactionHasTicket[]
+  vouchers             TransactionApplyVoucher[]
+}
+
+model Voucher {
+  id           String                    @id @default(auto()) @map("_id") @db.ObjectId
+  reduce_type  String
+  reduce_price Float
+  amount       Int
+  price        Float
+  start_date   DateTime
+  end_date     DateTime
+  transactions TransactionApplyVoucher[]
+}
+
+// ---- Step 3: Correct the Many-to-Many "Join" Models ----
+// These models still exist but now follow MongoDB's rules.
+
+model TransactionHasTicket {
+  // Add a single primary key for MongoDB
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  transaction_id String      @db.ObjectId
+  transaction    Transaction @relation(fields: [transaction_id], references: [id])
+  ticket_id      String      @db.ObjectId
+  ticket         Ticket      @relation(fields: [ticket_id], references: [id])
+  amount         Int
+
+  // Use a unique constraint to prevent duplicate pairs
+  @@unique([transaction_id, ticket_id])
+}
+
+model TransactionApplyVoucher {
+  // Add a single primary key for MongoDB
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  transaction_id String      @db.ObjectId
+  transaction    Transaction @relation(fields: [transaction_id], references: [id])
+  voucher_id     String      @db.ObjectId
+  voucher        Voucher     @relation(fields: [voucher_id], references: [id])
+  apply_count    Int
+
+  // Use a unique constraint to prevent duplicate pairs
+  @@unique([transaction_id, voucher_id])
+}

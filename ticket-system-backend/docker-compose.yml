@@ -7,7 +7,6 @@ services:
     env_file: .env
     ports:
       - "${APP_PORT:-3000}:3000"
-    depends_on: [mongodb]
     environment:
       - MONGO_URI=${MONGO_URI}
     volumes:

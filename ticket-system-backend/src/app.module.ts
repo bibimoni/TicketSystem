@@ -15,8 +15,8 @@ import { CustomerController } from './customer/customer.controller';
     CustomerModule,
     PrismaModule
   ],
-  controllers: [AppController, CustomerController],
-  providers: [PrismaService, AppService],
+  controllers: [CustomerController],
+  providers: [PrismaService],
   exports: [PrismaService]
 })
 export class AppModule { }

@@ -10,7 +10,8 @@ FROM base AS dev
 ENV NODE_ENV=development
 # RUN npm install -g @nestjs/cli
 EXPOSE 3000
-CMD ["npx","nest","start","--watch"]
+# CMD ["npx","nest","start","--watch"]
+CMD ["npm", "run", "start:dev"]
 
 FROM base AS build
 ENV NODE_ENV=production

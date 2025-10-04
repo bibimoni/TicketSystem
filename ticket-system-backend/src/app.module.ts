@@ -4,6 +4,7 @@ import { CustomerModule } from './customer/customer.module';
 import { PrismaService } from './prisma/prisma.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { CustomerController } from './customer/customer.controller';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -11,7 +12,8 @@ import { CustomerController } from './customer/customer.controller';
       isGlobal: true
     }),
     CustomerModule,
-    PrismaModule
+    PrismaModule,
+    AuthModule
   ],
   controllers: [CustomerController],
   providers: [PrismaService],

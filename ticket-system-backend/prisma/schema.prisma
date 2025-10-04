@@ -13,10 +13,10 @@ generator client {
 // ---- Step 1: Define Composite Types for Embedding ----
 // This type replaces the EventTime and EventTicketTime models.
 // It will be embedded directly into the Event model.
-type TimeSlot {
-  date DateTime
-  hour String
-}
+// type TimeSlot {
+//   date DateTime
+//   hour String
+// }
 
 // ---- Step 2: Define Your Main Models (Collections) ----
 
@@ -67,8 +67,8 @@ model Event {
   // --- Embedded Data using Composite Types ---
   // EventTime and EventTicketTime are now arrays of TimeSlot objects
   // within the Event document itself. This is much more efficient.
-  eventTimes       TimeSlot[]
-  eventTicketTimes TimeSlot[]
+  eventTimes       DateTime[]
+  eventTicketTimes DateTime
 
   tickets Ticket[]
 }

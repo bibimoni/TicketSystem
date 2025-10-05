@@ -10,47 +10,6 @@ generator client {
   binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
 }
 
-// ---- Step 1: Define Composite Types for Embedding ----
-// This type replaces the EventTime and EventTicketTime models.
-// It will be embedded directly into the Event model.
-// type TimeSlot {
-//   date DateTime
-//   hour String
-// }
-
-// ---- Step 2: Define Your Main Models (Collections) ----
-
-// model Admin {
-//   id              String    @id @default(auto()) @map("_id") @db.ObjectId
-//   name            String?
-//   email           String    @unique
-//   sex             String?
-//   address         String?
-//   birth_date      DateTime?
-//   information     String?
-//   phone_number    String?
-//   hashed_password String
-//   username        String    @unique
-//   // account_id      String    @unique
-//   events          Event[]
-// }
-//
-// model Customer {
-//   id              String        @id @default(auto()) @map("_id") @db.ObjectId
-//   name            String?
-//   email           String        @unique
-//   sex             String?
-//   address         String?
-//   birth_date      DateTime?
-//   information     String?
-//   phone_number    String?
-//   hashed_password String
-//   username        String        @unique
-//   // account_id      String        @unique
-//   events          Event[]
-//   transactions    Transaction[]
-// }
-
 model User {
   id              String        @id @default(auto()) @map("_id") @db.ObjectId
   name            String?
@@ -65,13 +24,13 @@ model User {
   // account_id      String        @unique
   events          Event[]
   transactions    Transaction[]
-  Customer        Customer[]
-  Admin           Admin[]
+  Customer        Customer?
+  Admin           Admin?
 }
 
 model Customer {
   id          String        @id @default(auto()) @map("_id") @db.ObjectId
-  user_id     String        @db.ObjectId
+  user_id     String        @unique @db.ObjectId
   user        User          @relation(fields: [user_id], references: [id])
   Event       Event[]
   Transaction Transaction[]
@@ -79,7 +38,7 @@ model Customer {
 
 model Admin {
   id      String  @id @default(auto()) @map("_id") @db.ObjectId
-  user_id String  @db.ObjectId
+  user_id String  @unique @db.ObjectId
   user    User    @relation(fields: [user_id], references: [id])
   Event   Event[]
 }

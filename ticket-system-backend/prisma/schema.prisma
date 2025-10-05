@@ -20,22 +20,38 @@ generator client {
 
 // ---- Step 2: Define Your Main Models (Collections) ----
 
-model Admin {
-  id              String    @id @default(auto()) @map("_id") @db.ObjectId
-  name            String?
-  email           String    @unique
-  sex             String?
-  address         String?
-  birth_date      DateTime?
-  information     String?
-  phone_number    String?
-  hashed_password String
-  username        String    @unique
-  // account_id      String    @unique
-  events          Event[]
-}
+// model Admin {
+//   id              String    @id @default(auto()) @map("_id") @db.ObjectId
+//   name            String?
+//   email           String    @unique
+//   sex             String?
+//   address         String?
+//   birth_date      DateTime?
+//   information     String?
+//   phone_number    String?
+//   hashed_password String
+//   username        String    @unique
+//   // account_id      String    @unique
+//   events          Event[]
+// }
+//
+// model Customer {
+//   id              String        @id @default(auto()) @map("_id") @db.ObjectId
+//   name            String?
+//   email           String        @unique
+//   sex             String?
+//   address         String?
+//   birth_date      DateTime?
+//   information     String?
+//   phone_number    String?
+//   hashed_password String
+//   username        String        @unique
+//   // account_id      String        @unique
+//   events          Event[]
+//   transactions    Transaction[]
+// }
 
-model Customer {
+model User {
   id              String        @id @default(auto()) @map("_id") @db.ObjectId
   name            String?
   email           String        @unique
@@ -49,6 +65,23 @@ model Customer {
   // account_id      String        @unique
   events          Event[]
   transactions    Transaction[]
+  Customer        Customer[]
+  Admin           Admin[]
+}
+
+model Customer {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  user_id     String        @db.ObjectId
+  user        User          @relation(fields: [user_id], references: [id])
+  Event       Event[]
+  Transaction Transaction[]
+}
+
+model Admin {
+  id      String  @id @default(auto()) @map("_id") @db.ObjectId
+  user_id String  @db.ObjectId
+  user    User    @relation(fields: [user_id], references: [id])
+  Event   Event[]
 }
 
 model Event {
@@ -71,6 +104,8 @@ model Event {
   eventTicketTimes DateTime
 
   tickets Ticket[]
+  User    User?    @relation(fields: [userId], references: [id])
+  userId  String?  @db.ObjectId
 }
 
 model TicketPrice {
@@ -106,6 +141,8 @@ model Transaction {
   customer             Customer                  @relation(fields: [customer_id], references: [id])
   tickets              TransactionHasTicket[]
   vouchers             TransactionApplyVoucher[]
+  User                 User?                     @relation(fields: [userId], references: [id])
+  userId               String?                   @db.ObjectId
 }
 
 model Voucher {

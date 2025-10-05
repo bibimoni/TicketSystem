@@ -23,6 +23,7 @@ export class Config {
     this._config.mongoUri = process.env.MONGO_URI || `mongodb://${this._config.mongoUser}:${this._config.mongoPassword}@mongodb:27017/${this._config.mongoDB}`
   }
 
+  get jwtExpiresIn() { return this._config.jwtExpiresIn }
   get port() { return this._config.port }
   get mongoUri() { return this._config.mongoUri }
   get jwtSecret() { return this._config.jwtSecret }

@@ -31,6 +31,10 @@ If you want to sync schema.prisma, run
 ```bash
 $ npm run db:sync
 ```
+If you want to update changes after changing content in the prisma file, use
+```bash
+$ npx prisma db push
+```
 
 
 

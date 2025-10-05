@@ -1,12 +1,30 @@
-import { Injectable } from '@nestjs/common';
-import { CustomerService } from 'src/customer/customer.service';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { compare, genSalt, hash } from 'bcrypt-ts';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService, private jwtService: JwtService) { }
 
-  async signIn(username: string, pass string): Promise<any> {
-    const user = await this.prisma.findUnique({ where: { username } })
+  async signIn(username: string, password: string): Promise<any> {
+    const user = await this.prisma.customer.findUnique({ where: { username } })
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+    const { hashed_password, id, ...result } = user;
+    if (await compare(password, hashed_password)) {
+      throw new UnauthorizedException();
+    }
+    const payload = { id, username }
+    return {
+      access_token: await this.jwtService.signAsync(payload)
+    }
+  }
+
+  static async hashPassword(password: string) {
+    const salt = await genSalt(10)
+    const hashed_password = await hash(password, salt)
+    return hashed_password
   }
 }

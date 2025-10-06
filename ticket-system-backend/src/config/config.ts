@@ -19,10 +19,13 @@ export class Config {
       mongoDB: process.env.MONGO_DB || 'mongo',
       jwtSecret: process.env.JWT_SECRET || 'secret',
       jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
+      isDevelopment: process.env.NODE_ENV || 'development'
     };
     this._config.mongoUri = process.env.MONGO_URI || `mongodb://${this._config.mongoUser}:${this._config.mongoPassword}@mongodb:27017/${this._config.mongoDB}`
+    return this;
   }
 
+  get isDevelopment() { return this._config.isDevelopment }
   get jwtExpiresIn() { return this._config.jwtExpiresIn }
   get port() { return this._config.port }
   get mongoUri() { return this._config.mongoUri }

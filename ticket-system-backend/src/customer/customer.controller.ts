@@ -1,14 +1,15 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Request, UseGuards } from '@nestjs/common';
 import { CustomerService } from './customer.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
-import { Customer } from 'generated/prisma';
+import { User } from 'generated/prisma';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 @Controller('customer')
 export class CustomerController {
   constructor(private readonly customerService: CustomerService) { }
 
   @Post()
-  async create(@Body() createCustomerDto: CreateCustomerDto): Promise<Customer> {
+  async create(@Body() createCustomerDto: CreateCustomerDto): Promise<User> {
     return this.customerService.create(createCustomerDto);
   }
 
@@ -17,9 +18,15 @@ export class CustomerController {
   //   return this.customerService.findAll();
   // }
 
-  @Get(':username')
-  findOne(@Param('username') username: string) {
-    return this.customerService.findOne(username);
+  // @Get(':username')
+  // findOne(@Param('username') username: string) {
+  //   return this.customerService.findOne(username);
+  // }
+
+  @UseGuards(AuthGuard)
+  @Get('profile')
+  getProfile(@Request() req) {
+    return req.user
   }
 
   // @Patch(':id')

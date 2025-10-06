@@ -6,7 +6,11 @@ import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   config.load();
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: config.isDevelopment === 'development'
+      ? ['log', 'debug', 'error', 'verbose', 'warn']
+      : ['error', 'warn'],
+  });
 
   const swaggerCfg = new DocumentBuilder()
     .setTitle('Ticket System')

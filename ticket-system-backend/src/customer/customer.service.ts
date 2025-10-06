@@ -1,5 +1,5 @@
-import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
-import { Customer, User } from 'generated/prisma';
+import { ForbiddenException, Injectable } from '@nestjs/common';
+import { User } from 'generated/prisma';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { genSalt, hash } from 'bcrypt-ts';

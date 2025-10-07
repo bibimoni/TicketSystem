@@ -8,6 +8,12 @@ import { CustomerService } from './customer/customer.service';
 import { AuthController } from './auth/auth.controller';
 import { AuthService } from './auth/auth.service';
 import { UserModule } from './user/user.module';
+import { EventModule } from './event/event.module';
+import { AdminModule } from './admin/admin.module';
+import { EventService } from './event/event.service';
+import { AdminService } from './admin/admin.service';
+import { EventController } from './event/event.controller';
+import { AdminController } from './admin/admin.controller';
 
 @Module({
   imports: [
@@ -17,9 +23,11 @@ import { UserModule } from './user/user.module';
     PrismaModule,
     UserModule,
     AuthModule,
+    EventModule,
+    AdminModule
   ],
-  controllers: [CustomerController, AuthController],
-  providers: [PrismaService, AuthService, CustomerService],
+  controllers: [CustomerController, AuthController, EventController, AdminController],
+  providers: [PrismaService, AuthService, CustomerService, EventService, AdminService],
   exports: [PrismaService]
 })
 export class AppModule { }

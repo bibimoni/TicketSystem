@@ -16,13 +16,13 @@ The backend of this project will be using MongoDB for database. NestJS for backe
 
 ### With Docker
 ```bash
-$ cp .env .example .env 
+$ cp .env.example .env 
 $ npx prisma generate
 $ docker compose up -d
 ```
 ### Without Docker
 ```bash
-$ cp .env .example.env
+$ cp .env.example .env
 $ npx prisma generate
 $ npm install ci
 $ npm run start:dev

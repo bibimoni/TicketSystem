@@ -45,6 +45,7 @@ model Admin {
 
 model Event {
   id              String  @id @default(auto()) @map("_id") @db.ObjectId
+  name            String
   information     String?
   count_carry_out Int?
   destination     String?

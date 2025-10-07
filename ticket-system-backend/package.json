@@ -5,6 +5,9 @@
   "author": "",
   "private": true,
   "license": "UNLICENSED",
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  },
   "scripts": {
     "build": "nest build && npm run copy:templates",
     "copy:templates": "mkdir -p dist/mail/templates && cp -R src/mail/templates/* dist/mail/templates",

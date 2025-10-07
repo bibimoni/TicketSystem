@@ -3,25 +3,24 @@ import { PrismaClient } from '../generated/prisma';
 
 const prisma = new PrismaClient();
 
-console.log('--- Seeding with the following connection string: ---');
-console.log(process.env.MONGO_URI);
-console.log('--------------------------------------------------');
+async function clearData() {
+  console.log('Clearing existing data...');
+  await prisma.transactionHasTicket.deleteMany();
+  await prisma.transactionApplyVoucher.deleteMany();
+  await prisma.transaction.deleteMany();
+  await prisma.ticket.deleteMany();
+  await prisma.event.deleteMany();
+  await prisma.customer.deleteMany();
+  await prisma.admin.deleteMany();
+  await prisma.user.deleteMany();
+  await prisma.ticketPrice.deleteMany();
+  await prisma.voucher.deleteMany();
+  console.log('Database cleared.');
+}
 
 async function main() {
   console.log('--- Seeding started ---');
 
-  console.log('Clearing existing data...');
-  // await prisma.transactionHasTicket.deleteMany();
-  // await prisma.transactionApplyVoucher.deleteMany();
-  // await prisma.transaction.deleteMany();
-  // await prisma.ticket.deleteMany();
-  // await prisma.event.deleteMany();
-  // await prisma.customer.deleteMany();
-  // await prisma.admin.deleteMany();
-  // await prisma.user.deleteMany();
-  // await prisma.ticketPrice.deleteMany();
-  // await prisma.voucher.deleteMany();
-  // console.log('Database cleared.');
 
   console.log('Seeding users...');
   const users = Array.from({ length: 20 }, () => ({

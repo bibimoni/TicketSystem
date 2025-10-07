@@ -4,12 +4,13 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { genSalt, hash } from 'bcrypt-ts';
 import { UserService } from 'src/user/user.service';
+import { PublicUserResponseDto } from './dto/customer-response.dto';
 
 @Injectable()
 export class CustomerService {
   constructor(private prisma: PrismaService, private userService: UserService) { }
 
-  async create(createCustomerDto: CreateCustomerDto): Promise<User> {
+  async create(createCustomerDto: CreateCustomerDto): Promise<PublicUserResponseDto> {
     const { username, password, email } = createCustomerDto
     const salt = await genSalt(10)
     const hashed_password = await hash(password, salt)
@@ -31,8 +32,10 @@ export class CustomerService {
     if (!customer) {
       throw new ForbiddenException()
     }
-
-    return user;
+    {
+      const { hashed_password, ...result } = user;
+      return result;
+    }
   }
 
   async findOne(username: string): Promise<User | null> {

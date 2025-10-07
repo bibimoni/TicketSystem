@@ -1,13 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger"
-import { IsEmail, MinLength } from "class-validator"
+import { MinLength } from "class-validator"
 
-export class CreateCustomerDto {
-  @ApiProperty({
-    example: 'myemail.012345@hcmut.edu.vn'
-  })
-  @IsEmail()
-  email: string
-
+export class SignInDto {
   @ApiProperty({
     example: 'cristiano messi'
   })

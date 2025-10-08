@@ -10,9 +10,9 @@ async function clearData() {
   await prisma.transaction.deleteMany();
   await prisma.ticket.deleteMany();
   await prisma.event.deleteMany();
-  await prisma.customer.deleteMany();
-  await prisma.admin.deleteMany();
-  await prisma.user.deleteMany();
+  // await prisma.customer.deleteMany();
+  // await prisma.admin.deleteMany();
+  // await prisma.user.deleteMany();
   await prisma.ticketPrice.deleteMany();
   await prisma.voucher.deleteMany();
   console.log('Database cleared.');
@@ -22,20 +22,19 @@ async function main() {
   console.log('--- Seeding started ---');
 
 
-  console.log('Seeding users...');
-  const users = Array.from({ length: 20 }, () => ({
-    name: faker.person.fullName(),
-    email: faker.internet.email(),
-    sex: faker.person.sex(),
-    address: faker.location.streetAddress(),
-    birth_date: faker.date.birthdate(),
-    information: faker.lorem.sentence(),
-    phone_number: faker.phone.number(),
-    hashed_password: 'hashed-password-placeholder', // Always hash passwords properly
-    username: faker.internet.username().toLowerCase() + faker.string.alphanumeric(4),
-  }));
-  console.log(users);
-  await prisma.user.createMany({ data: users });
+  // console.log('Seeding users...');
+  // const users = Array.from({ length: 20 }, () => ({
+  //   name: faker.person.fullName(),
+  //   email: faker.internet.email(),
+  //   sex: faker.person.sex(),
+  //   address: faker.location.streetAddress(),
+  //   birth_date: faker.date.birthdate(),
+  //   information: faker.lorem.sentence(),
+  //   phone_number: faker.phone.number(),
+  //   hashed_password: 'hashed-password-placeholder', // Always hash passwords properly
+  //   username: faker.internet.username().toLowerCase() + faker.string.alphanumeric(4),
+  // }));
+  // await prisma.user.createMany({ data: users });
   console.log('Seeded 20 users.');
 
   console.log('Seeding ticket prices...');
@@ -59,21 +58,28 @@ async function main() {
   await prisma.voucher.createMany({ data: vouchers });
   console.log('Seeded 10 vouchers.');
 
-  const createdUsers = await prisma.user.findMany();
+  // const createdUsers = await prisma.user.findMany();
 
-  console.log('Seeding admins and customers...');
-  const customers = createdUsers.slice(0, 5).map(user => ({ user_id: user.id }));
-  await prisma.customer.createMany({ data: customers });
-
-  const admins = createdUsers.slice(5, 7).map(user => ({ user_id: user.id }));
-  await prisma.admin.createMany({ data: admins });
-  console.log('Seeded 5 customers and 2 admins.');
+  // console.log('Seeding admins and customers...');
+  // const customers = createdUsers.slice(0, 5).map(user => ({ user_id: user.id }));
+  // await prisma.customer.createMany({ data: customers });
+  //
+  // const admins = createdUsers.slice(5, 7).map(user => ({ user_id: user.id }));
+  // await prisma.admin.createMany({ data: admins });
+  // console.log('Seeded 5 customers and 2 admins.');
 
   const createdAdmins = await prisma.admin.findMany();
   const createdCustomers = await prisma.customer.findMany();
 
   console.log('Seeding events...');
+  function createEventName() {
+    const eventType = faker.helpers.arrayElement(['Conference', 'Summit', 'Festival', 'Symposium', 'Gala']);
+    const topic = faker.company.catchPhrase();
+
+    return `${topic} ${eventType}`;
+  }
   const events = Array.from({ length: 8 }, () => ({
+    name: createEventName(),
     information: faker.company.catchPhrase(),
     destination: faker.location.city(),
     organizer: faker.company.name(),
@@ -86,6 +92,7 @@ async function main() {
   console.log('Seeded 8 events.');
 
   const createdEvents = await prisma.event.findMany();
+  console.log(createdEvents);
   const createdTicketPrices = await prisma.ticketPrice.findMany();
 
   console.log('Seeding tickets...');
@@ -144,7 +151,7 @@ async function main() {
 
   console.log('---  Seeding finished successfully! ---');
 }
-
+// clearData();
 main()
   .catch((e) => {
     console.error('An error occurred while seeding the database:', e);

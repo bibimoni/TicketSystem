@@ -4,6 +4,7 @@ import { CustomerService } from 'src/customer/customer.service';
 import { UserService } from 'src/user/user.service';
 import { AdminService } from 'src/admin/admin.service';
 import { CreateEventDto } from './dto/create-event.dto';
+import { PublicEventResponseDto } from './dto/public-event-response';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { info } from 'console';
 
@@ -11,7 +12,8 @@ import { info } from 'console';
 export class EventService {
   constructor(private prisma: PrismaService, private customerService: CustomerService, private userService: UserService, private adminService: AdminService) { }
 
-  async create(createEventDto: CreateEventDto) {
+  async create(createEventDto: CreateEventDto)
+    : Promise<PublicEventResponseDto> {
     const { name, eventTicketTimes, admin_id, customer_id } = createEventDto
 
     const admin = await this.prisma.admin.findUnique({
@@ -23,14 +25,14 @@ export class EventService {
     }
 
     const customer = await this.prisma.customer.findUnique({
-      where: { id: customer_id }
+      where: { id: customer_id } // customer is event organizer too
     })
 
     if (!customer) {
       throw new ForbiddenException()
     }
 
-    return await this.prisma.event.create({
+    const event = await this.prisma.event.create({
       data: {
         name: name,
         admin: {
@@ -40,13 +42,37 @@ export class EventService {
           connect: { id: customer_id }
         },
         eventTicketTimes: eventTicketTimes
+      },
+      select: {
+        id: true,
+        name: true,
+        information: true,
+        destination: true,
+        organizer: true,
+        eventTimes: true,
+        eventTicketTimes: true
       }
     })
+
+    if (!event) {
+      throw new ForbiddenException()
+    }
+    return event;
   }
 
-  // findAll() {
-  //   return `This action returns all event`;
-  // }
+  async findAll() {
+    return await this.prisma.event.findMany({
+      select: {
+        id: true,
+        name: true,
+        information: true,
+        destination: true,
+        organizer: true,
+        eventTimes: true,
+        eventTicketTimes: true,
+      },
+    });
+  }
 
   // findOne(id: number) {
   //   return `This action returns a #${id} event`;

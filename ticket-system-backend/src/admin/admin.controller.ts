@@ -21,8 +21,8 @@ export class AdminController {
     return this.adminService.create(createAdminDto);
   }
 
-  @Get('all')
-  async findAll() {
-    return this.adminService.findAll();
-  }
+  // @Get('all')
+  // async findAll() {
+  //   return this.adminService.findAll();
+  // }
 }

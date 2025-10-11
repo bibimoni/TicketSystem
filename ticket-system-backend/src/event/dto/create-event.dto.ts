@@ -10,13 +10,13 @@ export class CreateEventDto {
   name: string
 
   @ApiProperty({
-    example: '654c602a82046892558f6233'
+    example: '68ea6fb86acf163f42a91c2a'
   })
   @IsString()
   admin_id: string
 
   @ApiProperty({
-    example: '68e4e22c9815978759f58201'
+    example: '68ea6756dfe71b734e5907b0'
   })
   @IsString()
   customer_id: string

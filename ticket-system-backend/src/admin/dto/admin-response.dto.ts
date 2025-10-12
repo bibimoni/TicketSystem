@@ -9,5 +9,5 @@ export class PublicAdminResponseDto {
     example: '68e8c558dc27a404d99b4ca5',
     description: 'Admin\'s id.',
   })
-  id: string
+  id: string;
 }

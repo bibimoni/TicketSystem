@@ -8,7 +8,7 @@ import { CreateAdminDto } from './dto/create-admin.dto';
 export class AdminService {
   constructor(private prisma: PrismaService, private userService: UserService) { }
 
-  async create(createAdminDto: CreateAdminDto) {
+  async create(createAdminDto: CreateAdminDto): Promise<CreateAdminDto> {
     const { user_id } = createAdminDto
 
     const user = await this.prisma.user.findUnique({

@@ -17,7 +17,7 @@ export class AdminController {
     type: PublicAdminResponseDto
   })
   @Post()
-  async create(@Body() createAdminDto: CreateAdminDto) {
+  async create(@Body() createAdminDto: CreateAdminDto): Promise<CreateAdminDto> {
     return this.adminService.create(createAdminDto);
   }
 

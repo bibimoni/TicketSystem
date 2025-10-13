@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PrismaService } from './prisma/prisma.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { CustomerController } from './customer/customer.controller';
@@ -14,6 +14,8 @@ import { EventService } from './event/event.service';
 import { AdminService } from './admin/admin.service';
 import { EventController } from './event/event.controller';
 import { AdminController } from './admin/admin.controller';
+import { StripeModule } from './stripe/stripe.module';
+import { config } from './config/config';
 
 @Module({
   imports: [
@@ -24,7 +26,15 @@ import { AdminController } from './admin/admin.controller';
     UserModule,
     AuthModule,
     EventModule,
-    AdminModule
+    AdminModule,
+    StripeModule.forRootAsync({
+      useFactory: () => ({
+        apiKey: config.stripeApiKey || '',
+        options: {
+          apiVersion: '2025-09-30.clover'
+        }
+      })
+    }),
   ],
   controllers: [CustomerController, AuthController, EventController, AdminController],
   providers: [PrismaService, AuthService, CustomerService, EventService, AdminService],

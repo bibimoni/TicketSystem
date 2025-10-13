@@ -22,6 +22,9 @@ export class Config {
       isDevelopment: process.env.NODE_ENV || 'development'
     };
     this._config.mongoUri = process.env.MONGO_URI || `mongodb://${this._config.mongoUser}:${this._config.mongoPassword}@mongodb:27017/${this._config.mongoDB}`
+
+    this._config.stripeApiKey = process.env.STRIPE_API_KEY
+
     return this;
   }
 
@@ -33,6 +36,7 @@ export class Config {
   get mongoDB() { return this._config.mongoDB }
   get mongoUser() { return this._config.mongoUser }
   get mongoPassword() { return this._config.mongoPassword }
+  get stripeApiKey() { return this._config.stripeApiKey }
 
   get(key: string) {
     return this._config[key];

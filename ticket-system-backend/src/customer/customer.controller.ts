@@ -13,6 +13,7 @@ export class CustomerController {
   @ApiOperation({ summary: 'User create' })
   @ApiBody({ type: CreateCustomerDto })
   @ApiResponse({
+    status: 200,
     description: "Successfully create user",
     type: PublicUserResponseDto
   })

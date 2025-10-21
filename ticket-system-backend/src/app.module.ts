@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PrismaService } from './prisma/prisma.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { CustomerController } from './customer/customer.controller';
@@ -11,6 +11,14 @@ import { UserModule } from './user/user.module';
 import { TicketController } from './ticket/ticket.controller';
 import { TicketService } from './ticket/ticket.service';
 import { TicketModule } from './ticket/ticket.module';
+import { EventModule } from './event/event.module';
+import { AdminModule } from './admin/admin.module';
+import { EventService } from './event/event.service';
+import { AdminService } from './admin/admin.service';
+import { EventController } from './event/event.controller';
+import { AdminController } from './admin/admin.controller';
+import { StripeModule } from './stripe/stripe.module';
+import { config } from './config/config';
 
 @Module({
   imports: [
@@ -24,6 +32,19 @@ import { TicketModule } from './ticket/ticket.module';
   ],
   controllers: [CustomerController, AuthController, TicketController],
   providers: [PrismaService, AuthService, CustomerService, TicketService],
+    EventModule,
+    AdminModule,
+    StripeModule.forRootAsync({
+      useFactory: () => ({
+        apiKey: config.stripeApiKey || '',
+        options: {
+          apiVersion: '2025-09-30.clover'
+        }
+      })
+    }),
+  ],
+  controllers: [CustomerController, AuthController, EventController, AdminController],
+  providers: [PrismaService, AuthService, CustomerService, EventService, AdminService],
   exports: [PrismaService]
 })
 export class AppModule { }

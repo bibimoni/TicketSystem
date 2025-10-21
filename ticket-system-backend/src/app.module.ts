@@ -8,6 +8,9 @@ import { CustomerService } from './customer/customer.service';
 import { AuthController } from './auth/auth.controller';
 import { AuthService } from './auth/auth.service';
 import { UserModule } from './user/user.module';
+import { TicketController } from './ticket/ticket.controller';
+import { TicketService } from './ticket/ticket.service';
+import { TicketModule } from './ticket/ticket.module';
 
 @Module({
   imports: [
@@ -17,9 +20,10 @@ import { UserModule } from './user/user.module';
     PrismaModule,
     UserModule,
     AuthModule,
+    TicketModule,
   ],
-  controllers: [CustomerController, AuthController],
-  providers: [PrismaService, AuthService, CustomerService],
+  controllers: [CustomerController, AuthController, TicketController],
+  providers: [PrismaService, AuthService, CustomerService, TicketService],
   exports: [PrismaService]
 })
 export class AppModule { }

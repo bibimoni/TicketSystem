@@ -11,7 +11,6 @@ export class AuthService {
 
   async signIn(username: string, password: string): Promise<any> {
     const user = await this.prisma.user.findUnique({ where: { username } })
-    this.logger.log("hi");
     if (!user) {
       throw new UnauthorizedException();
     }

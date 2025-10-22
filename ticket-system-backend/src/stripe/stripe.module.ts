@@ -4,8 +4,10 @@ import { STRIPE_CLIENT } from './constants';
 import { StripeModuleAsyncOptions } from './stripe-module-async-options.interface';
 import { StripeService } from './stripe.service';
 import { StripeController } from './stripe.controller';
+import { EventModule } from 'src/event/event.module';
 
 @Module({
+  imports: [EventModule],
   providers: [StripeService],
   controllers: [StripeController]
 })

@@ -14,10 +14,11 @@ export class EventService {
   constructor(private prisma: PrismaService, private customerService: CustomerService, private userService: UserService, private adminService: AdminService) { }
 
   async createEventByCustomer(createEventCustomerDto: CreateEventCustomerDto, username: string) {
-    const customer = await this.customerService.findOne(username)
-    if (!customer) {
+    const customer_id = await this.customerService.findCustomerId(username);
+    if (!customer_id) {
       throw new ForbiddenException("No customer found")
     }
+    console.log(customer_id)
 
     const event = await this.prisma.event.create({
       data: {
@@ -27,11 +28,10 @@ export class EventService {
         destination: createEventCustomerDto.destination,
         organizer: createEventCustomerDto.organizer,
         customer: {
-          connect: { id: customer.id }
+          connect: { id: customer_id }
         },
         eventTimes: createEventCustomerDto.eventTimes,
         count_carry_out: createEventCustomerDto.eventTimes.length,
-        amount: 0,
       },
     })
 

@@ -93,7 +93,8 @@ model Ticket {
 model Transaction {
   id                   String                    @id @default(auto()) @map("_id") @db.ObjectId
   time_date            DateTime
-  method               String
+  method               transaction_method
+  status               transaction_status        @default(PENDING)
   price_before_voucher Float
   total_price          Float
   customer_id          String                    @db.ObjectId
@@ -102,6 +103,20 @@ model Transaction {
   vouchers             TransactionApplyVoucher[]
   User                 User?                     @relation(fields: [userId], references: [id])
   userId               String?                   @db.ObjectId
+}
+
+enum transaction_status {
+  PENDING
+  PAID
+  CANCELLED
+}
+
+enum transaction_method {
+  CREDIT_CARD
+  BANK_TRANSFER
+  MOMO
+  ZALOPAY
+  CASH
 }
 
 model Voucher {

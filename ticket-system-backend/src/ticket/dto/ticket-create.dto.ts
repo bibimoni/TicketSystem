@@ -24,14 +24,6 @@ export class CreateTicketPriceDto {
 
 export class CreateTicketDto {
   @ApiProperty({
-    example: 'VIP Ticket',
-    description: 'Name of the ticket type',
-  })
-  @IsString()
-  @MinLength(3)
-  name: string
-
-  @ApiProperty({
     example: 'A',
     description: 'Seat place identifier',
   })
@@ -45,11 +37,5 @@ export class CreateTicketDto {
   @IsString()
   status: string
 
-  @ApiProperty({
-    example: 100,
-    description: 'Amount of tickets available',
-  })
-  @IsNumber()
-  ammount: number
 }
 

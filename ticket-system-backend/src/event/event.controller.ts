@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Request, UseGuards, HttpStatus, HttpCode, UnauthorizedException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Request, UseGuards, HttpStatus, HttpCode, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { EventService } from './event.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
@@ -6,10 +6,14 @@ import { PublicEventResponseDto } from './dto/public-event-response';
 import { ApiBearerAuth, ApiBody, ApiHeader, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { CreateEventCustomerDto } from './dto/create-event-customer.dto';
+import { TicketService } from 'src/ticket/ticket.service';
 
 @Controller('event')
 export class EventController {
-  constructor(private readonly eventService: EventService) { }
+  constructor(
+    private readonly eventService: EventService,
+    private readonly ticketService: TicketService
+  ) { }
 
   // @HttpCode(HttpStatus.OK)
   // @ApiOperation({ summary: 'Event create' })
@@ -28,12 +32,48 @@ export class EventController {
   @ApiOperation({ summary: 'Create Event by Customer' })
   @ApiBearerAuth('JWT-auth')
   @Post('create')
-  async createEvent(@Body() createEventDto: CreateEventCustomerDto, @Request() req) {
+  async createEvent(@Body() createEventCustomerDto: CreateEventCustomerDto, @Request() req: any) {
     const username = req.user.username;
     if (!username) {
       throw new UnauthorizedException()
     }
 
+    const createdEvent = await this.eventService.createEventByCustomer(createEventCustomerDto, username);
+
+    const ticketPrice = await Promise.all(
+      createEventCustomerDto.ticketsType.map(async ticketType => {
+        const createdTicketPrice = await this.ticketService.createTicketPrice({
+          price: ticketType.price,
+          name: ticketType.name,
+          benefit_info: ticketType.benefit_info
+        })
+
+        if (!createdTicketPrice) {
+          throw new BadRequestException("Failed to create ticket price")
+        }
+
+        const tickets = await Promise.all(
+          ticketType.tickets.map(async ticketDto => {
+            const createdTicket = await this.ticketService.createTicket(
+              ticketDto,
+              createdEvent.id,
+              createdTicketPrice.id
+            )
+            if (!createdTicket) {
+              throw new BadRequestException("Failed to create ticket")
+            }
+            return createdTicket;
+          })
+        )
+
+        if (!tickets) {
+          throw new BadRequestException("Failed to create tickets")
+        }
+        return createdTicketPrice;
+      })
+    )
+
+    console.log(ticketPrice)
   }
 
   // Action of admin: view all event

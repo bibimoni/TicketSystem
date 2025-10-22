@@ -7,12 +7,23 @@ import { CreateTicketDto, CreateTicketPriceDto } from './dto/ticket-create.dto';
 export class TicketService {
   constructor(private prisma: PrismaService) { }
 
-  async createTicket(createEventDto: CreateTicketDto): Promise<Ticket> {
-
+  async createTicket(createTicketDto: CreateTicketDto, eventId: string, ticketpriceId: string): Promise<Ticket> {
+    return await this.prisma.ticket.create({
+      data: {
+        seat: createTicketDto.seat,
+        status: createTicketDto.status,
+        event: {
+          connect: { id: eventId }
+        },
+        ticketPrice: {
+          connect: { id: ticketpriceId }
+        }
+      }
+    })
   }
 
   async createTicketPrice(createTicketPriceDto: CreateTicketPriceDto): Promise<TicketPrice> {
-    return this.prisma.ticketPrice.create({
+    return await this.prisma.ticketPrice.create({
       data: {
         price: createTicketPriceDto.price,
         name: createTicketPriceDto.name,

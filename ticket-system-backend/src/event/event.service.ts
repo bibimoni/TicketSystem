@@ -7,10 +7,39 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { PublicEventResponseDto } from './dto/public-event-response';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { info } from 'console';
+import { CreateEventCustomerDto } from './dto/create-event-customer.dto';
 
 @Injectable()
 export class EventService {
   constructor(private prisma: PrismaService, private customerService: CustomerService, private userService: UserService, private adminService: AdminService) { }
+
+  async createEventByCustomer(createEventCustomerDto: CreateEventCustomerDto, username: string) {
+    const customer = await this.customerService.findOne(username)
+    if (!customer) {
+      throw new ForbiddenException("No customer found")
+    }
+
+    const event = await this.prisma.event.create({
+      data: {
+        name: createEventCustomerDto.name,
+        information: createEventCustomerDto.information,
+        eventTicketTimes: createEventCustomerDto.eventTicketTimes,
+        destination: createEventCustomerDto.destination,
+        organizer: createEventCustomerDto.organizer,
+        customer: {
+          connect: { id: customer.id }
+        },
+        eventTimes: createEventCustomerDto.eventTimes,
+        count_carry_out: createEventCustomerDto.eventTimes.length,
+        amount: 0,
+      },
+    })
+
+    if (!event) {
+      throw new ForbiddenException()
+    }
+    return event;
+  }
 
   async create(createEventDto: CreateEventDto)
     : Promise<PublicEventResponseDto> {
@@ -41,7 +70,8 @@ export class EventService {
         customer: {
           connect: { id: customer_id }
         },
-        eventTicketTimes: eventTicketTimes
+        eventTicketTimes: eventTicketTimes,
+        amount: 0,
       },
       select: {
         id: true,

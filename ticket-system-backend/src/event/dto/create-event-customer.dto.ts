@@ -31,21 +31,31 @@ export class CreateEventCustomerDto {
     description: 'The organizer of the event'
   })
   @IsString()
-  @MinLength(6)
+  @MinLength(2)
   organizer: string
 
-  @ApiProperty({
-    example: 1,
-    description: 'Number of hosting days for the event'
-  })
-  @IsNumber()
-  countCarryOut: Number
+  // @ApiProperty({
+  //   example: 1,
+  //   description: 'Number of hosting days for the event'
+  // })
+  // @IsNumber()
+  // countCarryOut: number
 
   @ApiProperty({
     example: '2025-10-20T18:30:00+07:00',
     description: 'Ticket sell date and time'
   })
   eventTicketTimes: Date
+
+  @ApiProperty({
+    example: [
+      '2025-12-20T18:30:00+07:00',
+      '2025-12-21T18:30:00+07:00'
+    ],
+    description: 'Array of event occurrence dates and times'
+  })
+  @IsArray()
+  eventTimes: Date[]
 
   @IsArray()
   @ApiProperty({
@@ -58,12 +68,10 @@ export class CreateEventCustomerDto {
           {
             seat: 'A1',
             status: 'AVAILABLE',
-            ammount: 50
           },
           {
             seat: 'A2',
             status: 'AVAILABLE',
-            ammount: 50
           }
         ]
       },
@@ -75,12 +83,10 @@ export class CreateEventCustomerDto {
           {
             seat: 'B1',
             status: 'AVAILABLE',
-            ammount: 200
           },
           {
             seat: 'B2',
             status: 'AVAILABLE',
-            ammount: 200
           }
         ]
       }
@@ -113,5 +119,5 @@ export class CreateTicketPriceDto {
   @IsString()
   benefit_info: string
 
-  ticket: CreateTicketDto[]
+  tickets: CreateTicketDto[]
 }

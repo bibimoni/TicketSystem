@@ -52,10 +52,10 @@ model Event {
   organizer       String?
 
   // --- Relationships to Admin and Customer ---
-  admin_id    String   @db.ObjectId
-  admin       Admin    @relation(fields: [admin_id], references: [id])
-  customer_id String   @db.ObjectId
-  customer    Customer @relation(fields: [customer_id], references: [id])
+  admin_id    String?   @db.ObjectId
+  admin       Admin?    @relation(fields: [admin_id], references: [id])
+  customer_id String    @db.ObjectId
+  customer    Customer? @relation(fields: [customer_id], references: [id])
 
   // --- Embedded Data using Composite Types ---
   // EventTime and EventTicketTime are now arrays of TimeSlot objects

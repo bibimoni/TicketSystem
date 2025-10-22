@@ -16,6 +16,7 @@ export class EventService {
         throw new ForbiddenException("No customer found")
       }
     }
+    console.log(customer_id)
 
     const events = await this.prisma.event.findMany({
       where: {

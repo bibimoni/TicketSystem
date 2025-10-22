@@ -64,7 +64,7 @@ export class CreateEventCustomerDto {
         name: 'VIP Ticket',
         price: 150,
         benefit_info: 'Access to VIP seating area and complimentary drinks',
-        ticket: [
+        tickets: [
           {
             seat: 'A1',
             status: 'AVAILABLE',
@@ -79,7 +79,7 @@ export class CreateEventCustomerDto {
         name: 'Standard Ticket',
         price: 50,
         benefit_info: 'Access to standard seating area',
-        ticket: [
+        tickets: [
           {
             seat: 'B1',
             status: 'AVAILABLE',

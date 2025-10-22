@@ -15,6 +15,13 @@ export class EventController {
     private readonly ticketService: TicketService
   ) { }
 
+  @ApiOperation({ summary: 'Get all events' })
+  @HttpCode(HttpStatus.OK)
+  @Get('/all')
+  async findAllEvents() {
+    return await this.eventService.findAllEvents();
+  }
+
   // @HttpCode(HttpStatus.OK)
   // @ApiOperation({ summary: 'Event create' })
   // @ApiBody({ type: CreateEventDto })
@@ -40,7 +47,7 @@ export class EventController {
 
     const createdEvent = await this.eventService.createEventByCustomer(createEventCustomerDto, username);
 
-    const ticketPrice = await Promise.all(
+    await Promise.all(
       createEventCustomerDto.ticketsType.map(async ticketType => {
         const createdTicketPrice = await this.ticketService.createTicketPrice({
           price: ticketType.price,
@@ -73,7 +80,20 @@ export class EventController {
       })
     )
 
-    console.log(ticketPrice)
+    return { event_id: createdEvent.id };
+  }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Customer Get All Events' })
+  @ApiBearerAuth('JWT-auth')
+  @Get('customer_events')
+  async findAllByCustomer(@Request() req: any) {
+    const username = req.user.username;
+    if (!username) {
+      throw new UnauthorizedException()
+    }
+    return await this.eventService.findAllByCustomer(username);
   }
 
   // Action of admin: view all event

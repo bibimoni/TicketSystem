@@ -73,6 +73,16 @@ export class CreateEventCustomerDto {
   @ApiProperty({ required: true })
   messages: string
 
+  @ApiProperty({
+    example: [
+      '2025-12-20T18:30:00+07:00',
+      '2025-12-21T18:30:00+07:00'
+    ],
+    description: 'Array of event occurrence dates and times'
+  })
+  @IsArray()
+  eventTimes: Date[]
+
   @IsArray()
   @ApiProperty({
     type: () => CreateTicketPriceDto,

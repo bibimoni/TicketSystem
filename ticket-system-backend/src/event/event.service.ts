@@ -104,6 +104,38 @@ export class EventService {
     };
   }
 
+  async findAllEvents(username: string | null = null) {
+    let customer_id: string | null = null;
+    if (username !== null) {
+      customer_id = await this.customerService.findCustomerId(username);
+      if (!customer_id) {
+        throw new ForbiddenException("No customer found")
+      }
+    }
+
+    const events = await this.prisma.event.findMany({
+      where: {
+        customer_id: customer_id === null ? undefined : customer_id
+      },
+      select: {
+        id: true,
+        name: true,
+        information: true,
+        destination: true,
+        organizer: true,
+        eventTimes: true,
+        eventTicketTimes: true,
+        tickets: {
+          include: {
+            ticketPrice: true
+          }
+        }
+      }
+    })
+
+    return events;
+  }
+
   async createEventByCustomer(createEventCustomerDto: CreateEventCustomerDto, username: string) {
     const customer_id = await this.customerService.findCustomerId(username);
     if (!customer_id) {

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Request, UseGuards, HttpStatus, HttpCode } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Request, UseGuards, HttpStatus, HttpCode, UnauthorizedException } from '@nestjs/common';
 import { CustomerService } from './customer.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
@@ -7,7 +7,9 @@ import { PublicUserResponseDto } from './dto/customer-response.dto';
 
 @Controller('customer')
 export class CustomerController {
-  constructor(private readonly customerService: CustomerService) { }
+  constructor(
+    private readonly customerService: CustomerService,
+  ) { }
 
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'User create' })

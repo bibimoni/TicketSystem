@@ -1,25 +1,39 @@
-import { Controller, Get, Post, Body, Param, Request, UseGuards, HttpStatus, HttpCode } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Request, UseGuards, HttpStatus, HttpCode, UnauthorizedException } from '@nestjs/common';
 import { EventService } from './event.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { PublicEventResponseDto } from './dto/public-event-response';
 import { ApiBearerAuth, ApiBody, ApiHeader, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { CreateEventCustomerDto } from './dto/create-event-customer.dto';
 
 @Controller('event')
 export class EventController {
   constructor(private readonly eventService: EventService) { }
 
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Event create' })
-  @ApiBody({ type: CreateEventDto })
-  @ApiResponse({
-    description: "Successfully create event",
-    type: PublicEventResponseDto
-  })
-  @Post()
-  async create(@Body() createEventDto: CreateEventDto): Promise<PublicEventResponseDto> {
-    return await this.eventService.create(createEventDto);
+  // @HttpCode(HttpStatus.OK)
+  // @ApiOperation({ summary: 'Event create' })
+  // @ApiBody({ type: CreateEventDto })
+  // @ApiResponse({
+  //   description: "Successfully create event",
+  //   type: PublicEventResponseDto
+  // })
+  // @Post()
+  // async create(@Body() createEventDto: CreateEventDto): Promise<PublicEventResponseDto> {
+  //   return await this.eventService.create(createEventDto);
+  // }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Create Event by Customer' })
+  @ApiBearerAuth('JWT-auth')
+  @Post('create')
+  async createEvent(@Body() createEventDto: CreateEventCustomerDto, @Request() req) {
+    const username = req.user.username;
+    if (!username) {
+      throw new UnauthorizedException()
+    }
+
   }
 
   // Action of admin: view all event

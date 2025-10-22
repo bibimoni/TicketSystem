@@ -1,0 +1,117 @@
+import { ApiProperty } from "@nestjs/swagger"
+import { IsArray, IsNumber, IsString, MinLength } from "class-validator"
+import { CreateTicketDto } from "src/ticket/dto/ticket-create.dto"
+
+export class CreateEventCustomerDto {
+  @ApiProperty({
+    example: 'The Vietnam Concert'
+  })
+  @IsString()
+  @MinLength(6)
+  name: string
+
+  @ApiProperty({
+    example: 'This is the Vietname national concert featuring top artists from around the country. Join us for an unforgettable night of music, culture, and celebration.',
+    description: 'Detailed information about the event'
+  })
+  @IsString()
+  @MinLength(20)
+  information: string
+
+  @ApiProperty({
+    example: 'Van Phuc City, Ho Chi Minh City, Vietnam',
+    description: 'The location where the event will take place'
+  })
+  @IsString()
+  @MinLength(6)
+  destination: string
+
+  @ApiProperty({
+    example: 'Yeah1',
+    description: 'The organizer of the event'
+  })
+  @IsString()
+  @MinLength(6)
+  organizer: string
+
+  @ApiProperty({
+    example: 1,
+    description: 'Number of hosting days for the event'
+  })
+  @IsNumber()
+  countCarryOut: Number
+
+  @ApiProperty({
+    example: '2025-10-20T18:30:00+07:00',
+    description: 'Ticket sell date and time'
+  })
+  eventTicketTimes: Date
+
+  @IsArray()
+  @ApiProperty({
+    example: [
+      {
+        name: 'VIP Ticket',
+        price: 150,
+        benefit_info: 'Access to VIP seating area and complimentary drinks',
+        ticket: [
+          {
+            seat: 'A1',
+            status: 'AVAILABLE',
+            ammount: 50
+          },
+          {
+            seat: 'A2',
+            status: 'AVAILABLE',
+            ammount: 50
+          }
+        ]
+      },
+      {
+        name: 'Standard Ticket',
+        price: 50,
+        benefit_info: 'Access to standard seating area',
+        ticket: [
+          {
+            seat: 'B1',
+            status: 'AVAILABLE',
+            ammount: 200
+          },
+          {
+            seat: 'B2',
+            status: 'AVAILABLE',
+            ammount: 200
+          }
+        ]
+      }
+    ],
+    description: 'Array of tickets available for the event',
+  })
+  ticketsType: CreateTicketPriceDto[]
+}
+
+export class CreateTicketPriceDto {
+  @ApiProperty({
+    example: 'VIP Ticket',
+    description: 'Name of the ticket type',
+  })
+  @IsString()
+  @MinLength(3)
+  name: string
+
+  @ApiProperty({
+    example: 150,
+    description: 'Price of the ticket',
+  })
+  @IsNumber()
+  price: number
+
+  @ApiProperty({
+    example: 'Access to VIP seating area and complimentary drinks',
+    description: 'Benefits associated with the ticket type',
+  })
+  @IsString()
+  benefit_info: string
+
+  ticket: CreateTicketDto[]
+}

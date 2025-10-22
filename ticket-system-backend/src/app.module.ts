@@ -30,21 +30,8 @@ import { config } from './config/config';
     AuthModule,
     TicketModule,
   ],
-  controllers: [CustomerController, AuthController, TicketController],
-  providers: [PrismaService, AuthService, CustomerService, TicketService],
-    EventModule,
-    AdminModule,
-    StripeModule.forRootAsync({
-      useFactory: () => ({
-        apiKey: config.stripeApiKey || '',
-        options: {
-          apiVersion: '2025-09-30.clover'
-        }
-      })
-    }),
-  ],
-  controllers: [CustomerController, AuthController, EventController, AdminController],
-  providers: [PrismaService, AuthService, CustomerService, EventService, AdminService],
+  controllers: [CustomerController, AuthController, EventController, AdminController, TicketController],
+  providers: [PrismaService, AuthService, CustomerService, EventService, AdminService, TicketService],
   exports: [PrismaService]
 })
 export class AppModule { }

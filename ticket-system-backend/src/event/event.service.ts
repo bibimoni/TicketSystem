@@ -104,6 +104,34 @@ export class EventService {
     };
   }
 
+  async createEventByCustomer(createEventCustomerDto: CreateEventCustomerDto, username: string) {
+    const customer = await this.customerService.findOne(username)
+    if (!customer) {
+      throw new ForbiddenException("No customer found")
+    }
+
+    const event = await this.prisma.event.create({
+      data: {
+        name: createEventCustomerDto.name,
+        information: createEventCustomerDto.information,
+        eventTicketTimes: createEventCustomerDto.eventTicketTimes,
+        destination: createEventCustomerDto.destination,
+        organizer: createEventCustomerDto.organizer,
+        customer: {
+          connect: { id: customer.id }
+        },
+        eventTimes: createEventCustomerDto.eventTimes,
+        count_carry_out: createEventCustomerDto.eventTimes.length,
+        amount: 0,
+      },
+    })
+
+    if (!event) {
+      throw new ForbiddenException()
+    }
+    return event;
+  }
+
   async create(createEventDto: CreateEventDto)
     : Promise<PublicEventResponseDto> {
     const { name, eventTicketTimes, admin_id, customer_id } = createEventDto

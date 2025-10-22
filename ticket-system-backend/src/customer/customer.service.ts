@@ -54,4 +54,18 @@ export class CustomerService {
     }
     return user
   }
+
+  async findCustomerId(username: string): Promise<string | null> {
+    const user = await this.userService.findOne(username)
+    if (!user) {
+      throw new ForbiddenException()
+    }
+    const customer = await this.prisma.customer.findUnique({
+      where: { user_id: user.id }
+    })
+    if (!customer) {
+      throw new ForbiddenException()
+    }
+    return customer.id
+  }
 }

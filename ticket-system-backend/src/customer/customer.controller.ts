@@ -4,10 +4,11 @@ import { CreateCustomerDto } from './dto/create-customer.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { ApiBearerAuth, ApiBody, ApiHeader, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { PublicUserResponseDto } from './dto/customer-response.dto';
+import { StripeService } from 'src/stripe/stripe.service';
 
 @Controller('customer')
 export class CustomerController {
-  constructor(private readonly customerService: CustomerService) { }
+  constructor(private readonly customerService: CustomerService, private readonly stripeService: StripeService) { }
 
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'User create' })
@@ -19,7 +20,17 @@ export class CustomerController {
   })
   @Post()
   async create(@Body() createCustomerDto: CreateCustomerDto): Promise<PublicUserResponseDto> {
-    return this.customerService.create(createCustomerDto);
+    const customer = await this.customerService.create(createCustomerDto);
+
+    await this.stripeService.createCustomer({
+      email: customer.email,
+      name: customer.username,
+      metadata: {
+        customer_id: customer.id,
+      }
+    });
+
+    return customer;
   }
 
   @UseGuards(AuthGuard)
@@ -32,7 +43,7 @@ export class CustomerController {
     required: true,
     schema: {
       type: 'string',
-      example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpvaG5kb2UiLCJpYXQiOjE2MTYyMzkwMjJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
+      example: 'Bearer eyJhbGciOiJIUzI1NiIsI...',
     }
   })
   @ApiResponse({

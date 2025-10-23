@@ -1,7 +1,6 @@
 import { Injectable, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateTicketDto } from './dto/create-ticket.dto';
-import { CreateTicketPriceDto } from './dto/create-ticket-price.dto';
+import { CreateTicketDto, CreateTicketPriceDto } from './dto/create-ticket.dto';
 
 @Injectable()
 export class TicketService {
@@ -18,22 +17,22 @@ export class TicketService {
       }
     });
 
-    if (!ticketPrice) {
-      throw new ForbiddenException('Failed to create ticket price');
-    }
-
     return ticketPrice;
   }
 
-  async create(createTicketDto: CreateTicketDto) {
-    const { event_id, ticket_price_id, seat } = createTicketDto;
+  async createTicket(createTicketDto: CreateTicketDto, eventId: string, ticketPriceId: string) {
+    const { seat } = createTicketDto;
 
     const ticket = await this.prisma.ticket.create({
       data: {
-        event_id,
-        ticket_price_id,
         seat: seat || null,
-        status: 'AVAILABLE'
+        status: 'AVAILABLE',
+        event: {
+          connect: { id: eventId }
+        },
+        ticketPrice: {
+          connect: { id: ticketPriceId }
+        }
       },
       include: {
         event: {

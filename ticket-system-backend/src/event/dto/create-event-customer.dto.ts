@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger"
-import { IsArray, IsNumber, IsString, MinLength } from "class-validator"
-import { CreateTicketDto } from "src/ticket/dto/ticket-create.dto"
+import { IsArray, IsOptional, IsNumber, IsString, MinLength } from "class-validator"
+import { CreateTicketDto } from "src/ticket/dto/create-ticket.dto"
 
 export class CreateEventCustomerDto {
   @ApiProperty({
@@ -96,9 +96,10 @@ export class CreateEventCustomerDto {
   ticketsType: CreateTicketPriceDto[]
 }
 
+
 export class CreateTicketPriceDto {
   @ApiProperty({
-    example: 'VIP Ticket',
+    example: 'VIP',
     description: 'Name of the ticket type',
   })
   @IsString()
@@ -106,8 +107,8 @@ export class CreateTicketPriceDto {
   name: string
 
   @ApiProperty({
-    example: 150,
-    description: 'Price of the ticket',
+    example: 500000,
+    description: 'Price of the ticket in VND',
   })
   @IsNumber()
   price: number
@@ -117,7 +118,8 @@ export class CreateTicketPriceDto {
     description: 'Benefits associated with the ticket type',
   })
   @IsString()
-  benefit_info: string
+  @IsOptional()
+  benefit_info?: string
 
   tickets: CreateTicketDto[]
 }

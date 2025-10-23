@@ -1,8 +1,7 @@
 import { Controller, Post, Body, Get, Param, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiHeader, ApiBody } from '@nestjs/swagger';
 import { TicketService } from './ticket.service';
-import { CreateTicketDto } from './dto/create-ticket.dto';
-import { CreateTicketPriceDto } from './dto/create-ticket-price.dto';
+import { CreateTicketDto, CreateTicketPriceDto } from './dto/create-ticket.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { AdminGuard } from 'src/auth/admin.guard';
 import { Ticket } from 'generated/prisma';
@@ -12,59 +11,59 @@ import { Ticket } from 'generated/prisma';
 export class TicketController {
   constructor(private readonly ticketService: TicketService) { }
 
-  @Post('price')
-  @UseGuards(AuthGuard, AdminGuard)
-  @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Create ticket price (Admin only)' })
-  @ApiBearerAuth('JWT-auth')
-  @ApiHeader({
-    name: "Authorization",
-    description: "Bearer admin token for authorization",
-    required: true,
-    schema: {
-      type: 'string',
-      example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-    }
-  })
-  @ApiResponse({
-    status: 201,
-    description: 'Ticket\'s price created successfully',
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'Unauthorized - Invalid or missing token',
-  })
-  @ApiBody({ type: CreateTicketPriceDto })
-  async createTicketPrice(@Body() createTicketPriceDto: CreateTicketPriceDto) {
-    return await this.ticketService.createTicketPrice(createTicketPriceDto);
-  }
+  // @Post('price')
+  // @UseGuards(AuthGuard, AdminGuard)
+  // @HttpCode(HttpStatus.CREATED)
+  // @ApiOperation({ summary: 'Create ticket price (Admin only)' })
+  // @ApiBearerAuth('JWT-auth')
+  // @ApiHeader({
+  //   name: "Authorization",
+  //   description: "Bearer admin token for authorization",
+  //   required: true,
+  //   schema: {
+  //     type: 'string',
+  //     example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+  //   }
+  // })
+  // @ApiResponse({
+  //   status: 201,
+  //   description: 'Ticket\'s price created successfully',
+  // })
+  // @ApiResponse({
+  //   status: 401,
+  //   description: 'Unauthorized - Invalid or missing token',
+  // })
+  // @ApiBody({ type: CreateTicketPriceDto })
+  // async createTicketPrice(@Body() createTicketPriceDto: CreateTicketPriceDto) {
+  //   return await this.ticketService.createTicketPrice(createTicketPriceDto);
+  // }
 
-  @Post()
-  @UseGuards(AuthGuard, AdminGuard)
-  @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Create ticket (Admin only)' })
-  @ApiBearerAuth('JWT-auth')
-  @ApiHeader({
-    name: "Authorization",
-    description: "Bearer admin token for authorization",
-    required: true,
-    schema: {
-      type: 'string',
-      example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-    }
-  })
-  @ApiResponse({
-    status: 201,
-    description: 'Ticket created successfully',
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'Unauthorized - Invalid or missing token',
-  })
-  @ApiBody({ type: CreateTicketDto })
-  async create(@Body() createTicketDto: CreateTicketDto) {
-    return await this.ticketService.create(createTicketDto);
-  }
+  // @Post()
+  // @UseGuards(AuthGuard, AdminGuard)
+  // @HttpCode(HttpStatus.CREATED)
+  // @ApiOperation({ summary: 'Create ticket (Admin only)' })
+  // @ApiBearerAuth('JWT-auth')
+  // @ApiHeader({
+  //   name: "Authorization",
+  //   description: "Bearer admin token for authorization",
+  //   required: true,
+  //   schema: {
+  //     type: 'string',
+  //     example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+  //   }
+  // })
+  // @ApiResponse({
+  //   status: 201,
+  //   description: 'Ticket created successfully',
+  // })
+  // @ApiResponse({
+  //   status: 401,
+  //   description: 'Unauthorized - Invalid or missing token',
+  // })
+  // @ApiBody({ type: CreateTicketDto })
+  // async create(@Body() createTicketDto: CreateTicketDto) {
+  //   return await this.ticketService.createTicket(createTicketDto);
+  // }
 
   @Get()
   @UseGuards(AuthGuard, AdminGuard)

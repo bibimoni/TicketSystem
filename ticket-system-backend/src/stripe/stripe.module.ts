@@ -5,11 +5,14 @@ import { StripeModuleAsyncOptions } from './stripe-module-async-options.interfac
 import { StripeService } from './stripe.service';
 import { StripeController } from './stripe.controller';
 import { EventModule } from 'src/event/event.module';
+import { PrismaModule } from 'src/prisma/prisma.module';
+import { CustomerModule } from 'src/customer/customer.module';
 
 @Module({
-  imports: [EventModule],
+  imports: [PrismaModule, CustomerModule],
   providers: [StripeService],
-  controllers: [StripeController]
+  controllers: [StripeController],
+  exports: [StripeService]
 })
 export class StripeModule {
   // Synchronous

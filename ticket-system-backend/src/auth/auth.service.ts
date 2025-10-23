@@ -19,10 +19,29 @@ export class AuthService {
     if (!await compare(password, hashed_password)) {
       throw new UnauthorizedException();
     }
-    const payload = { id, username }
+    // const payload = { id, username }
+    // return {
+    //   access_token: await this.jwtService.signAsync(payload)
+    // }
+    const admin = await this.prisma.admin.findUnique({
+      where: { user_id: user.id }
+    });
+
+    const payload = {
+      id: user.id,
+      username: user.username,
+      isAdmin: !!admin // Thêm flag để nhận biết admin
+    };
+
     return {
-      access_token: await this.jwtService.signAsync(payload)
-    }
+      access_token: await this.jwtService.signAsync(payload),
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        isAdmin: !!admin
+      }
+    };
   }
 
 

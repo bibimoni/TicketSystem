@@ -1,16 +1,11 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CustomerService } from 'src/customer/customer.service';
-import { UserService } from 'src/user/user.service';
-import { AdminService } from 'src/admin/admin.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { PublicEventResponseDto } from './dto/public-event-response';
-import { UpdateEventDto } from './dto/update-event.dto';
-import { info } from 'console';
 
 @Injectable()
 export class EventService {
-  constructor(private prisma: PrismaService, private customerService: CustomerService, private userService: UserService, private adminService: AdminService) { }
+  constructor(private prisma: PrismaService) { }
 
   async create(createEventDto: CreateEventDto)
     : Promise<PublicEventResponseDto> {
@@ -41,7 +36,8 @@ export class EventService {
         customer: {
           connect: { id: customer_id }
         },
-        eventTicketTimes: eventTicketTimes
+        eventTicketTimes: eventTicketTimes,
+        amount: 1
       },
       select: {
         id: true,
@@ -50,7 +46,7 @@ export class EventService {
         destination: true,
         organizer: true,
         eventTimes: true,
-        eventTicketTimes: true
+        eventTicketTimes: true,
       }
     })
 

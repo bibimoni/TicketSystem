@@ -19,6 +19,9 @@ import { EventController } from './event/event.controller';
 import { AdminController } from './admin/admin.controller';
 import { StripeModule } from './stripe/stripe.module';
 import { config } from './config/config';
+import { TicketModule } from './ticket/ticket.module';
+import { TransactionModule } from './transaction/transaction.module';
+import { VoucherModule } from './voucher/voucher.module';
 
 @Module({
   imports: [
@@ -28,7 +31,19 @@ import { config } from './config/config';
     PrismaModule,
     UserModule,
     AuthModule,
+    EventModule,
+    AdminModule,
     TicketModule,
+    TransactionModule,
+    VoucherModule,
+    StripeModule.forRootAsync({
+      useFactory: () => ({
+        apiKey: config.stripeApiKey || '',
+        options: {
+          apiVersion: '2025-09-30.clover'
+        }
+      })
+    }),
   ],
   controllers: [CustomerController, AuthController, EventController, AdminController, TicketController],
   providers: [PrismaService, AuthService, CustomerService, EventService, AdminService, TicketService],

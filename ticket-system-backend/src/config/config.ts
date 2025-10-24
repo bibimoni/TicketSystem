@@ -23,7 +23,16 @@ export class Config {
     };
     this._config.mongoUri = process.env.MONGO_URI || `mongodb://${this._config.mongoUser}:${this._config.mongoPassword}@mongodb:27017/${this._config.mongoDB}`
 
-    this._config.stripeApiKey = process.env.STRIPE_API_KEY
+    this._config.stripeApiKey = process.env.STRIPE_API_KEY || ''
+
+    this._config.stripeCheckoutSuccessUrl =
+      process.env.STRIPE_CHECKOUT_SUCCESS_URL || 'http://localhost:3000/checkout/success'
+
+    this._config.stripeCheckoutCancelUrl =
+      process.env.STRIPE_CHECKOUT_CANCEL_URL || 'http://localhost:3000/checkout/cancel'
+
+    this._config.stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET ||
+      'http://localhost:3000/stripe-webhook'
 
     return this;
   }
@@ -37,6 +46,9 @@ export class Config {
   get mongoUser() { return this._config.mongoUser }
   get mongoPassword() { return this._config.mongoPassword }
   get stripeApiKey() { return this._config.stripeApiKey }
+  get stripeCheckoutSuccessUrl() { return this._config.stripeCheckoutSuccessUrl }
+  get stripeCheckoutCancelUrl() { return this._config.stripeCheckoutCancelUrl }
+  get stripeWebhookSecret() { return this._config.stripeWebhookSecret }
 
   get(key: string) {
     return this._config[key];

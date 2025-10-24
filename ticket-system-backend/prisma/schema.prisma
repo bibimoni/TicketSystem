@@ -77,8 +77,8 @@ model TicketPrice {
 }
 
 model Ticket {
-  id     String  @id @default(auto()) @map("_id") @db.ObjectId
-  status String
+  id     String        @id @default(auto()) @map("_id") @db.ObjectId
+  status ticket_status
   seat   String?
 
   // --- Relationships to other collections ---
@@ -88,6 +88,11 @@ model Ticket {
   ticketPrice     TicketPrice @relation(fields: [ticket_price_id], references: [id])
 
   transactions TransactionHasTicket[]
+}
+
+enum ticket_status {
+  AVAILABLE
+  SOLD
 }
 
 model Transaction {
@@ -107,7 +112,7 @@ model Transaction {
 
 enum transaction_status {
   PENDING
-  PAID
+  SUCCESS
   CANCELLED
 }
 
@@ -121,13 +126,18 @@ enum transaction_method {
 
 model Voucher {
   id           String                    @id @default(auto()) @map("_id") @db.ObjectId
-  reduce_type  String
+  reduce_type  voucher_reduce_type
   reduce_price Float
   amount       Int
   price        Float
   start_date   DateTime
   end_date     DateTime
   transactions TransactionApplyVoucher[]
+}
+
+enum voucher_reduce_type {
+  PERCENTAGE
+  FIXED
 }
 
 // ---- Step 3: Correct the Many-to-Many "Join" Models ----

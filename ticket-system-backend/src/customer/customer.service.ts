@@ -26,15 +26,18 @@ export class CustomerService {
     const customer = await this.prisma.customer.create({
       data: {
         user_id: user.id,
-      }
+      },
+      include: { user: true }
     })
 
     if (!customer) {
       throw new ForbiddenException()
     }
-    {
-      const { hashed_password, ...result } = user;
-      return result;
+
+    const { hashed_password: _, id: __,...result } = user;
+    return {
+      id: customer.id,
+      ...result
     }
   }
 

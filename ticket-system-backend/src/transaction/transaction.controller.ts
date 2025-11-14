@@ -1,5 +1,7 @@
-import { Controller, Get, Post, Body, Request, Param, UseGuards, NotFoundException, ForbiddenException, BadRequestException, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Request, Param, UseGuards, NotFoundException, HttpCode, HttpStatus, Headers, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiHeader, ApiBody } from '@nestjs/swagger';
+import type { Request as ExpressRequest } from 'express';
+
 import { TransactionService } from './transaction.service';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { PublicTransactionResponseDto } from './dto/public-transaction.dto';
@@ -12,7 +14,7 @@ import { StripeService } from 'src/stripe/stripe.service';
 export class TransactionController {
   constructor(private readonly transactionService: TransactionService, private readonly prisma: PrismaService, private readonly stripeService: StripeService) { }
 
-  @Post('create-checkout-session')
+  @Post('checkout')
   @UseGuards(AuthGuard)
   @ApiBearerAuth('JWT-auth')
   @HttpCode(HttpStatus.OK)
@@ -27,15 +29,14 @@ export class TransactionController {
         ticketIds: {
           type: 'array',
           items: { type: 'string' },
-          example: ['ticket_id_1', 'ticket_id_2'],
+          example: ['68f92649a4a2ebaf894f06c6'],
         },
         vouchers: {
           type: 'array',
           items: {
             type: 'object',
             properties: {
-              voucher_id: { type: 'string' },
-              apply_count: { type: 'number', default: 1 },
+              voucher_id: { type: 'string' }
             },
           },
         },

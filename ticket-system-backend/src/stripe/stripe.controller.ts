@@ -1,7 +1,7 @@
-import { Body, Controller, Get, Post, Headers, Req, HttpCode, HttpStatus } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags, ApiExcludeEndpoint } from '@nestjs/swagger';
+import { Controller, Post, Headers, Req, HttpCode, HttpStatus, BadRequestException } from '@nestjs/common';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { StripeService } from './stripe.service';
-import type { Request as ExpressRequest } from 'express';
+import { config } from 'src/config/config';
 import Stripe from 'stripe';
 
 @ApiTags('stripe')
@@ -13,13 +13,25 @@ export class StripeController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Stripe Webhook (test only)' })
   @ApiResponse({ status: 200, description: 'Event received' })
-  async handleWebhook(
-    @Body() body: any,
-    @Headers('stripe-signature') signature?: string,
-    @Req() req?: ExpressRequest & { rawBody?: Buffer },
-  ): Promise<{ received: true; signaturePresent: boolean }> {
-    await this.stripeService.handleWebhook(body);
-    return { received: true, signaturePresent: Boolean(signature) };
+  async handleWebhook(@Req() req: any, @Headers('stripe-signature') sig: string) {
+    const payload: Buffer = req.rawBody;
+    const secret = config.stripeWebhookSecret;
+
+    if (!sig || !payload) {
+      throw new BadRequestException('Missing stripe signature or payload');
+    }
+
+    console.log("Stripe-Signature:", sig);
+
+    let event: Stripe.Event;
+    try {
+      event = this.stripeService.constructEventFromWebhook(payload, sig, secret);
+    } catch (err) {
+      throw new BadRequestException('Invalid Stripe webhook signature');
+    }
+
+    await this.stripeService.handleWebhook(event);
+    return { received: true };
   }
 
   // @Get('customers')

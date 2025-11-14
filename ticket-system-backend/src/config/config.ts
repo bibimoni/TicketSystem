@@ -34,6 +34,9 @@ export class Config {
     this._config.stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET ||
       'http://localhost:3000/stripe-webhook'
 
+    this._config.cloudName = process.env.CLOUDINARY_NAME
+    this._config.cloudApiKey = process.env.CLOUDINARY_API_KEY
+    this._config.cloudSecretKey = process.env.CLOUDINARY_SECRET
     return this;
   }
 
@@ -49,7 +52,10 @@ export class Config {
   get stripeCheckoutSuccessUrl() { return this._config.stripeCheckoutSuccessUrl }
   get stripeCheckoutCancelUrl() { return this._config.stripeCheckoutCancelUrl }
   get stripeWebhookSecret() { return this._config.stripeWebhookSecret }
-
+  get cloudName() { return this._config.cloudName }
+  get cloudApiKey() { return this._config.cloudApiKey }
+  get cloudSecretKey() { return this._config.cloudSecretKey }
+  
   get(key: string) {
     return this._config[key];
   }

@@ -52,6 +52,29 @@ export class TicketResponseDto {
   ticketPrice: TicketPriceResponseDto
 }
 
+export class VoucherResponseDto {
+  @ApiProperty({ example: '001', description: 'Human friendly voucher code (unique per event)' })
+  code: string;
+
+  @ApiProperty({ example: '68e4e22c9815978759f58206', description: 'Voucher id' })
+  id: string;
+
+  @ApiProperty({ example: 'FIXED', description: 'Reduce type (FIXED|PERCENTAGE)' })
+  reduce_type: string;
+
+  @ApiProperty({ example: 10, description: 'Reduce value (amount or percent)' })
+  reduce_price: number;
+
+  @ApiProperty({ example: 0, description: 'Optional price field meaning depends on business' })
+  price?: number;
+
+  @ApiProperty({ example: '2025-12-01T00:00:00.000Z' })
+  start_date: Date;
+
+  @ApiProperty({ example: '2025-12-31T23:59:59.000Z' })
+  end_date: Date;
+}
+
 export class CreatedEventCustomerResponseDto {
   @ApiProperty({
     example: '68e4e22c9815978759f58203',
@@ -96,4 +119,12 @@ export class CreatedEventCustomerResponseDto {
     type: [TicketResponseDto],
   })
   tickets: TicketResponseDto[];
+
+  @ApiProperty({
+    description: 'Vouchers created for this event (unique per event)',
+    type: [VoucherResponseDto],
+    required: false,
+    nullable: true
+  })
+  vouchers?: VoucherResponseDto[];
 }

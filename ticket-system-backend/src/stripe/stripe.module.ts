@@ -1,15 +1,15 @@
-import { DynamicModule, FactoryProvider, Module, ModuleMetadata, Provider } from '@nestjs/common';
+import { DynamicModule, FactoryProvider, Module, Provider } from '@nestjs/common';
 import Stripe from 'stripe';
 import { STRIPE_CLIENT } from './constants';
 import { StripeModuleAsyncOptions } from './stripe-module-async-options.interface';
 import { StripeService } from './stripe.service';
 import { StripeController } from './stripe.controller';
-import { EventModule } from 'src/event/event.module';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { CustomerModule } from 'src/customer/customer.module';
+import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
 
 @Module({
-  imports: [PrismaModule, CustomerModule],
+  imports: [PrismaModule, CustomerModule, CloudinaryModule],
   providers: [StripeService],
   controllers: [StripeController],
   exports: [StripeService]

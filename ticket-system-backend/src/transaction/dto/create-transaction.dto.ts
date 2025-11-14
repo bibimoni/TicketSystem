@@ -9,14 +9,6 @@ export class VoucherApplyDto {
   @IsString()
   @IsNotEmpty()
   voucher_id: string;
-
-  @ApiProperty({
-    example: 1,
-    description: 'Number of times to apply this voucher',
-    default: 1
-  })
-  @IsOptional()
-  apply_count?: number;
 }
 
 export class CheckoutIntentDto {

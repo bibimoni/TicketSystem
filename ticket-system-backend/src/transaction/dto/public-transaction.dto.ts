@@ -74,7 +74,6 @@ export class TicketInTransactionDto {
   ticketPrice: TicketPriceInTransactionDto;
 }
 
-// DTO cho TransactionHasTicket
 export class TransactionHasTicketDto {
   @ApiProperty({ example: '68ea665bdfe71b734e5907ad' })
   id: string;
@@ -86,7 +85,6 @@ export class TransactionHasTicketDto {
   ticket: TicketInTransactionDto;
 }
 
-// DTO cho Voucher
 export class VoucherInTransactionDto {
   @ApiProperty({ example: '68ea665bdfe71b734e5907ad' })
   id: string;
@@ -98,19 +96,14 @@ export class VoucherInTransactionDto {
   reduce_price: number;
 }
 
-// DTO cho TransactionApplyVoucher
 export class TransactionApplyVoucherDto {
   @ApiProperty({ example: '68ea665bdfe71b734e5907ad' })
   id: string;
-
-  @ApiProperty({ example: 1, description: 'Number of times voucher applied' })
-  apply_count: number;
 
   @ApiProperty({ type: VoucherInTransactionDto })
   voucher: VoucherInTransactionDto;
 }
 
-// DTO cho Customer User
 export class UserInTransactionDto {
   @ApiProperty({ example: '68ea665bdfe71b734e5907ad' })
   id: string;
@@ -125,7 +118,6 @@ export class UserInTransactionDto {
   name?: string;
 }
 
-// DTO cho Customer
 export class CustomerInTransactionDto {
   @ApiProperty({ example: '68ea665bdfe71b734e5907ad' })
   id: string;
@@ -180,6 +172,30 @@ export class PublicTransactionResponseDto {
   customer_id: string;
 
   @ApiProperty({
+    example: [
+      {
+        id: '68ea665bdfe71b734e5907ad',
+        amount: 1,
+        ticket: {
+          id: '68ea665bdfe71b734e5907ad',
+          seat: 'GA-A1',
+          status: 'available',
+          event: {
+            id: '68f8beb3de728e3006433b22',
+            name: '8WONDER WINTER 2025: SYMPHONY OF STARS',
+            destination: 'Hanoi',
+            organzier: '8Wonder',
+            eventTimes: ['2025-12-06T18:00:00.000+07:00']
+          },
+          ticketPrice: {
+            id: '68ea665bdfe71b734e5907ad',
+            name: 'VIP',
+            price: 1400000,
+            benefit_info: 'Front row seat, free drink'
+          }
+        }
+      }
+    ],
     type: [TransactionHasTicketDto],
     description: 'List of tickets in this transaction'
   })

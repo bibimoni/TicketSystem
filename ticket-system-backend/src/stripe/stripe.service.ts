@@ -4,13 +4,28 @@ import Stripe from 'stripe'
 import { v4 as uuidv4 } from 'uuid';
 import { CheckoutIntentDto, VoucherApplyDto } from 'src/transaction/dto/create-transaction.dto'; import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CustomerService } from 'src/customer/customer.service';
-import * as fs from 'fs/promises';
-import * as path from 'path';
-import * as os from 'os';
 import * as QRCode from 'qrcode';
+import { MailService } from 'src/mail/mail.service';
 
 type transaction_status = "PENDING" | "SUCCESS" | "CANCELLED";
+
+function formatDateVN(dateInput: any): string {
+  const d = new Date(dateInput);
+  const date = d.toLocaleDateString('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    timeZone: 'Asia/Ho_Chi_Minh'
+  });
+
+  const time = d.toLocaleTimeString('vi-VN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Asia/Ho_Chi_Minh'
+  });
+
+  return `${time} - ${date}`;
+}
 
 @Injectable()
 export class StripeService {
@@ -18,7 +33,7 @@ export class StripeService {
 
   private readonly logger = new Logger(StripeService.name);
 
-  constructor(private prisma: PrismaService, private readonly cloudinaryService: CloudinaryService) {
+  constructor(private readonly prisma: PrismaService, private readonly cloudinaryService: CloudinaryService, private readonly mailService: MailService) {
     this.stripe = new Stripe(config.stripeApiKey, {
       apiVersion: '2025-09-30.clover'
     })
@@ -384,9 +399,6 @@ export class StripeService {
       return;
     }
 
-    // Email
-    const ticketEmailData: { type: string; code: string; quantity: number }[] = [];
-
     const amountReceived = currency === 'vnd'
       ? (pi.amount_received ?? 0)
       : (pi.amount_received ?? 0) / 100;
@@ -441,22 +453,22 @@ export class StripeService {
     });
 
     const purchaserUser = customerRecord?.user;
-
+    var ticketCode = ""
     for (const ticket of fullTickets) {
-      const ticketCode = `TCK-${Date.now()}-${Math.floor(Math.random() * 1000)}-${uuidv4().slice(0, 6)}`;
+      ticketCode = `TCK-${Date.now()}-${Math.floor(Math.random() * 1000)}-${uuidv4().slice(0, 6)}`;
       const qrPayload = { code: ticketCode, ticket_id: ticket.id, transaction_id: trx.id, customer_id: customerId, user_id: purchaserUser?.id ?? null };
 
       const qrBuffer = await QRCode.toBuffer(JSON.stringify(qrPayload), { type: 'png', margin: 1, width: 300 });
 
       const fakeFile: Express.Multer.File = {
         fieldname: 'file',
-        originalname: `${ticketCode}.png`,
+        originalname: `${ticketCode}`,
         encoding: '7bit',
         mimetype: 'image/png',
         size: qrBuffer.length,
         buffer: qrBuffer,
         destination: '',
-        filename: `${ticketCode}.png`,
+        filename: `${ticketCode}`,
         path: '',
         stream: undefined as any,
       };
@@ -471,6 +483,52 @@ export class StripeService {
       });
     }
 
+    fullTickets = await this.prisma.ticket.findMany({
+      where: { id: { in: ticketIds } },
+      include: { ticketPrice: true, event: true }
+    });
+
+    try {
+      const emailTickets = fullTickets.map(t => ({
+        type: t.ticketPrice?.name ?? 'Ticket',
+        code: ticketCode,
+        quantity: 1,
+        qr: t.qr_code_url
+      }));
+
+      const rawEventTime = fullTickets[0]?.event?.eventTimes?.[0];
+      const eventTimeFormatted = rawEventTime ? formatDateVN(rawEventTime) : 'N/A';
+
+      const mailHtml = await this.mailService['renderTemplate']({
+        templateName: 'ticket-order-success',
+        data: {
+          orderCode: trx.id,
+          tickets: emailTickets,
+          eventTitle: fullTickets[0]?.event?.name ?? 'N/A',
+          eventTime: eventTimeFormatted,
+          eventAddress: fullTickets[0]?.event?.destination ?? 'N/A',
+          buyerName: purchaserUser?.username ?? 'Customer',
+          buyerEmail: purchaserUser?.email ?? 'N/A',
+          ticketCodeImg: emailTickets[0].qr,
+          ticketCode: emailTickets[0].code,
+          paymentMethod: 'Credit Card (Stripe)',
+          createdAt: formatDateVN(new Date()),
+          quantity: fullTickets.length,
+          totalAmount: trx.total_price.toLocaleString('vi-VN'),
+          year: new Date().getFullYear(),
+        },
+      });
+
+      await this.mailService.sendMail({
+        to: purchaserUser?.email || 'Customer',
+        subject: `Confirm payment #${trx.id}`,
+        html: mailHtml,
+      });
+
+      this.logger.log(`Email sent to ${purchaserUser?.email}`);
+    } catch (emailErr) {
+      this.logger.error("Failed to send email:", emailErr);
+    }
 
     this.logger.log(`Payment success handled. trx=${trx.id}, pi=${pi.id}`);
   }

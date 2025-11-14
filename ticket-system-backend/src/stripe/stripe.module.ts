@@ -7,9 +7,10 @@ import { StripeController } from './stripe.controller';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { CustomerModule } from 'src/customer/customer.module';
 import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
+import { MailModule } from 'src/mail/mail.module';
 
 @Module({
-  imports: [PrismaModule, CustomerModule, CloudinaryModule],
+  imports: [PrismaModule, CustomerModule, CloudinaryModule, MailModule],
   providers: [StripeService],
   controllers: [StripeController],
   exports: [StripeService]

@@ -1,11 +1,31 @@
 import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { config } from '../config/config';
 import Stripe from 'stripe'
-import { CheckoutIntentDto, VoucherApplyDto } from 'src/transaction/dto/create-transaction.dto';
+import { v4 as uuidv4 } from 'uuid';
+import { CheckoutIntentDto, VoucherApplyDto } from 'src/transaction/dto/create-transaction.dto'; import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CustomerService } from 'src/customer/customer.service';
+import * as QRCode from 'qrcode';
+import { MailService } from 'src/mail/mail.service';
 
 type transaction_status = "PENDING" | "SUCCESS" | "CANCELLED";
+
+function formatDateVN(dateInput: any): string {
+  const d = new Date(dateInput);
+  const date = d.toLocaleDateString('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    timeZone: 'Asia/Ho_Chi_Minh'
+  });
+
+  const time = d.toLocaleTimeString('vi-VN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Asia/Ho_Chi_Minh'
+  });
+
+  return `${time} - ${date}`;
+}
 
 @Injectable()
 export class StripeService {
@@ -13,7 +33,7 @@ export class StripeService {
 
   private readonly logger = new Logger(StripeService.name);
 
-  constructor(private prisma: PrismaService, private customerService: CustomerService) {
+  constructor(private readonly prisma: PrismaService, private readonly cloudinaryService: CloudinaryService, private readonly mailService: MailService) {
     this.stripe = new Stripe(config.stripeApiKey, {
       apiVersion: '2025-09-30.clover'
     })
@@ -282,9 +302,8 @@ export class StripeService {
         if (!voucher) continue;
 
         const now = new Date();
-        if (voucher.start_date <= now && voucher.end_date >= now && voucher.amount > 0) {
+        if (voucher.start_date <= now && voucher.end_date >= now) {
           if (totalPrice >= voucher.price) {
-            // Áp dụng voucher
             if (voucher.reduce_type === 'PERCENTAGE') {
               totalPrice -= (totalPrice * voucher.reduce_price) / 100;
             } else {
@@ -356,17 +375,27 @@ export class StripeService {
   }
 
   private async handlePaymentSuccess(pi: Stripe.PaymentIntent) {
-    const md = pi.metadata ?? {};
-    const transactionId = md.transaction_id;
-    const customerId = md.customer_id;
-    const ticketIds = (md.ticket_ids ?? '').split(',').filter(Boolean);
-    const voucherIds = (md.voucher_ids ?? '').split(',').filter(Boolean);
-    const priceBefore = Number(md.price_before_voucher ?? 0);
-    const totalPriceMeta = Number(md.total_price ?? 0);
-    const currency = (md.currency ?? 'vnd').toLowerCase();
+    const metadata = pi.metadata ?? {};
+    const transactionId = metadata.transaction_id;
+    const customerId = metadata.customer_id;
+    const ticketIds = (metadata.ticket_ids ?? '').split(',').filter(Boolean);
+    const voucherIds = (metadata.voucher_ids ?? '').split(',').filter(Boolean);
+    const priceBefore = Number(metadata.price_before_voucher ?? 0);
+    const totalPriceMeta = Number(metadata.total_price ?? 0);
+    const currency = (metadata.currency ?? 'vnd').toLowerCase();
 
     if (!transactionId || !customerId) {
       this.logger.warn(`Missing metadata: transaction_id/customer_id in PI ${pi.id}`);
+      return;
+    }
+
+    const existingTrx = await this.prisma.transaction.findUnique({ where: { id: transactionId } });
+    if (!existingTrx) {
+      this.logger.warn(`Transaction ${transactionId} not found`);
+      return;
+    }
+    if (existingTrx.status === 'SUCCESS') {
+      this.logger.log(`Transaction ${transactionId} already processed - skipping`);
       return;
     }
 
@@ -384,12 +413,16 @@ export class StripeService {
       },
     });
 
+    let fullTickets: Array<any> = [];
+
     await this.prisma.$transaction(async (tx) => {
-      const fullTickets = await tx.ticket.findMany({
+      fullTickets = await tx.ticket.findMany({
         where: { id: { in: ticketIds } },
         include: { ticketPrice: true, event: true }
       });
-      if (!fullTickets.length) throw new Error('No tickets to issue');
+      if (!fullTickets.length) {
+        throw new Error('No tickets to issue');
+      }
 
       await tx.ticket.updateMany({
         where: { id: { in: ticketIds }, status: 'AVAILABLE' },
@@ -408,16 +441,94 @@ export class StripeService {
         await tx.transactionApplyVoucher.createMany({
           data: voucherIds.map(vId => ({
             transaction_id: trx.id,
-            voucher_id: vId,
-            apply_count: 1,
+            voucher_id: vId
           })),
-        });
-        await tx.voucher.updateMany({
-          where: { id: { in: voucherIds } },
-          data: { amount: { decrement: 1 } }
         });
       }
     });
+
+    const customerRecord = await this.prisma.customer.findUnique({
+      where: { id: customerId },
+      include: { user: true },
+    });
+
+    const purchaserUser = customerRecord?.user;
+    var ticketCode = ""
+    for (const ticket of fullTickets) {
+      ticketCode = `TCK-${Date.now()}-${Math.floor(Math.random() * 1000)}-${uuidv4().slice(0, 6)}`;
+      const qrPayload = { code: ticketCode, ticket_id: ticket.id, transaction_id: trx.id, customer_id: customerId, user_id: purchaserUser?.id ?? null };
+
+      const qrBuffer = await QRCode.toBuffer(JSON.stringify(qrPayload), { type: 'png', margin: 1, width: 300 });
+
+      const fakeFile: Express.Multer.File = {
+        fieldname: 'file',
+        originalname: `${ticketCode}`,
+        encoding: '7bit',
+        mimetype: 'image/png',
+        size: qrBuffer.length,
+        buffer: qrBuffer,
+        destination: '',
+        filename: `${ticketCode}`,
+        path: '',
+        stream: undefined as any,
+      };
+
+      const uploadResult = await this.cloudinaryService.uploadImage(fakeFile, 'tickets/qr_codes');
+      const qr_code_url = uploadResult.secure_url;
+      this.logger.log(`Generated QR for ticket ${ticket.id}: ${qr_code_url}`);
+
+      await this.prisma.ticket.update({
+        where: { id: ticket.id },
+        data: { qr_code_url }
+      });
+    }
+
+    fullTickets = await this.prisma.ticket.findMany({
+      where: { id: { in: ticketIds } },
+      include: { ticketPrice: true, event: true }
+    });
+
+    try {
+      const emailTickets = fullTickets.map(t => ({
+        type: t.ticketPrice?.name ?? 'Ticket',
+        code: ticketCode,
+        quantity: 1,
+        qr: t.qr_code_url
+      }));
+
+      const rawEventTime = fullTickets[0]?.event?.eventTimes?.[0];
+      const eventTimeFormatted = rawEventTime ? formatDateVN(rawEventTime) : 'N/A';
+
+      const mailHtml = await this.mailService['renderTemplate']({
+        templateName: 'ticket-order-success',
+        data: {
+          orderCode: trx.id,
+          tickets: emailTickets,
+          eventTitle: fullTickets[0]?.event?.name ?? 'N/A',
+          eventTime: eventTimeFormatted,
+          eventAddress: fullTickets[0]?.event?.destination ?? 'N/A',
+          buyerName: purchaserUser?.username ?? 'Customer',
+          buyerEmail: purchaserUser?.email ?? 'N/A',
+          ticketCodeImg: emailTickets[0].qr,
+          ticketCode: emailTickets[0].code,
+          paymentMethod: 'Credit Card (Stripe)',
+          createdAt: formatDateVN(new Date()),
+          quantity: fullTickets.length,
+          totalAmount: trx.total_price.toLocaleString('vi-VN'),
+          year: new Date().getFullYear(),
+        },
+      });
+
+      await this.mailService.sendMail({
+        to: purchaserUser?.email || 'Customer',
+        subject: `Confirm payment #${trx.id}`,
+        html: mailHtml,
+      });
+
+      this.logger.log(`Email sent to ${purchaserUser?.email}`);
+    } catch (emailErr) {
+      this.logger.error("Failed to send email:", emailErr);
+    }
 
     this.logger.log(`Payment success handled. trx=${trx.id}, pi=${pi.id}`);
   }

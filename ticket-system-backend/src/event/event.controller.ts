@@ -102,7 +102,8 @@ export class EventController {
       information: createdEvent.information ?? null,
       destination: createdEvent.destination ?? null,
       organizer: createdEvent.organizer ?? null,
-      tickets: aggregatedTickets
+      tickets: aggregatedTickets,
+      vouchers: createdEvent.vouchers ?? []
     };
   }
 

@@ -77,7 +77,6 @@ export class TransactionService {
       })),
       vouchers: transaction.vouchers?.map(tv => ({
         id: tv.id,
-        apply_count: tv.apply_count,
         voucher: {
           id: tv.voucher.id,
           reduce_type: tv.voucher.reduce_type as string,
@@ -185,7 +184,6 @@ export class TransactionService {
       })),
       vouchers: transaction.vouchers?.map(tv => ({
         id: tv.id,
-        apply_count: tv.apply_count,
         voucher: {
           id: tv.voucher.id,
           reduce_type: tv.voucher.reduce_type as string,

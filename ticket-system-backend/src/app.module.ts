@@ -22,6 +22,8 @@ import { config } from './config/config';
 import { TicketModule } from './ticket/ticket.module';
 import { TransactionModule } from './transaction/transaction.module';
 import { VoucherModule } from './voucher/voucher.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -44,6 +46,8 @@ import { VoucherModule } from './voucher/voucher.module';
         }
       })
     }),
+    CloudinaryModule,
+    MailModule,
   ],
   controllers: [CustomerController, AuthController, EventController, AdminController, TicketController],
   providers: [PrismaService, AuthService, CustomerService, EventService, AdminService, TicketService],

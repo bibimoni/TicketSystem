@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { config } from 'src/config/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
+import * as bodyParser from 'body-parser';
 
 async function bootstrap() {
   config.load();
@@ -11,6 +12,14 @@ async function bootstrap() {
       ? ['log', 'debug', 'error', 'verbose', 'warn']
       : ['error', 'warn'],
   });
+
+  app.use(bodyParser.json({
+    verify: (req: any, res, buf) => {
+      if (req.originalUrl.startsWith('/stripe/stripe-webhook')) {
+        req.rawBody = buf;
+      }
+    }
+  }));
 
   const swaggerCfg = new DocumentBuilder()
     .setTitle('Ticket System')

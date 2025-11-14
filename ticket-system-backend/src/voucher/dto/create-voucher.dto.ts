@@ -14,10 +14,6 @@ export class CreateVoucherDto {
   @IsNumber()
   reduce_price: number;
 
-  @ApiProperty({ example: 100, description: 'Number of vouchers available' })
-  @IsNumber()
-  amount: number;
-
   @ApiProperty({ example: 100000, description: 'Minimum price (VND) to apply voucher' })
   @IsNumber()
   price: number;

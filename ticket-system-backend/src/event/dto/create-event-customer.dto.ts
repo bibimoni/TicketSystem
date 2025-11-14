@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger"
 import { IsArray, IsOptional, IsNumber, IsString, MinLength } from "class-validator"
 import { CreateTicketDto } from "src/ticket/dto/create-ticket.dto"
+import { CreateVoucherDto } from "src/voucher/dto/create-voucher.dto"
 
 export class CreateEventCustomerDto {
   @ApiProperty({
@@ -94,6 +95,23 @@ export class CreateEventCustomerDto {
     description: 'Array of tickets available for the event',
   })
   ticketsType: CreateTicketPriceDto[]
+
+  @IsOptional()
+  @IsArray()
+  @ApiProperty({
+    required: false,
+    example: [
+      {
+        reduce_type: 'FIXED',
+        reduce_price: 100000,
+        price: 1000000,
+        start_date: '2025-12-01T00:00:00.000Z',
+        end_date: '2025-12-31T23:59:59.000Z'
+      }
+    ],
+    description: 'Optional vouchers created for this event (exclusive to this event)',
+  })
+  vouchers?: CreateVoucherDto[]
 }
 
 

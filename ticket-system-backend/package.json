@@ -9,7 +9,8 @@
     "seed": "ts-node prisma/seed.ts"
   },
   "scripts": {
-    "build": "nest build",
+    "build": "nest build && npm run copy:templates",
+    "copy:templates": "mkdir -p dist/mail/templates && cp -R src/mail/templates/* dist/mail/templates",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "npx nest start",
     "start:dev": "npx nest start --watch",
@@ -38,10 +39,14 @@
     "ci": "^2.3.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
+    "cloudinary": "^2.8.0",
     "mongoose": "^8.18.3",
+    "nodemailer": "^7.0.10",
+    "qrcode": "^1.5.4",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-    "stripe": "^19.1.0"
+    "stripe": "^19.1.0",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
@@ -56,6 +61,7 @@
     "@swc/core": "^1.13.5",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
+    "@types/multer": "^2.0.0",
     "@types/node": "^22.10.7",
     "@types/supertest": "^6.0.2",
     "eslint": "^9.18.0",

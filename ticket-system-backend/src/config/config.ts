@@ -37,6 +37,11 @@ export class Config {
     this._config.cloudName = process.env.CLOUDINARY_NAME
     this._config.cloudApiKey = process.env.CLOUDINARY_API_KEY
     this._config.cloudSecretKey = process.env.CLOUDINARY_SECRET
+
+    this._config.smtpHost = process.env.SMTP_HOST
+    this._config.smtpPort = process.env.SMTP_PORT
+    this._config.smtpUser = process.env.SMTP_USER
+    this._config.smtpPass = process.env.SMTP_PASS
     return this;
   }
 
@@ -55,7 +60,11 @@ export class Config {
   get cloudName() { return this._config.cloudName }
   get cloudApiKey() { return this._config.cloudApiKey }
   get cloudSecretKey() { return this._config.cloudSecretKey }
-  
+  get smtpHost() { return this._config.smtpHost }
+  get smtpPort() { return this._config.smtpPort }
+  get smtpUser() { return this._config.smtpUser }
+  get smtpPass() { return this._config.smtpPass }
+
   get(key: string) {
     return this._config[key];
   }

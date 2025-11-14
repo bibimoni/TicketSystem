@@ -1,0 +1,78 @@
+<div style="background-color:#f4f4f4;padding:30px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+  <div style="max-width:640px;margin:auto;background-color:#fff;border-radius:8px;overflow:hidden;">
+    <div style="background-color:#111;padding:20px;text-align:center;">
+      <img
+        src="https://res.cloudinary.com/dafcvm3zy/image/upload/v1763141098/event-images/1763141096429-tickez-logo.png.png"
+        alt="tickeZ. Logo" style="height:32px;margin:auto;">
+    </div>
+
+    <div style="padding:25px 30px;color:#222;">
+      <h2 style="color:#ff7f24;margin-bottom:15px;">Ticket Information</h2>
+      <p>Your e-ticket is attached to this email. Please have it ready when you arrive at the event.</p>
+
+      <h3 style="margin-top:25px;">Order Code: <strong>{{orderCode}}</strong></h3>
+      <p style="font-size:12px;color:#666;">(Use this when contacting Customer Support)</p>
+
+      <hr style="margin:20px 0;border:none;border-top:1px solid #ddd;" />
+
+      <h4>Ticket details:</h4>
+      {{#each tickets}}
+      <div style="padding:8px 0;{{#unless @last}}border-bottom:1px dashed #ccc;{{/unless}}">
+        Ticket Type: <strong>{{type}}</strong> | Ticket Code: <strong>{{code}}</strong> | Quantity:
+        <strong>{{quantity}}</strong>
+
+        <div style="margin-top:10px;text-align:center;">
+          <img src="{{qr}}" alt="QR Code"
+            style="width:180px;height:auto;border:1px solid #ddd;padding:6px;border-radius:6px;" />
+        </div>
+      </div>
+      {{/each}}
+
+      <hr style="margin:20px 0;border:none;border-top:1px solid #ddd;" />
+
+      <h4>Event: {{eventTitle}}</h4>
+      <p>Time: <strong>{{eventTime}}</strong></p>
+      <p>Address: {{eventAddress}}</p>
+
+      <hr style="margin:20px 0;border:none;border-top:1px solid #ddd;" />
+
+      <h4>Buyer Information</h4>
+      <p>Name: <strong>{{buyerName}}</strong></p>
+      <p>Email: <strong>{{buyerEmail}}</strong></p>
+
+      <hr style="margin:20px 0;border:none;border-top:1px solid #ddd;" />
+
+      <h4>Order Details</h4>
+      <p>Payment Method: <strong>{{paymentMethod}}</strong></p>
+      <p>Order Time: <strong>{{createdAt}}</strong></p>
+
+      <div style="background:#f7f7f7;padding:12px 16px;border-radius:6px;margin-top:8px;">
+        <div style="display:flex;justify-content:space-between;">
+          <span>{{productName}} x ({{quantity}})</span>
+        </div>
+        <div style="text-align:right;margin-top:8px;">
+          <strong>Total: {{totalAmount}} VND</strong>
+        </div>
+      </div>
+
+      <hr style="margin:20px 0;border:none;border-top:1px solid #ddd;" />
+
+      <h4>Terms & Conditions</h4>
+      <ul style="font-size:13px;color:#555;line-height:1.5;">
+        <li>No refunds for paid tickets.</li>
+        <li>The buyer must present the ticket at the entrance to attend the event.</li>
+        <li>The buyer is responsible for keeping the ticket code confidential.</li>
+        <li>By purchasing the ticket, the buyer agrees to the terms and conditions above.</li>
+      </ul>
+
+      <p style="margin-top:25px;">For any inquiries, please contact:
+        <br>Email: <a href="mailto:service.tickez@gmail.com">service.tickez@gmail.com</a>
+        <br>Hotline: 1900.1234 (Monday - Friday, 08:00 - 17:30)
+      </p>
+    </div>
+
+    <div style="background-color:#111;color:#aaa;text-align:center;padding:15px;font-size:12px;">
+      © {{year}} tickeZ. All rights reserved.
+    </div>
+  </div>
+</div>

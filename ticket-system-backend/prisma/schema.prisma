@@ -11,21 +11,25 @@ generator client {
 }
 
 model User {
-  id              String        @id @default(auto()) @map("_id") @db.ObjectId
-  name            String?
-  email           String        @unique
-  sex             String?
-  address         String?
-  birth_date      DateTime?
-  information     String?
-  phone_number    String?
-  hashed_password String
-  username        String        @unique
+  id               String        @id @default(auto()) @map("_id") @db.ObjectId
+  name             String?
+  email            String        @unique
+  sex              String?
+  address          String?
+  birth_date       DateTime?
+  information      String?
+  phone_number     String?
+  hashed_password  String
+  username         String        @unique
   // account_id      String        @unique
-  events          Event[]
-  transactions    Transaction[]
-  Customer        Customer?
-  Admin           Admin?
+  avatar           String?
+  avatar_public_id String?
+  created_at       DateTime?     @default(now())
+  updated_at       DateTime?     @updatedAt
+  events           Event[]
+  transactions     Transaction[]
+  Customer         Customer?
+  Admin            Admin?
 }
 
 model Customer {
@@ -44,28 +48,41 @@ model Admin {
 }
 
 model Event {
-  id              String  @id @default(auto()) @map("_id") @db.ObjectId
-  name            String
-  information     String?
-  count_carry_out Int?
-  destination     String?
-  organizer       String?
-
+  id                    String    @id @default(auto()) @map("_id") @db.ObjectId
+  name                  String
+  information           String?
+  count_carry_out       Int?
+  destination           String?
+  organizer             String?
+  organizer_logo        String?
+  organizer_information String?
   // --- Relationships to Admin and Customer ---
-  admin_id    String?   @db.ObjectId
-  admin       Admin?    @relation(fields: [admin_id], references: [id])
-  customer_id String    @db.ObjectId
-  customer    Customer? @relation(fields: [customer_id], references: [id])
+  admin_id              String?   @db.ObjectId
+  admin                 Admin?    @relation(fields: [admin_id], references: [id])
+  customer_id           String    @db.ObjectId
+  customer              Customer? @relation(fields: [customer_id], references: [id])
 
   // --- Embedded Data using Composite Types ---
   // EventTime and EventTicketTime are now arrays of TimeSlot objects
   // within the Event document itself. This is much more efficient.
   eventTimes       DateTime[]
   eventTicketTimes DateTime
+  status           event_status @default(DRAFT)
 
   tickets Ticket[]
   User    User?    @relation(fields: [userId], references: [id])
   userId  String?  @db.ObjectId
+
+  created_at DateTime? @default(now())
+  updated_at DateTime? @updatedAt
+  vouchers   Voucher[]
+}
+
+enum event_status {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+  COMPLETED
 }
 
 model TicketPrice {
@@ -74,11 +91,14 @@ model TicketPrice {
   price        Float
   benefit_info String?
   tickets      Ticket[]
+
+  created_at DateTime? @default(now())
+  updated_at DateTime? @updatedAt
 }
 
 model Ticket {
   id     String        @id @default(auto()) @map("_id") @db.ObjectId
-  status ticket_status
+  status ticket_status @default(AVAILABLE)
   seat   String?
 
   // --- Relationships to other collections ---
@@ -88,9 +108,14 @@ model Ticket {
   ticketPrice     TicketPrice @relation(fields: [ticket_price_id], references: [id])
 
   transactions TransactionHasTicket[]
+  qr_code_url  String?
+  created_at   DateTime?              @default(now())
+  updated_at   DateTime?              @updatedAt
 }
 
 enum ticket_status {
+  UNUSED
+  USED
   AVAILABLE
   SOLD
 }
@@ -108,6 +133,8 @@ model Transaction {
   vouchers             TransactionApplyVoucher[]
   User                 User?                     @relation(fields: [userId], references: [id])
   userId               String?                   @db.ObjectId
+
+  created_at DateTime? @default(now())
 }
 
 enum transaction_status {
@@ -126,13 +153,21 @@ enum transaction_method {
 
 model Voucher {
   id           String                    @id @default(auto()) @map("_id") @db.ObjectId
+  code         String
   reduce_type  voucher_reduce_type
   reduce_price Float
-  amount       Int
+  // amount       Int
   price        Float
   start_date   DateTime
   end_date     DateTime
   transactions TransactionApplyVoucher[]
+  event_id     String                   @db.ObjectId
+  event        Event                    @relation(fields: [event_id], references: [id])
+
+  created_at DateTime? @default(now())
+  updated_at DateTime? @updatedAt
+
+  @@unique([event_id, code])
 }
 
 enum voucher_reduce_type {
@@ -165,7 +200,7 @@ model TransactionApplyVoucher {
   transaction    Transaction @relation(fields: [transaction_id], references: [id])
   voucher_id     String      @db.ObjectId
   voucher        Voucher     @relation(fields: [voucher_id], references: [id])
-  apply_count    Int
+  // apply_count    Int
 
   // Use a unique constraint to prevent duplicate pairs
   @@unique([transaction_id, voucher_id])

@@ -10,10 +10,8 @@ import { AuthGuard } from 'src/auth/auth.guard';
 export class VoucherController {
   constructor(private readonly voucherService: VoucherService) { }
 
-  @Post()
+  @Get()
   @UseGuards(AuthGuard, AdminGuard)
-  @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Create voucher (Admin only)' })
   @ApiBearerAuth('JWT-auth')
   @ApiHeader({
     name: "Authorization",
@@ -24,22 +22,6 @@ export class VoucherController {
       example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
     }
   })
-  @ApiBody({ type: CreateVoucherDto })
-  @ApiResponse({
-    status: 201,
-    description: 'Voucher created successfully',
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'Unauthorized - Invalid or missing token',
-  })
-  async create(@Body() createVoucherDto: CreateVoucherDto, @Request() req) {
-    console.log('User from request:', req.user);
-    console.log('Admin from request:', req.admin);
-    return await this.voucherService.create(createVoucherDto);
-  }
-
-  @Get()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get all active vouchers' })
   @ApiResponse({

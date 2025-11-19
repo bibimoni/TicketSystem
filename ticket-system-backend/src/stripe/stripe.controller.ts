@@ -21,7 +21,7 @@ export class StripeController {
       throw new BadRequestException('Missing stripe signature or payload');
     }
 
-    console.log("Stripe-Signature:", sig);
+    // console.log("Stripe-Signature:", sig);
 
     let event: Stripe.Event;
     try {

@@ -5,6 +5,8 @@ import { AuthGuard } from 'src/auth/auth.guard';
 import { ApiBearerAuth, ApiBody, ApiHeader, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { PublicUserResponseDto } from './dto/customer-response.dto';
 import { StripeService } from 'src/stripe/stripe.service';
+import { AuthService } from 'src/auth/auth.service';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Controller('customer')
 export class CustomerController {
@@ -51,7 +53,11 @@ export class CustomerController {
     type: PublicUserResponseDto
   })
   @Get('profile')
-  getProfile(@Request() req) {
-    return req.user
+  async getProfile(@Request() req: any) {
+    const user = req.user
+    if (!user) {
+      throw new UnauthorizedException()
+    }
+    return await this.customerService.findOne({ username: user.username, email: user.email })
   }
 }

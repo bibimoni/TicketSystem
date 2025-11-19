@@ -1,7 +1,8 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignInDto } from './dto/login-auth.dto';
 import { ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { GoogleAuthGuard } from './auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -23,5 +24,15 @@ export class AuthController {
   })
   async signIn(@Body() signInDto: SignInDto) {
     return this.authService.signIn(signInDto.username, signInDto.password)
+  }
+
+  @Get('google')
+  @UseGuards(GoogleAuthGuard)
+  async auth() { }
+
+  @Get('google/callback')
+  @UseGuards(GoogleAuthGuard)
+  async googleAuthCallback(@Req() req: any, @Res({ passthrough: true }) res: Response) {
+    return await this.authService.signInGoogle(req.user)
   }
 }

@@ -51,7 +51,6 @@ model Event {
   id                    String    @id @default(auto()) @map("_id") @db.ObjectId
   name                  String
   information           String?
-  count_carry_out       Int?
   destination           String?
   organizer             String?
   organizer_logo        String?
@@ -68,7 +67,7 @@ model Event {
   eventTime         DateTime
   eventTicketStart  DateTime
   eventTicketEnd    DateTime
-  
+
   status            event_status @default(DRAFT)
   format            event_format
   event_picture_url String?

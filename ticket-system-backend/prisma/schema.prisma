@@ -65,9 +65,13 @@ model Event {
   // --- Embedded Data using Composite Types ---
   // EventTime and EventTicketTime are now arrays of TimeSlot objects
   // within the Event document itself. This is much more efficient.
-  eventTimes       DateTime[]
-  eventTicketTimes DateTime
-  status           event_status @default(DRAFT)
+  eventTime         DateTime
+  eventTicketStart  DateTime
+  eventTicketEnd    DateTime
+  
+  status            event_status @default(DRAFT)
+  format            event_format
+  event_picture_url String?
 
   tickets Ticket[]
   User    User?    @relation(fields: [userId], references: [id])
@@ -83,6 +87,11 @@ enum event_status {
   PUBLISHED
   CANCELLED
   COMPLETED
+}
+
+enum event_format {
+  ONLINE
+  OFFLINE
 }
 
 model TicketPrice {
@@ -161,8 +170,8 @@ model Voucher {
   start_date   DateTime
   end_date     DateTime
   transactions TransactionApplyVoucher[]
-  event_id     String                   @db.ObjectId
-  event        Event                    @relation(fields: [event_id], references: [id])
+  event_id     String                    @db.ObjectId
+  event        Event                     @relation(fields: [event_id], references: [id])
 
   created_at DateTime? @default(now())
   updated_at DateTime? @updatedAt

@@ -7,6 +7,6 @@ export class UserController {
 
   @Get()
   async findOne(@Body('username') username: string) {
-    return await this.userService.findOne(username)
+    return await this.userService.findOneByUsername(username)
   }
 }

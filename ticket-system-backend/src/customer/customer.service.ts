@@ -5,6 +5,7 @@ import { CreateCustomerDto } from './dto/create-customer.dto';
 import { genSalt, hash } from 'bcrypt-ts';
 import { UserService } from 'src/user/user.service';
 import { PublicUserResponseDto } from './dto/customer-response.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class CustomerService {
@@ -34,29 +35,75 @@ export class CustomerService {
       throw new ForbiddenException()
     }
 
-    const { hashed_password: _, id: __,...result } = user;
+    const { hashed_password: _, id: __, ...result } = user;
     return {
       id: customer.id,
       ...result
     }
   }
 
-  async findOne(username: string): Promise<User | null> {
-    const user = await this.userService.findOne(username)
+  async updateProfile({ username, email }: { username?: string, email?: string }, dto: UpdateProfileDto): Promise<any> {
+    let user: any;
+    if (username) {
+      user = await this.userService.findOneByUsername(username);
+    } else if (email) {
+      user = await this.userService.findOneByEmail(email)
+    }
+    if (!user) {
+      throw new ForbiddenException()
+    }
+
+    const updatedCustomer = await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        ...dto
+      },
+    })
+
+    return await this.findOne({ id: updatedCustomer.id })
+  }
+
+  async findOne({ id, username, email }: { id?: string, username?: string | undefined, email?: string | undefined }): Promise<any | null> {
+    let user: any;
+    if (username) {
+      user = await this.userService.findOneByUsername(username);
+    } else if (email) {
+      user = await this.userService.findOneByEmail(email)
+    } else if (id) {
+      user = await this.prisma.user.findUnique({
+        where: { id }
+      })
+    }
     if (!user) {
       throw new ForbiddenException()
     }
     const customer = await this.prisma.customer.findUnique({
-      where: { user_id: user.id }
+      where: { user_id: user.id },
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true,
+            sex: true,
+            address: true,
+            birth_date: true,
+            information: true,
+            phone_number: true,
+            username: true,
+            avatar: true,
+            avatar_public_id: true
+          }
+        },
+      }
     })
     if (!customer) {
       throw new ForbiddenException()
     }
-    return user
+    return customer
   }
 
   async findCustomerId(username: string): Promise<string | null> {
-    const user = await this.userService.findOne(username)
+    const user = await this.userService.findOneByUsername(username)
     if (!user) {
       throw new ForbiddenException()
     }

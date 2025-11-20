@@ -1,10 +1,12 @@
-import { Controller, Get, Post, Body, Param, Request, UseGuards, HttpStatus, HttpCode } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Request, UseGuards, HttpStatus, HttpCode, Patch, UnauthorizedException } from '@nestjs/common';
 import { CustomerService } from './customer.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { ApiBearerAuth, ApiBody, ApiHeader, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { PublicUserResponseDto } from './dto/customer-response.dto';
 import { StripeService } from 'src/stripe/stripe.service';
+import { AuthService } from 'src/auth/auth.service';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Controller('customer')
 export class CustomerController {
@@ -51,7 +53,33 @@ export class CustomerController {
     type: PublicUserResponseDto
   })
   @Get('profile')
-  getProfile(@Request() req) {
-    return req.user
+  async getProfile(@Request() req: any) {
+    const user = req.user
+    if (!user) {
+      throw new UnauthorizedException()
+    }
+    return await this.customerService.findOne({ username: user.username, email: user.email })
+  }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Update profile' })
+  @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: "Authorization",
+    description: "Bearer token for authorization",
+    required: true,
+    schema: {
+      type: 'string',
+      example: 'Bearer eyJhbGciOiJIUzI1NiIsI...',
+    }
+  })
+  @Patch('profile')
+  async updateProfile(@Request() req: any, @Body() updateProfileDto: UpdateProfileDto): Promise<any> {
+    const user = req.user
+    if (!user) {
+      throw new UnauthorizedException()
+    }
+    return await this.customerService.updateProfile({ username: user.username, email: user.email }, updateProfileDto)
   }
 }

@@ -1,10 +1,13 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Inject, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { config } from 'src/config/config';
 import { Request } from 'express';
+import { AuthGuard as PassportAuthGuard, PassportStrategy } from '@nestjs/passport';
+import { Strategy, VerifyCallback } from 'passport-google-oauth2';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
+
   constructor(private jwtService: JwtService) { }
   async canActivate(
     context: ExecutionContext,
@@ -22,6 +25,7 @@ export class AuthGuard implements CanActivate {
           secret: config.load().jwtSecret
         }
       )
+      // console.log(payload)
       request['user'] = payload
     } catch {
       throw new UnauthorizedException();
@@ -32,5 +36,40 @@ export class AuthGuard implements CanActivate {
   private extractTokenFromHeader(request: Request): string | undefined {
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
     return type === 'Bearer' ? token : undefined;
+  }
+}
+
+@Injectable()
+export class GoogleAuthGuard extends PassportAuthGuard('google') { }
+
+@Injectable()
+export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
+  constructor() {
+    config.load()
+    super({
+      clientID: config.googleClientId,
+      clientSecret: config.googleClientSecret,
+      callbackURL: config.googleCallbackURL,
+      scope: ['profile', 'email']
+    })
+  }
+
+  async validate(
+    _accessToken: string,
+    _refreshToken: string,
+    profile: any,
+    done: VerifyCallback
+  ): Promise<any> {
+    const { id, name, emails, photos } = profile
+
+    const user = {
+      provider: 'google',
+      providerId: id,
+      email: emails[0].value,
+      name: `${name.giveName} ${name.familyName}`,
+      picture: photos[0].value,
+    }
+
+    done(null, user)
   }
 }

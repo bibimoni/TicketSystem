@@ -20,6 +20,7 @@ export class Config {
       jwtSecret: process.env.JWT_SECRET || 'secret',
       jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
       isDevelopment: process.env.NODE_ENV || 'development'
+
     };
     this._config.mongoUri = process.env.MONGO_URI || `mongodb://${this._config.mongoUser}:${this._config.mongoPassword}@mongodb:27017/${this._config.mongoDB}`
 
@@ -42,9 +43,15 @@ export class Config {
     this._config.smtpPort = process.env.SMTP_PORT
     this._config.smtpUser = process.env.SMTP_USER
     this._config.smtpPass = process.env.SMTP_PASS
+
+    this._config.googleClientId = process.env.GOOGLE_CLIENT_ID || ''
+    this._config.googleClientSecret = process.env.GOOGLE_CLIENT_SECRET || ''
+    this._config.googleCallbackURL = process.env.GOOGLE_CALLBACK_URL || ''
     return this;
   }
-
+  get googleCallbackURL() { return this._config.googleCallbackURL }
+  get googleClientSecret() { return this._config.googleClientSecret }
+  get googleClientId() { return this._config.googleClientId }
   get isDevelopment() { return this._config.isDevelopment }
   get jwtExpiresIn() { return this._config.jwtExpiresIn }
   get port() { return this._config.port }

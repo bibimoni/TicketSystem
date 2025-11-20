@@ -6,10 +6,11 @@ import { genSalt, hash } from 'bcrypt-ts';
 import { UserService } from 'src/user/user.service';
 import { PublicUserResponseDto } from './dto/customer-response.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { StripeService } from 'src/stripe/stripe.service';
 
 @Injectable()
 export class CustomerService {
-  constructor(private prisma: PrismaService, private userService: UserService) { }
+  constructor(private prisma: PrismaService, private userService: UserService, private readonly stripeService: StripeService) { }
 
   async create(createCustomerDto: CreateCustomerDto): Promise<PublicUserResponseDto> {
     const { username, password, email } = createCustomerDto
@@ -34,6 +35,14 @@ export class CustomerService {
     if (!customer) {
       throw new ForbiddenException()
     }
+
+    await this.stripeService.createCustomer({
+      email: email,
+      name: username,
+      metadata: {
+        customer_id: customer.id,
+      }
+    });
 
     const { hashed_password: _, id: __, ...result } = user;
     return {

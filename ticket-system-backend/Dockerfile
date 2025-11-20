@@ -8,7 +8,7 @@ COPY . .
 
 # Copy templates in base → available for all future stages
 RUN mkdir -p dist/mail/templates \
-  && cp -R src/mail/templates dist/mail/
+  && cp -R src/mail/templates dist/mail/templates
 
 # -------------------------
 # DEV STAGE
@@ -28,7 +28,7 @@ RUN npx prisma generate
 RUN npm run build
 
 # Re-copy templates after build
-RUN cp -R src/mail/templates dist/mail/
+RUN cp -R src/mail/templates dist/mail/templates
 
 # -------------------------
 # PROD STAGE

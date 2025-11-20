@@ -1,17 +1,16 @@
 import { Injectable, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateTicketDto, CreateTicketPriceDto } from './dto/create-ticket.dto';
+import { CreateTicketTypeDto, CreateTicketPriceDto } from './dto/create-ticket.dto';
 
 @Injectable()
 export class TicketService {
   constructor(private prisma: PrismaService) { }
 
   async createTicketPrice(createTicketPriceDto: CreateTicketPriceDto) {
-    const { name, price, benefit_info } = createTicketPriceDto;
+    const { price, benefit_info } = createTicketPriceDto;
 
     const ticketPrice = await this.prisma.ticketPrice.create({
       data: {
-        name,
         price,
         benefit_info: benefit_info || null
       }
@@ -20,28 +19,44 @@ export class TicketService {
     return ticketPrice;
   }
 
-  async createTicket(createTicketDto: CreateTicketDto, eventId: string, ticketPriceId: string) {
-    const { seat } = createTicketDto;
+  async createTicketType(createTicketTypeDto: CreateTicketTypeDto, eventId: string, ticketPriceId: string) {
+    const { name, amount } = createTicketTypeDto;
 
+    const ticketType = await this.prisma.ticketType.create({
+      data: {
+        name: name ?? null,
+        amount: amount ?? 0,
+        remaining: amount ?? 0,
+        event: { connect: { id: eventId } },
+        ticketPrice: { connect: { id: ticketPriceId } }
+      }
+    });
+
+    return ticketType;
+  }
+
+  async createTicket(ticketTypeId: string) {
     const ticket = await this.prisma.ticket.create({
       data: {
-        seat: seat || null,
+        code: `TKZ-${Date.now()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`,
         status: 'AVAILABLE',
-        event: {
-          connect: { id: eventId }
-        },
-        ticketPrice: {
-          connect: { id: ticketPriceId }
+        ticket_type: {
+          connect: { id: ticketTypeId },
         }
       },
       include: {
-        event: {
-          select: {
-            name: true,
-            destination: true
+        ticket_type: {
+          include: {
+            ticketPrice: true,
+            event: {
+              select: {
+                name: true,
+                destination: true,
+                eventTime: true
+              }
+            }
           }
-        },
-        ticketPrice: true
+        }
       }
     });
 
@@ -55,14 +70,18 @@ export class TicketService {
   async findAll() {
     return await this.prisma.ticket.findMany({
       include: {
-        event: {
-          select: {
-            name: true,
-            destination: true,
-            eventTimes: true
+        ticket_type: {
+          include: {
+            ticketPrice: true,
+            event: {
+              select: {
+                name: true,
+                destination: true,
+                eventTime: true
+              }
+            }
           }
-        },
-        ticketPrice: true
+        }
       }
     });
   }
@@ -71,8 +90,18 @@ export class TicketService {
     const ticket = await this.prisma.ticket.findUnique({
       where: { id },
       include: {
-        event: true,
-        ticketPrice: true
+        ticket_type: {
+          include: {
+            ticketPrice: true,
+            event: {
+              select: {
+                name: true,
+                destination: true,
+                eventTime: true
+              }
+            }
+          }
+        }
       }
     });
 

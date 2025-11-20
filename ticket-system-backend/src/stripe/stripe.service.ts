@@ -1,11 +1,12 @@
 import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { config } from '../config/config';
 import Stripe from 'stripe'
-import { v4 as uuidv4 } from 'uuid';
 import { CheckoutIntentDto, VoucherApplyDto } from 'src/transaction/dto/create-transaction.dto'; import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as QRCode from 'qrcode';
 import { MailService } from 'src/mail/mail.service';
+import { TicketService } from 'src/ticket/ticket.service';
+import { Ticket } from 'generated/prisma';
 
 type transaction_status = "PENDING" | "SUCCESS" | "CANCELLED";
 
@@ -33,7 +34,7 @@ export class StripeService {
 
   private readonly logger = new Logger(StripeService.name);
 
-  constructor(private readonly prisma: PrismaService, private readonly cloudinaryService: CloudinaryService, private readonly mailService: MailService) {
+  constructor(private readonly prisma: PrismaService, private readonly cloudinaryService: CloudinaryService, private readonly mailService: MailService, private readonly ticketService: TicketService) {
     this.stripe = new Stripe(config.stripeApiKey, {
       apiVersion: '2025-09-30.clover'
     })
@@ -212,42 +213,6 @@ export class StripeService {
     }
   }
 
-  async calculateTotalPrice(
-    ticketIds: string[],
-    vouchers?: VoucherApplyDto[]
-  ): Promise<{ priceBeforeVoucher: number; totalPrice: number }> {
-    const tickets = await this.prisma.ticket.findMany({
-      where: { id: { in: ticketIds } },
-      include: { ticketPrice: true }
-    });
-
-    const priceBeforeVoucher = tickets.reduce((sum, ticket) => {
-      return sum + ticket.ticketPrice.price;
-    }, 0);
-
-    let totalPrice = priceBeforeVoucher;
-
-    if (vouchers && vouchers.length > 0) {
-      for (const voucherDto of vouchers) {
-        const voucher = await this.prisma.voucher.findUnique({
-          where: { id: voucherDto.voucher_id }
-        });
-
-        if (!voucher) continue;
-
-        if (voucher.reduce_type === 'PERCENTAGE') {
-          totalPrice -= (totalPrice * voucher.reduce_price / 100);
-        } else if (voucher.reduce_type === 'FIXED') {
-          totalPrice -= voucher.reduce_price;
-        }
-      }
-    }
-
-    totalPrice = Math.max(0, totalPrice);
-
-    return { priceBeforeVoucher, totalPrice };
-  }
-
   async getStripeCustomerByCustomerId(customerId: string): Promise<Stripe.Customer | null> {
     try {
       const customers = await this.stripe.customers.list({
@@ -266,109 +231,121 @@ export class StripeService {
   }
 
   async checkout(checkoutDto: CheckoutIntentDto, customerId: string) {
-    const { ticketIds, vouchers } = checkoutDto;
+    const { ticketTypeIds, vouchers } = checkoutDto;
 
-    const tickets = await this.prisma.ticket.findMany({
-      where: {
-        id: { in: ticketIds },
-        status: 'AVAILABLE'
-      },
-      include: {
-        ticketPrice: true
+    if (!ticketTypeIds || ticketTypeIds.length === 0) {
+      throw new ForbiddenException("No ticket types selected");
+    }
+    const result = await this.prisma.$transaction(async (tx) => {
+      const ticketTypes = await tx.ticketType.findMany({
+        where: { id: { in: ticketTypeIds } },
+        include: { ticketPrice: true }
+      });
+
+      if (ticketTypes.length !== ticketTypeIds.length) {
+        throw new ForbiddenException("Some ticket types do not exist");
       }
-    });
 
-    if (tickets.length === 0) {
-      throw new ForbiddenException('No available tickets found');
-    }
+      for (const type of ticketTypes) {
+        if (type.remaining <= 0) {
+          throw new ForbiddenException(`Ticket type ${type.name} is sold out`);
+        }
+      }
 
-    if (tickets.length !== ticketIds.length) {
-      throw new ForbiddenException('Some tickets are not available');
-    }
+      let priceBeforeVoucher = ticketTypes.reduce(
+        (sum, type) => sum + type.ticketPrice.price,
+        0
+      );
 
-    let priceBeforeVoucher = tickets.reduce((sum, ticket) => {
-      return sum + ticket.ticketPrice.price;
-    }, 0);
+      let totalPrice = priceBeforeVoucher;
+      let voucherIds: string[] = [];
 
-    let totalPrice = priceBeforeVoucher;
-    const voucherIds: string[] = [];
+      if (vouchers && vouchers.length > 0) {
+        for (const v of vouchers) {
+          const voucher = await tx.voucher.findUnique({
+            where: { id: v.voucher_id }
+          });
+          if (!voucher) continue;
 
-    if (vouchers && vouchers.length > 0) {
-      for (const voucherApply of vouchers) {
-        const voucher = await this.prisma.voucher.findUnique({
-          where: { id: voucherApply.voucher_id }
-        });
-
-        if (!voucher) continue;
-
-        const now = new Date();
-        if (voucher.start_date <= now && voucher.end_date >= now) {
-          if (totalPrice >= voucher.price) {
-            if (voucher.reduce_type === 'PERCENTAGE') {
-              totalPrice -= (totalPrice * voucher.reduce_price) / 100;
-            } else {
-              totalPrice -= voucher.reduce_price;
+          const now = new Date();
+          if (voucher.start_date <= now && voucher.end_date >= now) {
+            if (totalPrice >= voucher.price) {
+              if (voucher.reduce_type === "PERCENTAGE") {
+                totalPrice -= (totalPrice * voucher.reduce_price) / 100;
+              } else {
+                totalPrice -= voucher.reduce_price;
+              }
+              voucherIds.push(voucher.id);
             }
-            voucherIds.push(voucher.id);
           }
         }
       }
-    }
 
-    totalPrice = Math.max(0, totalPrice);
+      totalPrice = Math.max(0, totalPrice);
+
+      const trx = await tx.transaction.create({
+        data: {
+          time_date: new Date(),
+          method: "CREDIT_CARD",
+          status: "PENDING",
+          customer: { connect: { id: customerId } },
+          price_before_voucher: priceBeforeVoucher,
+          total_price: totalPrice,
+        },
+      });
+
+      const createdTickets: string[] = [];
+
+      for (const type of ticketTypes) {
+        const ticket = await this.ticketService.createTicket(type.id);
+        createdTickets.push(ticket.id);
+      }
+
+      return { trx, ticketTypes, createdTickets, totalPrice, voucherIds, priceBeforeVoucher };
+    });
 
     const stripeCustomers = await this.stripe.customers.search({
       query: `metadata['customer_id']:'${customerId}'`,
     });
-
     const stripeCustomer = stripeCustomers.data[0];
 
-    const trx = await this.prisma.transaction.create({
-      data: {
-        time_date: new Date(),
-        method: 'CREDIT_CARD',
-        status: 'PENDING',
-        price_before_voucher: priceBeforeVoucher,
-        total_price: totalPrice,
-        customer: { connect: { id: customerId } },
-      },
-    });
-
     const session = await this.stripe.checkout.sessions.create({
-      mode: 'payment',
-      payment_method_types: ['card'],
-      line_items: [{
-        price_data: {
-          currency: 'vnd',
-          product_data: { name: `Tickets (${tickets.length})` },
-          unit_amount: totalPrice,
+      mode: "payment",
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          price_data: {
+            currency: "vnd",
+            product_data: { name: `Tickets (${result.createdTickets.length})` },
+            unit_amount: result.totalPrice,
+          },
+          quantity: 1,
         },
-        quantity: 1,
-      }],
+      ],
       success_url: config.stripeCheckoutSuccessUrl,
       cancel_url: config.stripeCheckoutCancelUrl,
       customer: stripeCustomer.id,
 
       metadata: {
-        transaction_id: trx.id,
+        transaction_id: result.trx.id,
         customer_id: customerId,
-        ticket_ids: ticketIds.join(','),
-        voucher_ids: voucherIds.join(','),
-        price_before_voucher: String(priceBeforeVoucher),
-        total_price: String(totalPrice),
-        currency: 'vnd',
+        ticket_type_ids: ticketTypeIds.join(","),
+        ticket_ids: result.createdTickets.join(","),
+        voucher_ids: result.voucherIds.join(","),
+        price_before_voucher: String(result.priceBeforeVoucher),
+        total_price: String(result.totalPrice),
       },
       payment_intent_data: {
         metadata: {
-          transaction_id: trx.id,
+          transaction_id: result.trx.id,
           customer_id: customerId,
-          ticket_ids: ticketIds.join(','),
-          voucher_ids: voucherIds.join(','),
-          price_before_voucher: String(priceBeforeVoucher),
-          total_price: String(totalPrice),
+          ticket_ids: result.createdTickets.join(','),
+          voucher_ids: result.voucherIds.join(','),
+          price_before_voucher: String(result.priceBeforeVoucher),
+          total_price: String(result.totalPrice),
           currency: 'vnd',
-        },
-      },
+        }
+      }
     });
 
     return { url: session.url };
@@ -418,11 +395,25 @@ export class StripeService {
     await this.prisma.$transaction(async (tx) => {
       fullTickets = await tx.ticket.findMany({
         where: { id: { in: ticketIds } },
-        include: { ticketPrice: true, event: true }
+        include: {
+          ticket_type: {
+            include: {
+              event: true,
+              ticketPrice: true
+            }
+          }
+        }
       });
       if (!fullTickets.length) {
         throw new Error('No tickets to issue');
       }
+
+      const ticketTypeIds = fullTickets.map(t => t.ticket_type.id);
+
+      await tx.ticketType.updateMany({
+        where: { id: { in: ticketTypeIds } },
+        data: { remaining: { decrement: 1 } }
+      });
 
       await tx.ticket.updateMany({
         where: { id: { in: ticketIds }, status: 'AVAILABLE' },
@@ -453,9 +444,9 @@ export class StripeService {
     });
 
     const purchaserUser = customerRecord?.user;
-    var ticketCode = ""
+
     for (const ticket of fullTickets) {
-      ticketCode = `TCK-${Date.now()}-${Math.floor(Math.random() * 1000)}-${uuidv4().slice(0, 6)}`;
+      const ticketCode = ticket.code
       const qrPayload = { code: ticketCode, ticket_id: ticket.id, transaction_id: trx.id, customer_id: customerId, user_id: purchaserUser?.id ?? null };
 
       const qrBuffer = await QRCode.toBuffer(JSON.stringify(qrPayload), { type: 'png', margin: 1, width: 300 });
@@ -485,18 +476,26 @@ export class StripeService {
 
     fullTickets = await this.prisma.ticket.findMany({
       where: { id: { in: ticketIds } },
-      include: { ticketPrice: true, event: true }
+      include: {
+        ticket_type: {
+          include: {
+            event: true,
+            ticketPrice: true
+          }
+        }
+      }
     });
 
     try {
       const emailTickets = fullTickets.map(t => ({
-        type: t.ticketPrice?.name ?? 'Ticket',
-        code: ticketCode,
+        type: t.ticket_type.name ?? 'Ticket',
+        code: t.code,
         quantity: 1,
-        qr: t.qr_code_url
+        qr: t.qr_code_url,
+        price: t.ticket_type.ticketPrice.price
       }));
 
-      const rawEventTime = fullTickets[0]?.event?.eventTimes?.[0];
+      const rawEventTime = fullTickets[0].ticket_type.event.eventTime;
       const eventTimeFormatted = rawEventTime ? formatDateVN(rawEventTime) : 'N/A';
 
       const mailHtml = await this.mailService['renderTemplate']({
@@ -504,9 +503,9 @@ export class StripeService {
         data: {
           orderCode: trx.id,
           tickets: emailTickets,
-          eventTitle: fullTickets[0]?.event?.name ?? 'N/A',
+          eventTitle: fullTickets[0].ticket_type.event.name ?? 'N/A',
           eventTime: eventTimeFormatted,
-          eventAddress: fullTickets[0]?.event?.destination ?? 'N/A',
+          eventAddress: fullTickets[0].ticket_type.event.destination ?? 'N/A',
           buyerName: purchaserUser?.username ?? 'Customer',
           buyerEmail: purchaserUser?.email ?? 'N/A',
           ticketCodeImg: emailTickets[0].qr,

@@ -19,8 +19,12 @@ export class TransactionService {
           include: {
             ticket: {
               include: {
-                event: true,
-                ticketPrice: true
+                ticket_type: {
+                  include: {
+                    event: true,
+                    ticketPrice: true
+                  }
+                }
               }
             }
           }
@@ -45,7 +49,6 @@ export class TransactionService {
       },
       orderBy: { time_date: 'desc' }
     });
-
     return transactions.map(transaction => ({
       id: transaction.id,
       time_date: transaction.time_date,
@@ -54,27 +57,37 @@ export class TransactionService {
       price_before_voucher: transaction.price_before_voucher,
       total_price: transaction.total_price,
       customer_id: transaction.customer_id,
+
       tickets: transaction.tickets.map(th => ({
         id: th.id,
         amount: th.amount,
+
         ticket: {
           id: th.ticket.id,
-          seat: th.ticket.seat ?? undefined,
+          code: th.ticket.code,
           status: th.ticket.status,
-          event: {
-            id: th.ticket.event.id,
-            name: th.ticket.event.name,
-            destination: th.ticket.event.destination ?? undefined,
-            eventTimes: th.ticket.event.eventTimes
-          },
-          ticketPrice: {
-            id: th.ticket.ticketPrice.id,
-            name: th.ticket.ticketPrice.name ?? undefined,
-            price: th.ticket.ticketPrice.price,
-            benefit_info: th.ticket.ticketPrice.benefit_info ?? undefined
+
+          ticket_type: {
+            id: th.ticket.ticket_type.id,
+            name: th.ticket.ticket_type.name ?? '',
+
+            event: {
+              id: th.ticket.ticket_type.event.id,
+              name: th.ticket.ticket_type.event.name,
+              destination: th.ticket.ticket_type.event.destination ?? undefined,
+              organzier: th.ticket.ticket_type.event.organizer ?? undefined,
+              eventTime: th.ticket.ticket_type.event.eventTime
+            },
+
+            ticketPrice: {
+              id: th.ticket.ticket_type.ticketPrice.id,
+              price: th.ticket.ticket_type.ticketPrice.price,
+              benefit_info: th.ticket.ticket_type.ticketPrice.benefit_info ?? undefined
+            }
           }
         }
       })),
+
       vouchers: transaction.vouchers?.map(tv => ({
         id: tv.id,
         voucher: {
@@ -83,15 +96,18 @@ export class TransactionService {
           reduce_price: tv.voucher.reduce_price
         }
       })),
-      customer: transaction.customer ? {
-        id: transaction.customer.id,
-        user: {
-          id: transaction.customer.user.id,
-          username: transaction.customer.user.username,
-          email: transaction.customer.user.email,
-          name: transaction.customer.user.name ?? undefined
+
+      customer: transaction.customer
+        ? {
+          id: transaction.customer.id,
+          user: {
+            id: transaction.customer.user.id,
+            username: transaction.customer.user.username,
+            email: transaction.customer.user.email,
+            name: transaction.customer.user.name ?? undefined
+          }
         }
-      } : undefined
+        : undefined
     }));
   }
 
@@ -103,20 +119,24 @@ export class TransactionService {
           include: {
             ticket: {
               include: {
-                event: {
-                  select: {
-                    id: true,
-                    name: true,
-                    destination: true,
-                    eventTimes: true
-                  }
-                },
-                ticketPrice: {
-                  select: {
-                    id: true,
-                    name: true,
-                    price: true,
-                    benefit_info: true
+                ticket_type: {
+                  include: {
+                    event: {
+                      select: {
+                        id: true,
+                        name: true,
+                        destination: true,
+                        organizer: true,
+                        eventTime: true
+                      }
+                    },
+                    ticketPrice: {
+                      select: {
+                        id: true,
+                        price: true,
+                        benefit_info: true
+                      }
+                    }
                   }
                 }
               }
@@ -161,27 +181,37 @@ export class TransactionService {
       price_before_voucher: transaction.price_before_voucher,
       total_price: transaction.total_price,
       customer_id: transaction.customer_id,
+
       tickets: transaction.tickets.map(th => ({
         id: th.id,
         amount: th.amount,
+
         ticket: {
           id: th.ticket.id,
-          seat: th.ticket.seat ?? undefined,
+          code: th.ticket.code,
           status: th.ticket.status,
-          event: {
-            id: th.ticket.event.id,
-            name: th.ticket.event.name,
-            destination: th.ticket.event.destination ?? undefined,
-            eventTimes: th.ticket.event.eventTimes
-          },
-          ticketPrice: {
-            id: th.ticket.ticketPrice.id,
-            name: th.ticket.ticketPrice.name ?? undefined,
-            price: th.ticket.ticketPrice.price,
-            benefit_info: th.ticket.ticketPrice.benefit_info ?? undefined
+
+          ticket_type: {
+            id: th.ticket.ticket_type.id,
+            name: th.ticket.ticket_type.name ?? '',
+
+            event: {
+              id: th.ticket.ticket_type.event.id,
+              name: th.ticket.ticket_type.event.name,
+              destination: th.ticket.ticket_type.event.destination ?? undefined,
+              organzier: th.ticket.ticket_type.event.organizer ?? undefined,
+              eventTime: th.ticket.ticket_type.event.eventTime
+            },
+
+            ticketPrice: {
+              id: th.ticket.ticket_type.ticketPrice.id,
+              price: th.ticket.ticket_type.ticketPrice.price,
+              benefit_info: th.ticket.ticket_type.ticketPrice.benefit_info ?? undefined
+            }
           }
         }
       })),
+
       vouchers: transaction.vouchers?.map(tv => ({
         id: tv.id,
         voucher: {
@@ -190,15 +220,18 @@ export class TransactionService {
           reduce_price: tv.voucher.reduce_price
         }
       })),
-      customer: transaction.customer ? {
-        id: transaction.customer.id,
-        user: {
-          id: transaction.customer.user.id,
-          username: transaction.customer.user.username,
-          email: transaction.customer.user.email,
-          name: transaction.customer.user.name ?? undefined
+
+      customer: transaction.customer
+        ? {
+          id: transaction.customer.id,
+          user: {
+            id: transaction.customer.user.id,
+            username: transaction.customer.user.username,
+            email: transaction.customer.user.email,
+            name: transaction.customer.user.name ?? undefined
+          }
         }
-      } : undefined
-    };
+        : undefined
+    }
   }
 }

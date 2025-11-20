@@ -14,11 +14,11 @@ export class VoucherApplyDto {
 export class CheckoutIntentDto {
   @ApiProperty({
     example: ['68ea665bdfe71b734e5907ad', '68ea665bdfe71b734e5907ae'],
-    description: 'Array of ticket IDs to purchase'
+    description: 'Array of ticket type IDs to purchase'
   })
   @IsArray()
   @IsString({ each: true })
-  ticketIds: string[];
+  ticketTypeIds: string[];
 
   @ApiProperty({
     type: [VoucherApplyDto],

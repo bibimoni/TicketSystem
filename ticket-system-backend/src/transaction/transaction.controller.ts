@@ -23,26 +23,7 @@ export class TransactionController {
     description: 'Return Stripe Checkout URL to redirect user',
   })
   @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        ticketIds: {
-          type: 'array',
-          items: { type: 'string' },
-          example: ['68f92649a4a2ebaf894f06c6'],
-        },
-        vouchers: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              voucher_id: { type: 'string' }
-            },
-          },
-        },
-      },
-      required: ['ticketIds'],
-    },
+    type: CheckoutIntentDto,
   })
   @ApiHeader({
     name: "Authorization",

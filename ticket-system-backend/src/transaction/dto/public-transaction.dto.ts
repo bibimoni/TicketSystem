@@ -1,35 +1,8 @@
-// import { IsEnum, IsString, IsNumber, IsOptional, IsDateString, IsNotEmpty, ValidateNested } from 'class-validator';
-// import { Type } from 'class-transformer';
-
-// export class PublicTransactionDto {
-//   @IsNotEmpty()
-//   @IsString({ each: true })
-//   id: string;
-
-//   @IsEnum(['CREDIT_CARD', 'BANK_TRANSFER', 'MOMO', 'ZALOPAY', 'CASH'])
-//   method: 'CREDIT_CARD' | 'BANK_TRANSFER' | 'MOMO' | 'ZALOPAY' | 'CASH';
-
-//   @IsEnum(['PENDING', 'PAID', 'CANCELLED'])
-//   status: 'PENDING' | 'PAID' | 'CANCELLED';
-
-//   @IsString()
-//   customer_id: string;
-
-//   @IsNumber()
-//   total_price: number;
-
-//   @IsString()
-//   time_date: Date;
-// }
 import { ApiProperty } from '@nestjs/swagger';
 
-// DTO cho TicketPrice
 export class TicketPriceInTransactionDto {
   @ApiProperty({ example: '68ea665bdfe71b734e5907ad' })
   id: string;
-
-  @ApiProperty({ example: 'VIP' })
-  name?: string;
 
   @ApiProperty({ example: 500000 })
   price: number;
@@ -38,7 +11,6 @@ export class TicketPriceInTransactionDto {
   benefit_info?: string;
 }
 
-// DTO cho Event
 export class EventInTransactionDto {
   @ApiProperty({ example: '68f8beb3de728e3006433b22' })
   id: string;
@@ -52,26 +24,36 @@ export class EventInTransactionDto {
   @ApiProperty({ example: '8Wonder' })
   organzier?: string;
 
-  @ApiProperty({ example: ['2025-12-06T11:00:00.000+00:00'] })
-  eventTimes: Date[];
+  @ApiProperty({ example: '2025-12-06T11:00:00.000+00:00' })
+  eventTime: Date;
 }
 
-// DTO cho Ticket
+export class TicketTypeInTransactionDto {
+  @ApiProperty({ example: '68ea665bdfe71b734e5907ad' })
+  id: string;
+
+  @ApiProperty({ example: 'GA-A1' })
+  name: string;
+
+  @ApiProperty({ type: () => EventInTransactionDto })
+  event: EventInTransactionDto;
+
+  @ApiProperty({ type: () => TicketPriceInTransactionDto })
+  ticketPrice: TicketPriceInTransactionDto;
+}
+
 export class TicketInTransactionDto {
   @ApiProperty({ example: '68ea665bdfe71b734e5907ad' })
   id: string;
 
-  @ApiProperty({ example: 'A1', required: false })
-  seat?: string;
+  @ApiProperty({ example: 'TKZ-' })
+  code: string;
 
-  @ApiProperty({ example: 'available' })
+  @ApiProperty({ example: 'AVAILABLE' })
   status: string;
 
-  @ApiProperty({ type: EventInTransactionDto })
-  event: EventInTransactionDto;
-
-  @ApiProperty({ type: TicketPriceInTransactionDto })
-  ticketPrice: TicketPriceInTransactionDto;
+  @ApiProperty({ type: () => TicketTypeInTransactionDto })
+  ticket_type: TicketTypeInTransactionDto;
 }
 
 export class TransactionHasTicketDto {
@@ -81,7 +63,7 @@ export class TransactionHasTicketDto {
   @ApiProperty({ example: 2, description: 'Number of tickets' })
   amount: number;
 
-  @ApiProperty({ type: TicketInTransactionDto })
+  @ApiProperty({ type: () => TicketInTransactionDto })
   ticket: TicketInTransactionDto;
 }
 
@@ -185,7 +167,7 @@ export class PublicTransactionResponseDto {
             name: '8WONDER WINTER 2025: SYMPHONY OF STARS',
             destination: 'Hanoi',
             organzier: '8Wonder',
-            eventTimes: ['2025-12-06T18:00:00.000+07:00']
+            eventTime: '2025-12-06T18:00:00.000+07:00'
           },
           ticketPrice: {
             id: '68ea665bdfe71b734e5907ad',
@@ -196,20 +178,21 @@ export class PublicTransactionResponseDto {
         }
       }
     ],
-    type: [TransactionHasTicketDto],
+    type: () => TransactionHasTicketDto,
     description: 'List of tickets in this transaction'
   })
   tickets: TransactionHasTicketDto[];
 
   @ApiProperty({
-    type: [TransactionApplyVoucherDto],
+    type: () => TransactionApplyVoucherDto,
+    isArray: true,
     description: 'List of vouchers applied',
     required: false
   })
   vouchers?: TransactionApplyVoucherDto[];
 
   @ApiProperty({
-    type: CustomerInTransactionDto,
+    type: () => CustomerInTransactionDto,
     description: 'Customer information',
     required: false
   })

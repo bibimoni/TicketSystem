@@ -62,19 +62,19 @@ model Event {
   customer              Customer? @relation(fields: [customer_id], references: [id])
 
   // --- Embedded Data using Composite Types ---
-  // EventTime and EventTicketTime are now arrays of TimeSlot objects
-  // within the Event document itself. This is much more efficient.
-  eventTime         DateTime
-  eventTicketStart  DateTime
-  eventTicketEnd    DateTime
+  eventTime        DateTime
+  eventTicketStart DateTime
+  eventTicketEnd   DateTime
 
   status            event_status @default(DRAFT)
   format            event_format
   event_picture_url String?
+  event_custom_slug String
+  messages          String
 
-  tickets Ticket[]
-  User    User?    @relation(fields: [userId], references: [id])
-  userId  String?  @db.ObjectId
+  ticketTypes TicketType[]
+  User        User?        @relation(fields: [userId], references: [id])
+  userId      String?      @db.ObjectId
 
   created_at DateTime? @default(now())
   updated_at DateTime? @updatedAt
@@ -94,20 +94,20 @@ enum event_format {
 }
 
 model TicketPrice {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  name         String?
+  id           String  @id @default(auto()) @map("_id") @db.ObjectId
   price        Float
   benefit_info String?
-  tickets      Ticket[]
 
-  created_at DateTime? @default(now())
-  updated_at DateTime? @updatedAt
+  created_at  DateTime?    @default(now())
+  updated_at  DateTime?    @updatedAt
+  ticketTypes TicketType[]
 }
 
-model Ticket {
-  id     String        @id @default(auto()) @map("_id") @db.ObjectId
-  status ticket_status @default(AVAILABLE)
-  seat   String?
+model TicketType {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  name      String?
+  amount    Int
+  remaining Int
 
   // --- Relationships to other collections ---
   event_id        String      @db.ObjectId
@@ -115,10 +115,25 @@ model Ticket {
   ticket_price_id String      @db.ObjectId
   ticketPrice     TicketPrice @relation(fields: [ticket_price_id], references: [id])
 
-  transactions TransactionHasTicket[]
-  qr_code_url  String?
-  created_at   DateTime?              @default(now())
-  updated_at   DateTime?              @updatedAt
+  created_at DateTime? @default(now())
+  updated_at DateTime? @updatedAt
+  tickets    Ticket[]
+}
+
+model Ticket {
+  id             String     @id @default(auto()) @map("_id") @db.ObjectId
+  ticket_type_id String     @db.ObjectId
+  ticket_type    TicketType @relation(fields: [ticket_type_id], references: [id])
+
+  code String @unique
+
+  qr_code_url String?
+  status      ticket_status @default(AVAILABLE)
+
+  created_at DateTime? @default(now())
+  updated_at DateTime? @updatedAt
+
+  transactionHasTicket TransactionHasTicket?
 }
 
 enum ticket_status {
@@ -154,9 +169,6 @@ enum transaction_status {
 enum transaction_method {
   CREDIT_CARD
   BANK_TRANSFER
-  MOMO
-  ZALOPAY
-  CASH
 }
 
 model Voucher {
@@ -164,7 +176,6 @@ model Voucher {
   code         String
   reduce_type  voucher_reduce_type
   reduce_price Float
-  // amount       Int
   price        Float
   start_date   DateTime
   end_date     DateTime
@@ -196,8 +207,7 @@ model TransactionHasTicket {
   ticket         Ticket      @relation(fields: [ticket_id], references: [id])
   amount         Int
 
-  // Use a unique constraint to prevent duplicate pairs
-  @@unique([transaction_id, ticket_id])
+  @@unique([ticket_id]) // ensure a ticket appears at most once across TransactionHasTicket
 }
 
 model TransactionApplyVoucher {

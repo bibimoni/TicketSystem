@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Request, UseGuards, HttpStatus, HttpCode, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Request, UseGuards, HttpStatus, HttpCode, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { EventService } from './event.service';
 import { PublicEventResponseDto } from './dto/public-event-response';
 import { ApiBearerAuth, ApiBody, ApiHeader, ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -7,6 +7,7 @@ import { CreateEventCustomerDto } from './dto/create-event-customer.dto';
 import { TicketService } from 'src/ticket/ticket.service';
 import { AdminGuard } from 'src/auth/admin.guard';
 import { CreatedEventCustomerResponseDto } from './dto/created-event-customer-response';
+import { CreateTicketPriceDto, CreateTicketTypeDto } from 'src/ticket/dto/create-ticket.dto';
 
 @Controller('event')
 export class EventController {
@@ -38,63 +39,55 @@ export class EventController {
     const createdEvent = await this.eventService.createEventByCustomer(createEventCustomerDto, username);
 
     const aggregatedTickets: {
-      id: string;
-      seat: string;
-      status: string;
-      ticketPrice: {
-        id: string;
-        name: string | null;
-        price: number;
-        benefit_info: string | null;
-      };
+      ticketTypeId: string;
+      name: string,
+      amount: number;
+      remaining?: number;
+      ticketPrice: { id: string; name?: string | null; price: number; benefit_info?: string | null };
     }[] = [];
 
-    await Promise.all(
-      createEventCustomerDto.ticketsType.map(async ticketType => {
-        const createdTicketPrice = await this.ticketService.createTicketPrice({
-          name: ticketType.name,
-          price: ticketType.price,
-          benefit_info: ticketType.benefit_info
-        });
+    if (Array.isArray(createEventCustomerDto.ticketsPrice) && createEventCustomerDto.ticketsPrice.length > 0) {
+      for (const tp of createEventCustomerDto.ticketsPrice) {
+        const createTicketPriceDto: CreateTicketPriceDto = {
+          price: tp.price,
+          benefit_info: tp.benefit_info ?? '',
+          ticketTypes: tp.ticketTypes ?? []
+        };
+        const createdTicketPrice = await this.ticketService.createTicketPrice(createTicketPriceDto);
 
         if (!createdTicketPrice) {
           throw new BadRequestException("Failed to create ticket price");
         }
 
-        const tickets = await Promise.all(
-          ticketType.tickets.map(async ticketDto => {
-            const createdTicket = await this.ticketService.createTicket(
-              ticketDto,
-              createdEvent.id,
-              createdTicketPrice.id
-            );
-            if (!createdTicket) {
-              throw new BadRequestException("Failed to create ticket");
+        if (Array.isArray(tp.ticketTypes) && tp.ticketTypes.length > 0) {
+          for (const tt of tp.ticketTypes) {
+            const createTicketTypeDto: CreateTicketTypeDto = {
+              name: tt.name ?? null,
+              amount: tt.amount ?? 0
+            };
+
+            const createdTicketType = await this.ticketService.createTicketType(createTicketTypeDto, createdEvent.id, createdTicketPrice.id);
+
+            if (!createdTicketType) {
+              throw new BadRequestException("Failed to create ticket type");
             }
 
             aggregatedTickets.push({
-              id: createdTicket.id,
-              seat: createdTicket.seat ?? '',
-              status: createdTicket.status,
+              ticketTypeId: createdTicketType.id,
+              name: createTicketTypeDto.name,
+              amount: createdTicketType.amount,
+              remaining: createdTicketType.remaining ?? createdTicketType.amount,
               ticketPrice: {
                 id: createdTicketPrice.id,
-                name: createdTicketPrice.name,
+                name: createdTicketType.name ?? null,
                 price: createdTicketPrice.price,
                 benefit_info: createdTicketPrice.benefit_info
               }
             });
-
-            return createdTicket;
-          })
-        );
-
-        if (!tickets) {
-          throw new BadRequestException("Failed to create tickets");
+          }
         }
-
-        return createdTicketPrice;
-      })
-    );
+      }
+    }
 
     return {
       id: createdEvent.id,
@@ -102,7 +95,13 @@ export class EventController {
       information: createdEvent.information ?? null,
       destination: createdEvent.destination ?? null,
       organizer: createdEvent.organizer ?? null,
-      tickets: aggregatedTickets,
+      ticketTypes: aggregatedTickets.map(t => ({
+        id: t.ticketTypeId,
+        name: t.name,
+        amount: t.amount,
+        status: 'AVAILABLE',
+        ticketPrice: t.ticketPrice
+      })),
       vouchers: createdEvent.vouchers ?? []
     };
   }

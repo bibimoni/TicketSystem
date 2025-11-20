@@ -24,14 +24,6 @@ export class CustomerController {
   async create(@Body() createCustomerDto: CreateCustomerDto): Promise<PublicUserResponseDto> {
     const customer = await this.customerService.create(createCustomerDto);
 
-    await this.stripeService.createCustomer({
-      email: customer.email,
-      name: customer.username,
-      metadata: {
-        customer_id: customer.id,
-      }
-    });
-
     return customer;
   }
 

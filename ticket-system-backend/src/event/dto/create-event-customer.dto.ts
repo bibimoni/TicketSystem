@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger"
-import { IsArray, IsOptional, IsNumber, IsString, MinLength } from "class-validator"
-import { CreateTicketDto } from "src/ticket/dto/create-ticket.dto"
+import { IsArray, IsDateString, IsEnum, IsOptional, IsString, MinLength } from "class-validator"
+import { event_format } from "generated/prisma"
+import { CreateTicketPriceDto } from "src/ticket/dto/create-ticket.dto"
 import { CreateVoucherDto } from "src/voucher/dto/create-voucher.dto"
 
 export class CreateEventCustomerDto {
@@ -35,71 +36,85 @@ export class CreateEventCustomerDto {
   @MinLength(2)
   organizer: string
 
-  // @ApiProperty({
-  //   example: 1,
-  //   description: 'Number of hosting days for the event'
-  // })
-  // @IsNumber()
-  // countCarryOut: number
+  @ApiProperty({
+    enum: event_format,
+    enumName: 'event_format',
+    example: event_format.ONLINE,
+  })
+  @IsEnum(event_format)
+  format: event_format;
 
   @ApiProperty({
     example: '2025-10-20T18:30:00+07:00',
-    description: 'Ticket sell date and time'
+    description: 'Ticket sell start date and time'
   })
-  eventTicketTimes: Date
+  eventTicketStart: Date
 
   @ApiProperty({
-    example: [
-      '2025-12-20T18:30:00+07:00',
-      '2025-12-21T18:30:00+07:00'
-    ],
-    description: 'Array of event occurrence dates and times'
+    example: '2025-11-20T18:30:00+07:00',
+    description: 'Ticket sell end date and time'
   })
-  @IsArray()
-  eventTimes: Date[]
+  eventTicketEnd: Date
+
+  @ApiProperty({
+    example: '2025-12-20T18:30:00+07:00',
+    description: 'Event occurrence date and time'
+  })
+  @IsDateString()
+  eventTime: Date
+
+  @IsOptional()
+  @IsString()
+  @ApiProperty({ required: false })
+  event_custom_slug?: string
+
+  @IsOptional()
+  @IsString()
+  @ApiProperty({ required: true })
+  messages: string
 
   @IsArray()
   @ApiProperty({
+    type: () => CreateTicketPriceDto,
     example: [
       {
-        name: 'VIP Ticket',
-        price: 150,
-        benefit_info: 'Access to VIP seating area and complimentary drinks',
-        tickets: [
+        price: 1800000,
+        benefit_info: 'Access to standard seating area',
+        ticketTypes: [
           {
-            seat: 'A1',
-            status: 'AVAILABLE',
+            name: 'GA-A1',
+            amount: 15000,
           },
           {
-            seat: 'A2',
-            status: 'AVAILABLE',
+            name: 'GA-A2',
+            amount: 10000,
           }
         ]
       },
       {
-        name: 'Standard Ticket',
-        price: 50,
-        benefit_info: 'Access to standard seating area',
-        tickets: [
+        price: 2000000,
+        benefit_info: 'Access to VIP seating area and complimentary drinks',
+        ticketTypes: [
           {
-            seat: 'B1',
-            status: 'AVAILABLE',
+            name: "VIP-A1",
+            amount: 5000,
           },
           {
-            seat: 'B2',
-            status: 'AVAILABLE',
+            name: "VIP-B1",
+            amount: 5000,
           }
         ]
       }
     ],
-    description: 'Array of tickets available for the event',
+    description: 'Array of ticket types and prices available for the event',
   })
-  ticketsType: CreateTicketPriceDto[]
+  ticketsPrice: CreateTicketPriceDto[]
 
   @IsOptional()
   @IsArray()
   @ApiProperty({
     required: false,
+    type: () => CreateVoucherDto,
     example: [
       {
         reduce_type: 'FIXED',
@@ -112,32 +127,4 @@ export class CreateEventCustomerDto {
     description: 'Optional vouchers created for this event (exclusive to this event)',
   })
   vouchers?: CreateVoucherDto[]
-}
-
-
-export class CreateTicketPriceDto {
-  @ApiProperty({
-    example: 'VIP',
-    description: 'Name of the ticket type',
-  })
-  @IsString()
-  @MinLength(3)
-  name: string
-
-  @ApiProperty({
-    example: 500000,
-    description: 'Price of the ticket in VND',
-  })
-  @IsNumber()
-  price: number
-
-  @ApiProperty({
-    example: 'Access to VIP seating area and complimentary drinks',
-    description: 'Benefits associated with the ticket type',
-  })
-  @IsString()
-  @IsOptional()
-  benefit_info?: string
-
-  tickets: CreateTicketDto[]
 }

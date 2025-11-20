@@ -8,12 +8,6 @@ export class TicketPriceResponseDto {
   id: string;
 
   @ApiProperty({
-    example: 'Standard Price',
-    description: 'The name of the ticket price tier.',
-  })
-  name?: string | null;
-
-  @ApiProperty({
     example: 50,
     description: 'The price of the ticket.',
   })
@@ -26,7 +20,7 @@ export class TicketPriceResponseDto {
   benefit_info?: string | null;
 }
 
-export class TicketResponseDto {
+export class TicketTypeResponseDto {
   @ApiProperty({
     example: '68e4e22c9815978759f58204',
     description: 'The unique identifier of the ticket.',
@@ -34,10 +28,16 @@ export class TicketResponseDto {
   id: string;
 
   @ApiProperty({
-    example: 'A1',
-    description: 'The seat identifier for the ticket.',
+    example: 'GA-A1',
+    description: 'The name of the ticket type.',
   })
-  seat: string;
+  name: string;
+
+  @ApiProperty({
+    example: 10000,
+    description: 'The amount of the ticket type.',
+  })
+  amount: number;
 
   @ApiProperty({
     example: 'AVAILABLE',
@@ -47,7 +47,7 @@ export class TicketResponseDto {
 
   @ApiProperty({
     description: 'Price of the ticket',
-    type: [TicketPriceResponseDto],
+    type: () => [TicketPriceResponseDto],
   })
   ticketPrice: TicketPriceResponseDto
 }
@@ -115,14 +115,14 @@ export class CreatedEventCustomerResponseDto {
   organizer?: string | null;
 
   @ApiProperty({
-    description: 'Array of tickets created for the event.',
-    type: [TicketResponseDto],
+    description: 'Array of ticket types created for the event.',
+    type: () => [TicketTypeResponseDto],
   })
-  tickets: TicketResponseDto[];
+  ticketTypes: TicketTypeResponseDto[];
 
   @ApiProperty({
     description: 'Vouchers created for this event (unique per event)',
-    type: [VoucherResponseDto],
+    type: () => [VoucherResponseDto],
     required: false,
     nullable: true
   })

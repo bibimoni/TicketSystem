@@ -1,9 +1,7 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CustomerService } from 'src/customer/customer.service';
-import { PublicEventResponseDto } from './dto/public-event-response';
 import { CreateEventCustomerDto } from './dto/create-event-customer.dto';
-import { CreateEventDto } from './dto/create-event.dto';
 import { VoucherService } from 'src/voucher/voucher.service';
 
 @Injectable()
@@ -29,12 +27,15 @@ export class EventService {
         information: true,
         destination: true,
         organizer: true,
-        eventTimes: true,
-        eventTicketTimes: true,
-        tickets: {
+        eventTime: true,
+        eventTicketStart: true,
+        eventTicketEnd: true,
+        ticketTypes: {
           include: {
-            ticketPrice: true
-          }
+            ticketPrice: true,
+            amount: true,
+            remaining: true
+          } as any
         }
       }
     })
@@ -52,18 +53,20 @@ export class EventService {
       data: {
         name: createEventCustomerDto.name,
         information: createEventCustomerDto.information,
-        eventTicketTimes: createEventCustomerDto.eventTicketTimes,
+        eventTicketStart: createEventCustomerDto.eventTicketStart,
+        eventTicketEnd: createEventCustomerDto.eventTicketEnd,
         destination: createEventCustomerDto.destination,
         organizer: createEventCustomerDto.organizer,
         customer: {
           connect: { id: customer_id }
         },
-        eventTimes: createEventCustomerDto.eventTimes,
-        count_carry_out: createEventCustomerDto.eventTimes.length,
+        eventTime: createEventCustomerDto.eventTime,
+        format: createEventCustomerDto.format,
+        event_custom_slug: createEventCustomerDto.event_custom_slug ?? '',
+        messages: createEventCustomerDto.messages
       },
     })
 
-    // create vouchers tied to this event (if provided)
     let createdVouchers: any[] = [];
     if (Array.isArray(createEventCustomerDto.vouchers) && createEventCustomerDto.vouchers.length > 0) {
       createdVouchers = await Promise.all(
@@ -85,7 +88,7 @@ export class EventService {
     if (!event) {
       throw new ForbiddenException()
     }
-    // return event;
+
     return {
       id: event.id,
       name: event.name,
@@ -104,54 +107,6 @@ export class EventService {
     };
   }
 
-  async create(createEventDto: CreateEventDto)
-    : Promise<PublicEventResponseDto> {
-    const { name, eventTicketTimes, admin_id, customer_id } = createEventDto
-
-    const admin = await this.prisma.admin.findUnique({
-      where: { id: admin_id }
-    });
-
-    if (!admin) {
-      throw new ForbiddenException()
-    }
-
-    const customer = await this.prisma.customer.findUnique({
-      where: { id: customer_id } // customer is event organizer too
-    })
-
-    if (!customer) {
-      throw new ForbiddenException()
-    }
-
-    const event = await this.prisma.event.create({
-      data: {
-        name: name,
-        admin: {
-          connect: { id: admin_id }
-        },
-        customer: {
-          connect: { id: customer_id }
-        },
-        eventTicketTimes: eventTicketTimes,
-      },
-      select: {
-        id: true,
-        name: true,
-        information: true,
-        destination: true,
-        organizer: true,
-        eventTimes: true,
-        eventTicketTimes: true
-      }
-    })
-
-    if (!event) {
-      throw new ForbiddenException()
-    }
-    return event;
-  }
-
   async findAll() {
     return await this.prisma.event.findMany({
       select: {
@@ -160,8 +115,9 @@ export class EventService {
         information: true,
         destination: true,
         organizer: true,
-        eventTimes: true,
-        eventTicketTimes: true,
+        eventTime: true,
+        eventTicketStart: true,
+        eventTicketEnd: true
       },
     });
   }

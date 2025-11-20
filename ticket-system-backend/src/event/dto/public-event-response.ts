@@ -40,14 +40,21 @@ export class PublicEventResponseDto {
   @ApiProperty({
     required: true,
     nullable: false,
-    example: ["2025-10-10T09:00:00.000Z"],
+    example: "2025-10-10T09:00:00.000Z",
   })
-  eventTimes: Date[];
+  eventTime: Date;
 
   @ApiProperty({
     required: true,
     nullable: false,
     example: "2025-10-10T09:00:00.000Z"
   })
-  eventTicketTimes: Date;
+  eventTicketStart: Date;
+
+  @ApiProperty({
+    required: true,
+    nullable: false,
+    example: "2025-10-31T09:00:00.000Z"
+  })
+  eventTicketEnd: Date;
 }

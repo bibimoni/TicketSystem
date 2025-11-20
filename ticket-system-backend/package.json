@@ -30,7 +30,7 @@
     "@nestjs/mapped-types": "*",
     "@nestjs/mongoose": "^11.0.3",
     "@nestjs/swagger": "^11.2.0",
-    "@prisma/client": "^6.17.0",
+    "@prisma/client": "^6.19.0",
     "bcrypt-ts": "^7.1.0",
     "ci": "^2.3.0",
     "class-transformer": "^0.5.1",

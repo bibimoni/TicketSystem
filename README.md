@@ -44,3 +44,14 @@ tickez-frontend/
 └── package-lock.json
 ```
 
+## Cài đặt và chạy Local
+1. Cài dependencies
+
+```npm install```
+
+2. Chạy ứng dụng
+
+```npm start```
+
+Ứng dụng sẽ chạy ở ```http://localhost:3000.```
+

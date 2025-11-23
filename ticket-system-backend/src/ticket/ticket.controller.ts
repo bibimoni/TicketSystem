@@ -11,61 +11,33 @@ import { Ticket } from 'generated/prisma';
 export class TicketController {
   constructor(private readonly ticketService: TicketService) { }
 
-  // @Post('price')
-  // @UseGuards(AuthGuard, AdminGuard)
-  // @HttpCode(HttpStatus.CREATED)
-  // @ApiOperation({ summary: 'Create ticket price (Admin only)' })
-  // @ApiBearerAuth('JWT-auth')
-  // @ApiHeader({
-  //   name: "Authorization",
-  //   description: "Bearer admin token for authorization",
-  //   required: true,
-  //   schema: {
-  //     type: 'string',
-  //     example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-  //   }
-  // })
-  // @ApiResponse({
-  //   status: 201,
-  //   description: 'Ticket\'s price created successfully',
-  // })
-  // @ApiResponse({
-  //   status: 401,
-  //   description: 'Unauthorized - Invalid or missing token',
-  // })
-  // @ApiBody({ type: CreateTicketPriceDto })
-  // async createTicketPrice(@Body() createTicketPriceDto: CreateTicketPriceDto) {
-  //   return await this.ticketService.createTicketPrice(createTicketPriceDto);
-  // }
+  @Get('sold-tickets')
+  @UseGuards(AuthGuard, AdminGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get all sold tickets - Admin only)' })
+  @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: "Authorization",
+    description: "Bearer admin token for authorization",
+    required: true,
+    schema: {
+      type: 'string',
+      example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+    }
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Sold tickets retrieved successfully',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid or missing token',
+  })
+  async getAllSoldTickets(): Promise<number> {
+    return this.ticketService.getSoldTickets();
+  }
 
-  // @Post()
-  // @UseGuards(AuthGuard, AdminGuard)
-  // @HttpCode(HttpStatus.CREATED)
-  // @ApiOperation({ summary: 'Create ticket (Admin only)' })
-  // @ApiBearerAuth('JWT-auth')
-  // @ApiHeader({
-  //   name: "Authorization",
-  //   description: "Bearer admin token for authorization",
-  //   required: true,
-  //   schema: {
-  //     type: 'string',
-  //     example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-  //   }
-  // })
-  // @ApiResponse({
-  //   status: 201,
-  //   description: 'Ticket created successfully',
-  // })
-  // @ApiResponse({
-  //   status: 401,
-  //   description: 'Unauthorized - Invalid or missing token',
-  // })
-  // @ApiBody({ type: CreateTicketDto })
-  // async create(@Body() createTicketDto: CreateTicketDto) {
-  //   return await this.ticketService.createTicket(createTicketDto);
-  // }
-
-  @Get()
+  @Get('all-tickets')
   @UseGuards(AuthGuard, AdminGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get all ticket\'s information (For testing - Admin only)' })
@@ -92,7 +64,7 @@ export class TicketController {
     return await this.ticketService.findAll();
   }
 
-  @Get(':id')
+  @Get('ticket/:id')
   @UseGuards(AuthGuard, AdminGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get a ticket\'s information by ID (For testing - Admin only)' })

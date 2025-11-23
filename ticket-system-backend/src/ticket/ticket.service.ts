@@ -111,4 +111,10 @@ export class TicketService {
 
     return ticket;
   }
+
+  async getSoldTickets() {
+    return await this.prisma.ticket.count({
+      where: { status: 'SOLD' }
+    })
+  }
 }

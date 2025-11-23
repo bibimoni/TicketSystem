@@ -14,7 +14,7 @@ import { EventStatusDto } from './dto/event-status.dto';
 export class EventController {
   constructor(private readonly eventService: EventService, private readonly ticketService: TicketService) { }
 
-  @Get('events-count/:status')
+  @Get('events-count/:dtoStatus')
   @UseGuards(AuthGuard, AdminGuard)
   @ApiOperation({ summary: 'Get all events count by status - Admin only' })
   @HttpCode(HttpStatus.OK)
@@ -40,9 +40,9 @@ export class EventController {
     return this.eventService.getEventsCount(dtoStatus.status);
   }
 
-  @Get('all')
+  @Get('all/:dtoStatus')
   @UseGuards(AuthGuard, AdminGuard)
-  @ApiOperation({ summary: 'Get all events - Admin only' })
+  @ApiOperation({ summary: 'Get all events by status - Admin only' })
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth('JWT-auth')
   @ApiHeader({
@@ -62,8 +62,8 @@ export class EventController {
     status: 200,
     description: 'All events retrieved',
   })
-  async findAllEvents() {
-    return await this.eventService.findAllEvents();
+  async findAllEvents(@Param(ValidationPipe) dtoStatus: EventStatusDto) {
+    return await this.eventService.findAllEvents(dtoStatus.status);
   }
 
   @Post('create')

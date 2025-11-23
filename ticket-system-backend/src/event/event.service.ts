@@ -108,8 +108,9 @@ export class EventService {
     };
   }
 
-  async findAll() {
+  async findAll(status: event_status) {
     return await this.prisma.event.findMany({
+      where: { status },
       select: {
         id: true,
         name: true,

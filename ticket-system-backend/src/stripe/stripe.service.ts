@@ -265,6 +265,7 @@ export class StripeService {
           const voucher = await tx.voucher.findUnique({
             where: { id: v.voucher_id }
           });
+
           if (!voucher) continue;
 
           const now = new Date();

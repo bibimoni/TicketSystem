@@ -169,42 +169,4 @@ export class EventController {
     }
     return await this.eventService.findAllEvents(username);
   }
-
-  // Action of admin: view all event
-  @UseGuards(AuthGuard, AdminGuard)
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Admin Get All Events' })
-  @ApiBearerAuth('JWT-auth')
-  @ApiHeader({
-    name: "Authorization",
-    description: "Bearer admin token for authorization",
-    required: true,
-    schema: {
-      type: 'string',
-      example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-    }
-  })
-  @ApiResponse({
-    description: "Successfully get all events",
-    type: PublicEventResponseDto
-  })
-  @Get('all_event')
-  findAll(@Request() req) {
-    return this.eventService.findAll();
-  }
-
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.eventService.findOne(+id);
-  // }
-
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateEventDto: UpdateEventDto) {
-  //   return this.eventService.update(+id, updateEventDto);
-  // }
-
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.eventService.remove(+id);
-  // }
 }

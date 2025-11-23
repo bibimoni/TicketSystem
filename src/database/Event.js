@@ -12,7 +12,7 @@ const eventsData = [
     bannerLandscape: bannerNgang,
     bannerPortrait: bannerDoc,
     description:
-      "Concert Anh trai vượt ngàn chông gai là chuỗi sự kiện âm nhạc cuối năm 2024 đầu năm 2025, quy tụ 33 nghệ sĩ, vận động viên từ chương trình truyền hình cùng tên. Sự kiện này không chỉ mang đến những màn trình diễn hoành tráng mà còn lan tỏa các giá trị tốt đẹp thông qua các dự án cộng đồng, tôn vinh văn hóa dân tộc.",
+      "Concert Anh trai vượt ngàn chông gai là chuỗi sự kiện âm nhạc cuối năm 2024 đầu năm 2025, quy tụ 33 nghệ sĩ, vận động viên từ chương trình truyền hình cùng tên. Sự kiện này không chỉ mang đến những màn trình diễn hoành tráng mà còn lan tỏa các giá trị tốt đẹp thông qua các dự án cộng đồng, tôn vinh văn hóa dân tộc.Concert Anh trai vượt ngàn chông gai là chuỗi sự kiện âm nhạc cuối năm 2024 đầu năm 2025, quy tụ 33 nghệ sĩ, vận động viên từ chương trình truyền hình cùng tên. Sự kiện này không chỉ mang đến những màn trình diễn hoành tráng mà còn lan tỏa các giá trị tốt đẹp thông qua các dự án cộng đồng, tôn vinh văn hóa dân tộc.",
     organizationLogo: image,
     organizationName: "YEAH 1 PRODUCTION",
     organizationDesc: "Công ty Cổ phần Tập đoàn Yeah1.",

@@ -8,6 +8,7 @@ import { PublicTransactionResponseDto } from './dto/public-transaction.dto';
 import { CheckoutIntentDto, ConfirmPaymentDto } from './dto/create-transaction.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { StripeService } from 'src/stripe/stripe.service';
+import { AdminGuard } from 'src/auth/admin.guard';
 
 @ApiTags('transaction')
 @Controller('transaction')
@@ -125,5 +126,26 @@ export class TransactionController {
     }
 
     return transaction;
+  }
+
+  @Get('revenue')
+  @UseGuards(AuthGuard, AdminGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Admin get total revenue' })
+  @ApiHeader({
+    name: "Authorization",
+    description: "Bearer admin token for authorization",
+    required: true,
+    schema: {
+      type: 'string',
+      example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+    }
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Total revenue',
+  })
+  async getTotalRevenue(): Promise<number> {
+    return await this.transactionService.getTotalRevenue();
   }
 }

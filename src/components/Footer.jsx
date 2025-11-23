@@ -48,7 +48,7 @@ const Footer = () => {
         },
     ];
     return (
-        <footer className="bg-[#5d5c5c] py-12 mt-8">
+        <footer className="bg-secondary py-12 mt-8">
             <div className="max-w-[1440px] mx-auto px-[122px]">
                 <div className="flex justify-between mb-8">
                     <div>
@@ -60,7 +60,7 @@ const Footer = () => {
                             />
                         </a>
                         <div className="mb-4">
-                            <h3 className="[font-family:'Montserrat',Helvetica] font-extrabold text-white text-xs mb-2">
+                            <h3 className="font-extrabold text-white text-xs mb-2">
                                 FOLLOW US
                             </h3>
                             <div className="flex gap-4">
@@ -85,7 +85,7 @@ const Footer = () => {
 
                     {footerSections.map((section, index) => (
                         <div key={index}>
-                            <h3 className="[font-family:'Montserrat',Helvetica] font-extrabold text-white text-xs mb-2">
+                            <h3 className="font-extrabold text-white text-xs mb-2">
                                 {section.title}
                             </h3>
                             <ul className="space-y-1">
@@ -93,7 +93,7 @@ const Footer = () => {
                                     <li key={linkIndex}>
                                         <a
                                             href="/"
-                                            className="[font-family:'Montserrat',Helvetica] font-semibold text-white text-[10px] hover:underline transition-all"
+                                            className="font-semibold text-white text-[10px] hover:underline transition-all"
                                         >
                                             {link}
                                         </a>
@@ -105,7 +105,7 @@ const Footer = () => {
                 </div>
 
                 <div className="text-center">
-                    <p className="[font-family:'Montserrat',Helvetica] font-semibold text-white text-[10px]">
+                    <p className="font-semibold text-white text-[10px]">
                         Bạn đang truy cập TickeZ. phiên bản Số 123456789
                     </p>
                 </div>

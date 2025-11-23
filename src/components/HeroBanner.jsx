@@ -1,4 +1,7 @@
 import feature1 from "../assets/images/feature3.jpg";
+import image1 from "../assets/images/image1.jpg";
+import image2 from "../assets/images/image2.jpg";
+import image3 from "../assets/images/image3.jpg";
 import React, { useState } from "react";
 
 const HeroBanner = () => {
@@ -6,7 +9,7 @@ const HeroBanner = () => {
     const featuredEvents = [
         {
             id: 1,
-            title: "G-DRAGON IN HANOI WORLD TOUR",
+            title: "ANH TRAI VƯỢT NGÀN CHÔNG GAI",
             subtitle: "NOV 08 SAT 2025 WONDER OCEAN CITY",
             date: "14-15/06/2025",
             image: feature1,
@@ -16,19 +19,19 @@ const HeroBanner = () => {
             title: "VIETNAMESE",
             subtitle: "HOÀNG THÙY LINH",
             date: "NOV 08 SAT 2025 WONDER OCEAN CITY",
-            image: feature1,
+            image: image1,
         },
         {
             id: 3,
             title: "NIỀM VUI CỦA CHÚNG TA",
             subtitle: "NOV 08 SAT 2025 WONDER OCEAN CITY",
-            image: feature1,
+            image: image3,
         },
         {
             id: 4,
             title: "TAYLOR SWIFT ERAS TOUR",
             subtitle: "2025 HANOI",
-            image: feature1,
+            image: image2,
         },
         {
             id: 5,
@@ -44,14 +47,14 @@ const HeroBanner = () => {
             title: "ANH TRAI VƯỢT NGÀN CHỐNG GAI",
             subtitle: "NOV 08 SAT 2025 WONDER OCEAN CITY",
             date: "14-15/06/2025",
-            image: feature1,
+            image: image3,
         },
         {
             id: 2,
             title: "VIETNAMESE",
             subtitle: "HOÀNG THÙY LINH",
             date: "NOV 08 SAT 2025 WONDER OCEAN CITY",
-            image: feature1,
+            image: image2,
         },
     ];
     // State cho carousel
@@ -68,19 +71,18 @@ const HeroBanner = () => {
     return (
         <div className="flex-grow py-8">
             {/* BANNER SỰ KIỆN NỔI BẬT */}
-            <section className="w-full bg-gradient-to-b from-primary/5 to-gray-100 relative">
+            <div className="w-full  relative">
                 <div className="max-w-7xl mx-auto px-4">
-
                     {/* 2 Ô KẾ BÊN – TRÁI LỚN (8/12 cột), PHẢI NHỎ (4/12 cột) */}
                     <div className="grid grid-cols-12 gap-4">
                         {/* Ô TRÁI – LỚN HƠN */}
-                        <div className="relative col-span-8 ">
+                        <div className="relative col-span-8">
                             {/* Hình hiện tại */}
-                            <div className="bg-cover bg-center rounded-lg shadow-2xl overflow-hidden cursor-pointer group relative">
+                            <div className="w-full h-[480px] bg-center rounded-lg shadow-2xl overflow-hidden cursor-pointer group relative">
                                 <img
                                     src={featuredEvents[currentIndex].image}
                                     alt={featuredEvents[currentIndex].title}
-                                    className="w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                 />
 
                                 {/* Overlay */}
@@ -126,30 +128,32 @@ const HeroBanner = () => {
                         </div>
 
                         {/* Ô PHẢI – 2 Ô NHỎ TRÊN DƯỚI */}
-                        <div className="col-span-4 grid grid-rows-2 gap-4">
-                            {/* Ô NHỎ TRÊN */}
-                            <div className="row-span-2 relative bg-cover bg-center rounded-lg shadow-2xl overflow-hidden cursor-pointer group ">
+                        <div className="col-span-4 grid grid-rows-2 gap-4 h-full"> {/* Thêm h-full để fixed height toàn bộ */}
+                            {/* Ô NHỎ TRÊN – XÓA row-span-2 */}
+                            <div className="relative bg-cover bg-center rounded-lg shadow-2xl overflow-hidden cursor-pointer group h-[230px]"> {/* Thêm h-full = half height */}
                                 <img
                                     src={rightEvents[0].image}
                                     alt={rightEvents[0].title}
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" // object-cover: crop fit, không méo
                                 />
+
                             </div>
 
-                            {/* Ô NHỎ DƯỚI */}
-                            <div className="row-span-2 relative bg-cover bg-center rounded-lg shadow-2xl overflow-hidden cursor-pointer group">
+                            {/* Ô NHỎ DƯỚI – XÓA row-span-2 */}
+                            <div className="relative bg-cover bg-center rounded-lg shadow-2xl overflow-hidden cursor-pointer group h-[230px]"> {/* Thêm h-full = half height */}
                                 <img
                                     src={rightEvents[1].image}
                                     alt={rightEvents[1].title}
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" // object-cover: crop fit, không méo
                                 />
+
                             </div>
                         </div>
 
                     </div>
 
                 </div>
-            </section>
+            </div>
         </div>
     );
 };

@@ -13,8 +13,10 @@ export default {
       fontFamily: {
         montserrat: ['"Montserrat"', "sans-serif"],
         playwrite: ['"Playwrite US Trad"', "cursive"],
+        monoto: ['"Monoton"', 'Helvetica', 'sans-serif'], 
       },
     },
   },
-  plugins: [],
+  plugins: [require('tailwind-scrollbar-hide')],
+
 }

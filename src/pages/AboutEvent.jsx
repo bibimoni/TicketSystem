@@ -3,12 +3,19 @@ import React from "react";
 import HeaderBar from "../components/HeaderBar";
 import CatalogBar from "../components/CatalogBar";
 import Footer from "../components/Footer";
+import TicketDetail from "../components/TicketDetail";
+import Info from "../components/Info";
+import MoreEvent from "../components/MoreEvent"
+// import BackButton from "../components/BackButton"
 
 function AboutEvent() {
     return (
         <div className="min-h-screen bg-gray-100">
             <HeaderBar />
             <CatalogBar />
+            <TicketDetail pageType="event"/>
+            <Info />
+            <MoreEvent />
             <Footer />
         </div>
     );

@@ -14,7 +14,6 @@ const HeaderBar = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
 
-    // ✔ modal state đặt đúng ở đây
     const [showLogin, setShowLogin] = useState(false);
     const [showRegister, setShowRegister] = useState(false);
 
@@ -148,7 +147,6 @@ const HeaderBar = () => {
                 </div>
             </header>
 
-            {/* ✔ modal đặt ở cuối component */}
             {showLogin && (
                 <LoginModal isOpen={showLogin} onClose={() => setShowLogin(false)} />
             )}

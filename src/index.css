@@ -1,0 +1,149 @@
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .all-\[unset\] {
+    all: unset;
+  }
+}
+
+:root {
+  --highcharts-core-vikafjell-colors-general-axistitles: rgba(102, 102, 102, 1);
+  --highcharts-core-vikafjell-colors-general-background: rgba(247, 247, 248, 1);
+  --highcharts-core-vikafjell-colors-general-grid: rgba(227, 227, 232, 1);
+  --highcharts-core-vikafjell-colors-general-labels: rgba(0, 0, 0, 1);
+  --highcharts-core-vikafjell-colors-general-pane: rgba(227, 226, 232, 1);
+  --highcharts-core-vikafjell-colors-general-subtitle: rgba(47, 46, 56, 1);
+  --highcharts-core-vikafjell-colors-general-title: rgba(117, 115, 140, 1);
+  --highcharts-core-vikafjell-colors-series-0: rgba(43, 114, 251, 1);
+  --highcharts-core-vikafjell-colors-series-1: rgba(100, 189, 198, 1);
+  --highcharts-core-vikafjell-colors-series-2: rgba(238, 202, 52, 1);
+  --highcharts-core-vikafjell-colors-series-3: rgba(254, 106, 53, 1);
+  --highcharts-core-vikafjell-colors-series-4: rgba(250, 75, 66, 1);
+  --highcharts-core-vikafjell-colors-series-5: rgba(238, 96, 224, 1);
+  --highcharts-core-vikafjell-colors-series-6: rgba(123, 71, 233, 1);
+  --highcharts-core-vikafjell-colors-series-7: rgba(93, 137, 223, 1);
+  --highcharts-core-vikafjell-colors-series-8: rgba(106, 209, 254, 1);
+  --highcharts-core-vikafjell-colors-series-9: rgba(63, 220, 126, 1);
+  --shape-corner-extra-small: 4px;
+  --shape-corner-large-increased: 20px;
+  --shape-corner-small: 8px;
+}
+
+:root {
+  --animate-spin: spin 1s linear infinite;
+}
+
+.animate-fade-in {
+  animation: fade-in 1s var(--animation-delay, 0s) ease forwards;
+}
+
+.animate-fade-up {
+  animation: fade-up 1s var(--animation-delay, 0s) ease forwards;
+}
+
+.animate-marquee {
+  animation: marquee var(--duration) infinite linear;
+}
+
+.animate-marquee-vertical {
+  animation: marquee-vertical var(--duration) linear infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 8s infinite;
+}
+
+.animate-spin {
+  animation: var(--animate-spin);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@keyframes image-glow {
+  0% {
+    opacity: 0;
+    animation-timing-function: cubic-bezier(0.74, 0.25, 0.76, 1);
+  }
+
+  10% {
+    opacity: 0.7;
+    animation-timing-function: cubic-bezier(0.12, 0.01, 0.08, 0.99);
+  }
+
+  to {
+    opacity: 0.4;
+  }
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade-up {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes shimmer {
+  0%,
+  90%,
+  to {
+    background-position: calc(-100% - var(--shimmer-width)) 0;
+  }
+
+  30%,
+  60% {
+    background-position: calc(100% + var(--shimmer-width)) 0;
+  }
+}
+
+@keyframes marquee {
+  0% {
+    transform: translate(0);
+  }
+
+  to {
+    transform: translateX(calc(-100% - var(--gap)));
+  }
+}
+
+@keyframes marquee-vertical {
+  0% {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(calc(-100% - var(--gap)));
+  }
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

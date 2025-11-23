@@ -3,6 +3,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CustomerService } from 'src/customer/customer.service';
 import { CreateEventCustomerDto } from './dto/create-event-customer.dto';
 import { VoucherService } from 'src/voucher/voucher.service';
+import { event_status } from 'generated/prisma';
 
 @Injectable()
 export class EventService {
@@ -122,15 +123,10 @@ export class EventService {
     });
   }
 
-  // findOne(id: number) {
-  //   return `This action returns a #${id} event`;
-  // }
+  async getEventsCount(status: event_status): Promise<number> {
+    return await this.prisma.event.count({
+      where: { status }
+    });
+  }
 
-  // update(id: number, updateEventDto: UpdateEventDto) {
-  //   return `This action updates a #${id} event`;
-  // }
-
-  // remove(id: number) {
-  //   return `This action removes a #${id} event`;
-  // }
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Request, UseGuards, HttpStatus, HttpCode, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Request, UseGuards, HttpStatus, HttpCode, UnauthorizedException, BadRequestException, Param, ValidationPipe } from '@nestjs/common';
 import { EventService } from './event.service';
 import { PublicEventResponseDto } from './dto/public-event-response';
 import { ApiBearerAuth, ApiBody, ApiHeader, ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -8,14 +8,56 @@ import { TicketService } from 'src/ticket/ticket.service';
 import { AdminGuard } from 'src/auth/admin.guard';
 import { CreatedEventCustomerResponseDto } from './dto/created-event-customer-response';
 import { CreateTicketPriceDto, CreateTicketTypeDto } from 'src/ticket/dto/create-ticket.dto';
+import { EventStatusDto } from './dto/event-status.dto';
 
 @Controller('event')
 export class EventController {
   constructor(private readonly eventService: EventService, private readonly ticketService: TicketService) { }
 
-  @Get('/all')
-  @ApiOperation({ summary: 'Get all events' })
+  @Get('events-count/:status')
+  @UseGuards(AuthGuard, AdminGuard)
+  @ApiOperation({ summary: 'Get all events count by status - Admin only' })
   @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: "Authorization",
+    description: "Bearer admin token for authorization",
+    required: true,
+    schema: {
+      type: 'string',
+      example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+    }
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid or missing token',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'All draft events retrieved',
+  })
+  async getAllEventsCount(@Param(ValidationPipe) dtoStatus: EventStatusDto): Promise<number> {
+    return this.eventService.getEventsCount(dtoStatus.status);
+  }
+
+  @Get('all')
+  @UseGuards(AuthGuard, AdminGuard)
+  @ApiOperation({ summary: 'Get all events - Admin only' })
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: "Authorization",
+    description: "Bearer admin token for authorization",
+    required: true,
+    schema: {
+      type: 'string',
+      example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+    }
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid or missing token',
+  })
   @ApiResponse({
     status: 200,
     description: 'All events retrieved',

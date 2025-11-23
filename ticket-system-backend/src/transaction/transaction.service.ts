@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable } from "@nestjs/common";
+import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 import { StripeService } from "src/stripe/stripe.service";
 import { CheckoutIntentDto } from "./dto/create-transaction.dto";
@@ -11,6 +11,7 @@ export class TransactionService {
   async createCheckout(checkoutDto: CheckoutIntentDto, customerId: string) {
     return await this.stripeService.checkout(checkoutDto, customerId);
   }
+
   async getTransactionsByCustomer(customerId: string): Promise<PublicTransactionResponseDto[]> {
     const transactions = await this.prisma.transaction.findMany({
       where: { customer_id: customerId },
@@ -233,5 +234,14 @@ export class TransactionService {
         }
         : undefined
     }
+  }
+
+  async getTotalRevenue(): Promise<number> {
+    const pipe = await this.prisma.transaction.aggregate({
+      where: { status: 'SUCCESS' },
+      _sum: { total_price: true },
+    });
+
+    return pipe._sum.total_price ?? 0
   }
 }

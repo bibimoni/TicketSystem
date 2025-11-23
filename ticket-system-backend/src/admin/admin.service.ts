@@ -11,7 +11,6 @@ export class AdminService {
   constructor(private prisma: PrismaService, private userService: UserService) { }
 
   async create(createAdminDto: CreateAdminDto): Promise<PublicAdminResponseDto> {
-    // const { user_id } = createAdminDto
     const { username, password, email } = createAdminDto;
     const salt = await genSalt(10);
     const hashed_password = await hash(password, salt);
@@ -21,10 +20,6 @@ export class AdminService {
       username,
       email
     })
-
-    // const user = await this.prisma.user.findUnique({
-    //   where: { id: user_id },
-    // });
 
     if (!user) {
       throw new ForbiddenException();

@@ -137,7 +137,6 @@ model Ticket {
 }
 
 enum ticket_status {
-  UNUSED
   USED
   AVAILABLE
   SOLD

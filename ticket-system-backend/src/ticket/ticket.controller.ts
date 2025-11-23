@@ -90,4 +90,31 @@ export class TicketController {
   async findOne(@Param('id') id: string): Promise<Ticket> {
     return await this.ticketService.findOne(id);
   }
+
+  @Get('scan-ticket')
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Scan ticket' })
+  @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: "Authorization",
+    description: "Bearer customer token for authorization",
+    required: true,
+    schema: {
+      type: 'string',
+      example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+    }
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Ticket scan successfully',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid or missing token',
+  })
+  @ApiOperation({ summary: 'Scan ticket' })
+  async scanTicket(@Body() body: { qrData: string }): Promise<{ message: string }> {
+    return await this.ticketService.scanTicket(body.qrData)
+  }
 }

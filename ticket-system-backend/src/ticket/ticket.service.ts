@@ -1,4 +1,4 @@
-import { Injectable, ForbiddenException } from '@nestjs/common';
+import { Injectable, ForbiddenException, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateTicketTypeDto, CreateTicketPriceDto } from './dto/create-ticket.dto';
 
@@ -116,5 +116,44 @@ export class TicketService {
     return await this.prisma.ticket.count({
       where: { status: 'SOLD' }
     })
+  }
+
+  async scanTicket(qrData: string): Promise<{ message: string }> {
+    let payload: any;
+
+    try {
+      payload = JSON.parse(qrData);
+    } catch (error) {
+      throw new BadRequestException('Invalid QR format');
+    }
+
+    const { code, user_id, order_id } = payload;
+
+    if (!code || !user_id || !order_id) {
+      throw new BadRequestException('QR data missing fields');
+    }
+
+    const ticket = await this.prisma.ticket.findUnique({
+      where: { code },
+    });
+
+    if (!ticket) {
+      throw new NotFoundException('Ticket not found');
+    }
+
+    if (ticket.status === 'AVAILABLE') {
+      throw new BadRequestException('This ticket has not been sold');
+    }
+
+    if (ticket.status === 'USED') {
+      throw new BadRequestException('This ticket has already been used');
+    }
+
+    await this.prisma.ticket.update({
+      where: { id: ticket.id },
+      data: { status: 'USED' },
+    });
+
+    return { message: `Ticket ${code} marked as USED successfully.` };
   }
 }

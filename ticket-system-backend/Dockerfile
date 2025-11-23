@@ -6,10 +6,6 @@ COPY prisma ./prisma/
 RUN npm ci 
 COPY . .
 
-# Copy templates in base → available for all future stages
-RUN mkdir -p dist/mail/templates \
-  && cp -R src/mail/templates dist/mail/templates
-
 # -------------------------
 # DEV STAGE
 # -------------------------
@@ -27,8 +23,8 @@ ENV NODE_ENV=production
 RUN npx prisma generate
 RUN npm run build
 
-# Re-copy templates after build
-RUN cp -R src/mail/templates dist/mail/templates
+RUN mkdir -p dist/mail/templates \
+  && cp -R src/mail/templates/* dist/mail/templates/
 
 # -------------------------
 # PROD STAGE

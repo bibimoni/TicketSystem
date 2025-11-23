@@ -60,14 +60,18 @@ export class MailService {
     }
   }
 
+  private getTemplatePath(templateName: string): string {
+    const basePath = process.env.NODE_ENV === 'production'
+      ? path.join(__dirname, 'templates')
+      : path.join(process.cwd(), 'src', 'mail', 'templates');
+
+    return path.join(basePath, `${templateName}.hbs`);
+  }
+
   private async renderTemplate(renderTemplateDto: RenderTemplateDto): Promise<string> {
     const { templateName, data } = renderTemplateDto;
     this.logger.log(`Rendering email template: ${templateName}`);
-    const filePath = path.join(
-      __dirname,
-      'templates',
-      `${templateName}.hbs`
-    );
+    const filePath = this.getTemplatePath(templateName)
     const source = await fs.readFile(filePath, 'utf8');
     const compiled = Handlebars.compile(source);
     return compiled(data);

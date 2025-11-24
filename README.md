@@ -14,6 +14,7 @@ tickez-frontend/
 │ │ ├── AdvertisingBanner.jsx
 │ │ ├── BackButton.jsx
 │ │ ├── Booking.jsx
+│ │ ├── Breadcrumb.jsx
 │ │ ├── CatalogBar.jsx
 │ │ ├── Footer.jsx
 │ │ ├── Form.jsx
@@ -25,10 +26,12 @@ tickez-frontend/
 │ │ ├── Paying.jsx
 │ │ ├── SeachEvent.jsx
 │ │ └── TicketDetail.jsx
+│ │ └── Profile.jsx
 │ ├── database/
 │ │ ├── Event.js
 │ │ ├── Events.js
 │ │ └── TrendingEvent.js
+│ │ └── User.js
 │ ├── pages/
 │ │ ├── AboutEvent.jsx
 │ │ ├── BookingTicket.jsx
@@ -36,6 +39,7 @@ tickez-frontend/
 │ │ ├── Pay.jsx
 │ │ ├── QuestionForm.jsx
 │ │ └── Search.jsx
+│ │ └── MyProfile.jsx
 │ ├── App.js
 │ ├── index.css
 │ └── index.js

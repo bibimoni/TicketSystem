@@ -7,6 +7,7 @@ import BookingTicket from "./pages/BookingTicket";
 import QuestionForm from "./pages/QuestionForm";
 import Pay from "./pages/Pay";
 import MyProfile from "./pages/MyProfile";
+import MyTicket from "./pages/MyTicket";
 
 function App() {
   return (
@@ -19,7 +20,8 @@ function App() {
       <Route path="/question-form/:eventId" element={<QuestionForm />} />
       <Route path="/pay/:eventId" element={<Pay />} />
 
-      <Route path="/profile" element={<MyProfile />} />
+      <Route path="/my-profile" element={<MyProfile />} />
+      <Route path="/my-ticket" element={<MyTicket />} />
     </Routes>
     
     // <Home />

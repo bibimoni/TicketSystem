@@ -9,7 +9,7 @@ import { RenderTemplateDto, SendMailDto, SendOtpEmailDto } from './dtos';
 @Injectable()
 export class MailService {
   private readonly logger = new Logger(MailService.name);
-  private readonly transporter;
+  private readonly transporter: nodemailer;
 
   constructor() {
     this.transporter = nodemailer.createTransport({
@@ -21,7 +21,7 @@ export class MailService {
         pass: config.smtpPass,    // app password
       },
       tls: {
-        rejectUnauthorized: false,   // quan trọng khi chạy docker alpine + gmail
+        rejectUnauthorized: false
       }
     });
   }

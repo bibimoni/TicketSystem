@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Request, UseGuards, HttpStatus, HttpCode, UnauthorizedException, BadRequestException, Param, ValidationPipe } from '@nestjs/common';
 import { EventService } from './event.service';
 import { PublicEventResponseDto } from './dto/public-event-response';
-import { ApiBearerAuth, ApiBody, ApiHeader, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiHeader, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { CreateEventCustomerDto } from './dto/create-event-customer.dto';
 import { TicketService } from 'src/ticket/ticket.service';
@@ -9,24 +9,20 @@ import { AdminGuard } from 'src/auth/admin.guard';
 import { CreatedEventCustomerResponseDto } from './dto/created-event-customer-response';
 import { CreateTicketPriceDto, CreateTicketTypeDto } from 'src/ticket/dto/create-ticket.dto';
 import { EventStatusDto } from './dto/event-status.dto';
+import { event_status } from 'generated/prisma';
 
 @Controller('event')
 export class EventController {
   constructor(private readonly eventService: EventService, private readonly ticketService: TicketService) { }
 
-  @Get('events-count/:dtoStatus')
-  @UseGuards(AuthGuard, AdminGuard)
-  @ApiOperation({ summary: 'Get all events count by status - Admin only' })
+  @Get('events-count/:status')
+  @ApiOperation({ summary: 'Get all events count by status' })
   @HttpCode(HttpStatus.OK)
-  @ApiBearerAuth('JWT-auth')
-  @ApiHeader({
-    name: "Authorization",
-    description: "Bearer admin token for authorization",
-    required: true,
-    schema: {
-      type: 'string',
-      example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-    }
+  @ApiParam({
+    name: 'status',
+    enum: event_status,
+    description: 'Filter events by status [DRAFT, PUBLISHED, CANCELLED, COMPLETED]',
+    example: 'DRAFT'
   })
   @ApiResponse({
     status: 401,
@@ -34,25 +30,20 @@ export class EventController {
   })
   @ApiResponse({
     status: 200,
-    description: 'All draft events retrieved',
+    description: 'All events count retrieved',
   })
-  async getAllEventsCount(@Param(ValidationPipe) dtoStatus: EventStatusDto): Promise<number> {
-    return this.eventService.getEventsCount(dtoStatus.status);
+  async getAllEventsCount(@Param(ValidationPipe) status: EventStatusDto): Promise<number> {
+    return this.eventService.getEventsCount(status.status);
   }
 
-  @Get('all/:dtoStatus')
-  @UseGuards(AuthGuard, AdminGuard)
-  @ApiOperation({ summary: 'Get all events by status - Admin only' })
+  @Get('all/:status')
+  @ApiOperation({ summary: 'Get all events by status' })
   @HttpCode(HttpStatus.OK)
-  @ApiBearerAuth('JWT-auth')
-  @ApiHeader({
-    name: "Authorization",
-    description: "Bearer admin token for authorization",
-    required: true,
-    schema: {
-      type: 'string',
-      example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-    }
+  @ApiParam({
+    name: 'status',
+    enum: event_status,
+    description: 'Filter events by status [DRAFT, PUBLISHED, CANCELLED, COMPLETED]',
+    example: 'DRAFT'
   })
   @ApiResponse({
     status: 401,
@@ -62,8 +53,8 @@ export class EventController {
     status: 200,
     description: 'All events retrieved',
   })
-  async findAllEvents(@Param(ValidationPipe) dtoStatus: EventStatusDto) {
-    return await this.eventService.findAllEvents(dtoStatus.status);
+  async findAllEvents(@Param(ValidationPipe) status: EventStatusDto) {
+    return await this.eventService.findAll(status.status);
   }
 
   @Post('create')

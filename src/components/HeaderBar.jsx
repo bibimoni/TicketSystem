@@ -2,7 +2,7 @@
 import { Button } from "../components/ui/button";
 import logo from "../assets/images/logo.png";
 import "../index.css";
-import { Search as SearchIcon, User, ShoppingCart } from "lucide-react";
+import { Search as SearchIcon, User } from "lucide-react";
 import { BsTicketPerforatedFill } from "react-icons/bs";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -128,13 +128,6 @@ const HeaderBar = () => {
 
                                 <div className="w-px h-5 bg-white/80" />
 
-                                <button className="hover:opacity-80 relative">
-                                    <ShoppingCart className="w-6 h-6 text-white" />
-                                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                                        3
-                                    </span>
-                                </button>
-
                                 <button
                                     onClick={handleLogout}
                                     className="ml-[10px] font-bold text-white text-xs hover:underline"
@@ -148,11 +141,21 @@ const HeaderBar = () => {
             </header>
 
             {showLogin && (
-                <LoginModal isOpen={showLogin} onClose={() => setShowLogin(false)} />
+                <LoginModal
+                    isOpen={showLogin}
+                    onClose={() => setShowLogin(false)}
+                    setIsLoggedIn={setIsLoggedIn}  // New prop
+                    openRegister={() => { setShowLogin(false); setShowRegister(true); }}  // Mở register khi clic
+                />
             )}
 
             {showRegister && (
-                <RegisterModal isOpen={showRegister} onClose={() => setShowRegister(false)} />
+                <RegisterModal
+                    isOpen={showRegister}
+                    onClose={() => setShowRegister(false)}
+                    setIsLoggedIn={setIsLoggedIn}
+                    openLogin={() => { setShowRegister(false); setShowLogin(true); }}  // Mở login khi click
+                />
             )}
         </>
     );

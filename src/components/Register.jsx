@@ -2,9 +2,83 @@ import { X } from "lucide-react";
 import logo from "../assets/images/logo.png";
 import illu from "../assets/images/illu.png";
 import logogg from "../assets/images/gglogo.png";
+import { useState } from "react";
 
-export default function RegisterModal({ isOpen, onClose }) {
+export default function RegisterModal({ isOpen, onClose, setIsLoggedIn, openLogin }) {
+
+    const [email, setEmail] = useState("");
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+
     if (!isOpen) return null;
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (password !== confirmPassword) {
+            setError("Mật khẩu xác nhận không khớp!");
+            return;
+        }
+        if (!email || !username || !password) {
+            setError("Vui lòng điền đầy đủ thông tin!");
+            return;
+        }
+
+        setLoading(true);
+        setError("");
+
+        try {
+            // Gọi API register
+            const response = await fetch("/api/customer", {  // Dùng proxy như login
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    email: email,
+                    username: username,
+                    password: password,
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || "Đăng ký thất bại. Vui lòng thử lại.");
+            }
+
+            const userData = await response.json();
+            console.log("User created:", userData);
+
+            // Tự động đăng nhập sau khi đăng ký thành công
+            const loginResponse = await fetch("/api/auth/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    username: username,  // Hoặc email, tùy backend expect gì
+                    password: password,
+                }),
+            });
+
+            if (!loginResponse.ok) {
+                throw new Error("Đăng ký thành công nhưng đăng nhập thất bại!");
+            }
+
+            const loginData = await loginResponse.json();
+            localStorage.setItem("token", loginData.access_token);
+            console.log("Token saved after register:", loginData.access_token);
+            setIsLoggedIn(true);
+            onClose();
+        } catch (err) {
+            setError(err.message);
+            console.error("Register error:", err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <>
@@ -30,33 +104,50 @@ export default function RegisterModal({ isOpen, onClose }) {
                                 Đăng ký tài khoản
                             </p>
 
-                            <form className="space-y-4">
+                            <form className="space-y-4" onSubmit={handleSubmit}>
                                 <input
                                     type="text"
-                                    placeholder="Số điện thoại"
+                                    placeholder="Tên đăng nhập"  // Đổi thành username để match API
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
                                     className="w-full h-[40px] px-4 border border-gray-300 rounded-lg focus:border-primary outline-none"
+                                    required
                                 />
                                 <input
                                     type="email"
                                     placeholder="Email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
                                     className="w-full h-[40px] px-4 border border-gray-300 rounded-lg focus:border-primary outline-none"
+                                    required
                                 />
                                 <input
                                     type="password"
                                     placeholder="Mật khẩu"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
                                     className="w-full h-[40px] px-4 border border-gray-300 rounded-lg focus:border-primary outline-none"
+                                    required
                                 />
                                 <input
                                     type="password"
                                     placeholder="Nhập lại mật khẩu"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
                                     className="w-full h-[40px] px-4 border border-gray-300 rounded-lg focus:border-primary outline-none"
+                                    required
                                 />
+
+                                {error && (
+                                    <p className="text-red-500 text-sm text-center">{error}</p>
+                                )}
 
                                 <button
                                     type="submit"
-                                    className="w-full bg-primary hover:bg-red-600 text-white font-semibold py-3 rounded-lg"
+                                    disabled={loading}
+                                    className="w-full bg-primary hover:bg-red-600 text-white font-semibold py-3 rounded-lg disabled:opacity-50"
                                 >
-                                    Tạo tài khoản
+                                    {loading ? "Đang tạo..." : "Tạo tài khoản"}
                                 </button>
                             </form>
 
@@ -81,7 +172,8 @@ export default function RegisterModal({ isOpen, onClose }) {
                                 <button
                                     type="button"
                                     onClick={() => {
-                                        
+                                        onClose();
+                                        openLogin();  // Mở modal login
                                     }}
                                     className="text-primary font-bold hover:underline"
                                 >

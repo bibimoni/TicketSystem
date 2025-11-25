@@ -6,7 +6,6 @@ import Footer from "../components/Footer";
 import TicketDetail from "../components/TicketDetail";
 import Info from "../components/Info";
 import MoreEvent from "../components/MoreEvent"
-// import BackButton from "../components/BackButton"
 
 function AboutEvent() {
     return (

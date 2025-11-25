@@ -3,9 +3,7 @@
 ```
 tickez-frontend/
 ├── public/
-│ ├── index.html
 │ ├── logo.png
-│ └── ...
 ├── src/
 │ ├── assets/
 │ │ └── images/
@@ -40,10 +38,13 @@ tickez-frontend/
 │ │ ├── QuestionForm.jsx
 │ │ └── Search.jsx
 │ │ └── MyProfile.jsx
-│ ├── App.js
+│ ├── App.jsx
+│ ├── App.css
 │ ├── index.css
-│ └── index.js
+│ └── index.jsx
 ├── tailwind.config.js
+├── index.html
+├── vite.config.js
 ├── package.json
 └── package-lock.json
 ```
@@ -55,7 +56,6 @@ tickez-frontend/
 
 2. Chạy ứng dụng
 
-```npm start```
+```npm run dev```
 
-Ứng dụng sẽ chạy ở ```http://localhost:3000.```
-
+Ứng dụng sẽ chạy ở ```http://localhost:5173/```

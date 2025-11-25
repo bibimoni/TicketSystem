@@ -2,9 +2,54 @@ import { X } from "lucide-react";
 import logo from "../assets/images/logo.png";
 import illu from "../assets/images/illu.png";
 import logogg from "../assets/images/gglogo.png";
+import { useState } from "react";
 
-export default function LoginModal({ isOpen, onClose }) {
+export default function LoginModal({ isOpen, onClose, setIsLoggedIn, openRegister }) {
+    const [identifier, setIdentifier] = useState("");
+    const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+
     if (!isOpen) return null;
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError("");
+
+        try {
+            const response = await fetch("/api/auth/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    username: identifier,
+                    password: password,
+                }),
+            });
+
+            if (!response.ok) {
+                let msg = "Đăng nhập thất bại";
+                try {
+                    const errData = await response.json();
+                    msg = errData.message || msg;
+                } catch { }
+                throw new Error(msg);
+            }
+
+            const data = await response.json();
+            localStorage.setItem("token", data.access_token);
+            console.log("Token saved:", data.access_token);
+            setIsLoggedIn(true);
+            onClose();
+        } catch (err) {
+            setError(err.message);
+            console.error("Login error:", err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <>
@@ -30,10 +75,12 @@ export default function LoginModal({ isOpen, onClose }) {
                                 Đăng nhập tài khoản
                             </p>
 
-                            <form className="space-y-5">
+                            <form className="space-y-5" onSubmit={handleSubmit}>
                                 <input
                                     type="text"
                                     placeholder="Số điện thoại / Email / Tên đăng nhập"
+                                    value={identifier}
+                                    onChange={(e) => setIdentifier(e.target.value)}
                                     className="w-full h-12 px-5 border border-gray-300 rounded-lg focus:border-primary outline-none"
                                     required
                                 />
@@ -42,16 +89,23 @@ export default function LoginModal({ isOpen, onClose }) {
                                     <input
                                         type="password"
                                         placeholder="Mật khẩu"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
                                         className="w-full h-12 px-5 pr-12 border border-gray-300 rounded-lg focus:border-primary outline-none"
                                         required
                                     />
                                 </div>
 
+                                {error && (
+                                    <p className="text-red-500 text-sm text-center">{error}</p>
+                                )}
+
                                 <button
                                     type="submit"
-                                    className="w-full h-12 bg-primary hover:bg-red-600 text-white font-bold rounded-lg"
+                                    disabled={loading}
+                                    className="w-full h-12 bg-primary hover:bg-red-600 text-white font-bold rounded-lg disabled:opacity-50"
                                 >
-                                    Đăng nhập
+                                    {loading ? "Đang đăng nhập..." : "Đăng nhập"}
                                 </button>
                             </form>
 
@@ -86,9 +140,7 @@ export default function LoginModal({ isOpen, onClose }) {
                                     type="button"
                                     onClick={() => {
                                         onClose();
-                                        document.dispatchEvent(
-                                            new CustomEvent("open-register")
-                                        );
+                                        openRegister();
                                     }}
                                     className="text-primary font-bold hover:underline"
                                 >

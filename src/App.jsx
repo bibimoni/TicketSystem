@@ -19,7 +19,6 @@ function App() {
       <Route path="/booking/:eventId" element={<BookingTicket />} />
       <Route path="/question-form/:eventId" element={<QuestionForm />} />
       <Route path="/pay/:eventId" element={<Pay />} />
-
       <Route path="/my-profile" element={<MyProfile />} />
       <Route path="/my-ticket" element={<MyTicket />} />
     </Routes>

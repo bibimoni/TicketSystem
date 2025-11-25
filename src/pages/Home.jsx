@@ -50,7 +50,7 @@ function Home() {
         gap={30}
       />
       
-      <AdvertisingBanner />
+      <AdvertisingBanner banner="https://techcombank.com/content/dam/techcombank/public-site/articles/non-blog/Banner-cashback-ther-VISA-c6315ae326.jpg" height={500}/>
       
       <ListEvent
         title="NGHỆ THUẬT VÀ SÂN KHẤU"
@@ -68,8 +68,6 @@ function Home() {
         gap={30}
       />
 
-
-      {/* Footer luôn nằm dưới cùng */}
       <Footer />
     </div>
   );

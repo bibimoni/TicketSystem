@@ -1,6 +1,5 @@
-import { Controller, Get, Post, Body, Request, UseGuards, HttpStatus, HttpCode, UnauthorizedException, BadRequestException, Param, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Request, UseGuards, HttpStatus, HttpCode, UnauthorizedException, BadRequestException, Param, ValidationPipe, Req } from '@nestjs/common';
 import { EventService } from './event.service';
-import { PublicEventResponseDto } from './dto/public-event-response';
 import { ApiBearerAuth, ApiBody, ApiHeader, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { CreateEventCustomerDto } from './dto/create-event-customer.dto';
@@ -10,6 +9,7 @@ import { CreatedEventCustomerResponseDto } from './dto/created-event-customer-re
 import { CreateTicketPriceDto, CreateTicketTypeDto } from 'src/ticket/dto/create-ticket.dto';
 import { EventStatusDto } from './dto/event-status.dto';
 import { event_status } from 'generated/prisma';
+import { UpdateEventDto } from './dto/update-event-info.dto';
 
 @Controller('event')
 export class EventController {
@@ -54,7 +54,43 @@ export class EventController {
     description: 'All events retrieved',
   })
   async findAllEvents(@Param(ValidationPipe) status: EventStatusDto) {
-    return await this.eventService.findAll(status.status);
+    return await this.eventService.findAllByStatus(status.status);
+  }
+
+  @Get(':eventId/set-status')
+  @UseGuards(AuthGuard, AdminGuard)
+  @ApiOperation({ summary: 'Admin sets event status to PUBLISHED' })
+  @HttpCode(HttpStatus.OK)
+  @ApiParam({
+    name: 'eventId',
+    description: 'Event ID',
+    example: '68e4e22c9815978759f58203'
+  })
+  @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: "Authorization",
+    description: "Bearer admin token for authorization",
+    required: true,
+    schema: {
+      type: 'string',
+      example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+    }
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid or missing token',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Event has been set to PUBLISHED by Admin',
+  })
+  async updateEventStatus(
+    @Param('eventId', new ValidationPipe({ transform: true }))
+    eventId: string,
+    @Req() req: any
+  ) {
+    const adminId = req.admin.id;
+    return await this.eventService.updateEventStatus(eventId, adminId);
   }
 
   @Post('create')
@@ -72,8 +108,9 @@ export class EventController {
     const createdEvent = await this.eventService.createEventByCustomer(createEventCustomerDto, username);
 
     const aggregatedTickets: {
-      ticketTypeId: string;
+      ticketTypeId: string,
       name: string,
+      seat: string,
       amount: number;
       remaining?: number;
       ticketPrice: { id: string; name?: string | null; price: number; benefit_info?: string | null };
@@ -95,7 +132,8 @@ export class EventController {
         if (Array.isArray(tp.ticketTypes) && tp.ticketTypes.length > 0) {
           for (const tt of tp.ticketTypes) {
             const createTicketTypeDto: CreateTicketTypeDto = {
-              name: tt.name ?? null,
+              name: tt.name,
+              seat: tt.seat,
               amount: tt.amount ?? 0
             };
 
@@ -107,6 +145,7 @@ export class EventController {
 
             aggregatedTickets.push({
               ticketTypeId: createdTicketType.id,
+              seat: createTicketTypeDto.seat,
               name: createTicketTypeDto.name,
               amount: createdTicketType.amount,
               remaining: createdTicketType.remaining ?? createdTicketType.amount,
@@ -131,6 +170,7 @@ export class EventController {
       ticketTypes: aggregatedTickets.map(t => ({
         id: t.ticketTypeId,
         name: t.name,
+        seat: t.seat,
         amount: t.amount,
         status: 'AVAILABLE',
         ticketPrice: t.ticketPrice
@@ -139,9 +179,30 @@ export class EventController {
     };
   }
 
+  @Post('update')
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Update Event by Customer' })
+  @ApiBearerAuth('JWT-auth')
+  @ApiBody({ type: UpdateEventDto })
+  async update(@Body() updateEventInfo: UpdateEventDto, @Request() req: any) {
+    const username = req.user.username;
+    if (!username) {
+      throw new UnauthorizedException()
+    }
+
+    const user_id = await this.eventService.findEventById(updateEventInfo.id);
+
+    if (user_id !== req.user.id) {
+      throw new BadRequestException();
+    }
+
+    return await this.eventService.updateEventInfo(updateEventInfo.id, updateEventInfo);
+  };
+
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Customer Get All Events' })
+  @ApiOperation({ summary: 'Customers get all events by created them' })
   @ApiBearerAuth('JWT-auth')
   @ApiHeader({
     name: "Authorization",
@@ -159,5 +220,12 @@ export class EventController {
       throw new UnauthorizedException()
     }
     return await this.eventService.findAllEvents(username);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Public get all events' })
+  @Get('all_events')
+  async publicGetEvents() {
+    return await this.eventService.findAll();
   }
 }

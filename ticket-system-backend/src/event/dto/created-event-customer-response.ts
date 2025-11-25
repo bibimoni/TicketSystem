@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsMongoId, IsNumber, IsString } from 'class-validator';
 
 export class TicketPriceResponseDto {
   @ApiProperty({
@@ -28,15 +29,25 @@ export class TicketTypeResponseDto {
   id: string;
 
   @ApiProperty({
-    example: 'GA-A1',
+    example: 'Anh tài',
     description: 'The name of the ticket type.',
   })
+  @IsString()
   name: string;
+
+  @ApiProperty({
+    example: 'GA-A1',
+    description: 'The seat name type of the ticket type.',
+  })
+  @IsString()
+  seat: string;
+
 
   @ApiProperty({
     example: 10000,
     description: 'The amount of the ticket type.',
   })
+  @IsNumber()
   amount: number;
 
   @ApiProperty({
@@ -80,6 +91,7 @@ export class CreatedEventCustomerResponseDto {
     example: '68e4e22c9815978759f58203',
     description: 'The unique identifier of the event.',
   })
+  @IsMongoId()
   id: string;
 
   @ApiProperty({

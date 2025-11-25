@@ -20,11 +20,12 @@ export class TicketService {
   }
 
   async createTicketType(createTicketTypeDto: CreateTicketTypeDto, eventId: string, ticketPriceId: string) {
-    const { name, amount } = createTicketTypeDto;
+    const { name, seat, amount } = createTicketTypeDto;
 
     const ticketType = await this.prisma.ticketType.create({
       data: {
-        name: name ?? null,
+        name: name,
+        seat: seat,
         amount: amount ?? 0,
         remaining: amount ?? 0,
         event: { connect: { id: eventId } },
@@ -78,6 +79,22 @@ export class TicketService {
                 name: true,
                 destination: true,
                 eventTime: true
+              }
+            }
+          }
+        },
+        transactionHasTicket: {
+          include: {
+            transaction: {
+              include: {
+                customer: {
+                  include: {
+                    user: true
+                  }
+                },
+                vouchers: {
+                  include: { voucher: true }
+                }
               }
             }
           }

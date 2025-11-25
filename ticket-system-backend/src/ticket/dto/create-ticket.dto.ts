@@ -2,9 +2,13 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsNumber, IsOptional, MinLength } from 'class-validator';
 
 export class CreateTicketTypeDto {
-  @ApiProperty({ example: 'GA-A1', required: true, description: 'Ticket name' })
+  @ApiProperty({ example: 'Anh tài', required: true, description: 'Ticket name' })
   @IsString()
   name: string;
+
+  @ApiProperty({ example: 'GA-A1', required: true, description: 'Ticket seat type' })
+  @IsString()
+  seat: string;
 
   @ApiProperty({ example: 10000, required: true, description: 'Ticket amount' })
   @IsString()
@@ -16,11 +20,13 @@ export class CreateTicketPriceDto {
     type: () => [CreateTicketTypeDto],
     example: [
       {
-        name: 'GA-A1',
+        name: 'Anh tài',
+        seat: 'GA-A1',
         amount: 10000
       },
       {
-        name: 'GA-B1',
+        name: 'Vé cứng',
+        seat: 'GA-A2',
         amount: 10000
       }
     ],

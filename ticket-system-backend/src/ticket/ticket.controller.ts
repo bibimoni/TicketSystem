@@ -14,7 +14,7 @@ export class TicketController {
   @Get('sold-tickets')
   @UseGuards(AuthGuard, AdminGuard)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get all sold tickets - Admin only)' })
+  @ApiOperation({ summary: 'Get all sold tickets count - Admin only' })
   @ApiBearerAuth('JWT-auth')
   @ApiHeader({
     name: "Authorization",
@@ -40,7 +40,7 @@ export class TicketController {
   @Get('all-tickets')
   @UseGuards(AuthGuard, AdminGuard)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get all ticket\'s information (For testing - Admin only)' })
+  @ApiOperation({ summary: 'Get all ticket\'s information (Admin only)' })
   @ApiBearerAuth('JWT-auth')
   @ApiHeader({
     name: "Authorization",
@@ -59,7 +59,7 @@ export class TicketController {
     status: 401,
     description: 'Unauthorized - Invalid or missing token',
   })
-  @ApiOperation({ summary: 'Get all tickets' })
+  @ApiOperation({ summary: 'Get all tickets information' })
   async findAll(): Promise<Ticket[]> {
     return await this.ticketService.findAll();
   }

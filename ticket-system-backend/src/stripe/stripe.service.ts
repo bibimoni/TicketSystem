@@ -242,10 +242,6 @@ export class StripeService {
         include: { ticketPrice: true }
       });
 
-      if (ticketTypes.length !== ticketTypeIds.length) {
-        throw new ForbiddenException("Some ticket types do not exist");
-      }
-
       for (const type of ticketTypes) {
         if (type.remaining <= 0) {
           throw new ForbiddenException(`Ticket type ${type.name} is sold out`);

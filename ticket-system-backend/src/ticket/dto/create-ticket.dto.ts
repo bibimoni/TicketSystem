@@ -6,10 +6,6 @@ export class CreateTicketTypeDto {
   @IsString()
   name: string;
 
-  @ApiProperty({ example: 'GA-A1', required: true, description: 'Ticket seat type' })
-  @IsString()
-  seat: string;
-
   @ApiProperty({ example: 10000, required: true, description: 'Ticket amount' })
   @IsString()
   amount: number;
@@ -21,12 +17,10 @@ export class CreateTicketPriceDto {
     example: [
       {
         name: 'Anh tài',
-        seat: 'GA-A1',
         amount: 10000
       },
       {
         name: 'Vé cứng',
-        seat: 'GA-A2',
         amount: 10000
       }
     ],

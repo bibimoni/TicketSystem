@@ -5,10 +5,11 @@ import { CreateEventCustomerDto } from './dto/create-event-customer.dto';
 import { VoucherService } from 'src/voucher/voucher.service';
 import { event_status } from 'generated/prisma';
 import { UpdateEventDto } from './dto/update-event-info.dto';
+import { TicketService } from 'src/ticket/ticket.service';
 
 @Injectable()
 export class EventService {
-  constructor(private prisma: PrismaService, private customerService: CustomerService, private voucherService: VoucherService) { }
+  constructor(private prisma: PrismaService, private customerService: CustomerService, private voucherService: VoucherService, private readonly ticketService: TicketService) { }
 
   async findAllEvents(username: string | null = null) {
     let customer_id: string | null = null;
@@ -33,6 +34,7 @@ export class EventService {
         eventTicketStart: true,
         eventTicketEnd: true,
         ticketTypes: true,
+        vouchers: true
       }
     })
 
@@ -72,6 +74,7 @@ export class EventService {
         createEventCustomerDto.vouchers.map(v =>
           this.voucherService.create(
             {
+              code: v.code,
               reduce_type: v.reduce_type,
               reduce_price: v.reduce_price,
               price: v.price,
@@ -173,23 +176,31 @@ export class EventService {
 
   async updateEventInfo(eventId: string, dto: UpdateEventDto) {
     const event = await this.prisma.event.findUnique({
-      where: { id: eventId }
+      where: { id: eventId },
     });
 
-    if (!event) {
-      throw new NotFoundException('Cannot find any event with the ID!');
-    }
+    if (!event) throw new NotFoundException('Event not found');
 
-    const { id, ...rest } = dto;
+    const { ticketTypes, id, ...rest } = dto;
 
     const dataToUpdate = Object.fromEntries(
       Object.entries(rest).filter(([_, v]) => v !== undefined)
     );
 
-    return await this.prisma.event.update({
+    const updatedEvent = await this.prisma.event.update({
       where: { id: eventId },
       data: dataToUpdate
     });
+
+    if (ticketTypes && ticketTypes.length > 0) {
+      for (const t of ticketTypes) {
+        await this.ticketService.updateTicketType(t.id, {
+          name: t.name,
+          amount: t.amount,
+        })
+        return updatedEvent;
+      }
+    }
   }
 
   async findEventById(eventId: string) {

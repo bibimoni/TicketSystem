@@ -5,6 +5,7 @@ import { CreateTicketTypeDto, CreateTicketPriceDto } from './dto/create-ticket.d
 import { AuthGuard } from 'src/auth/auth.guard';
 import { AdminGuard } from 'src/auth/admin.guard';
 import { Ticket } from 'generated/prisma';
+import { QrPayloadDto } from './dto/qr-payload.dto';
 
 @ApiTags('ticket')
 @Controller('ticket')
@@ -91,10 +92,13 @@ export class TicketController {
     return await this.ticketService.findOne(id);
   }
 
-  @Get('scan-ticket')
+  @Post('scan-ticket')
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Scan ticket' })
+  @ApiBody({
+    type: QrPayloadDto
+  })
   @ApiBearerAuth('JWT-auth')
   @ApiHeader({
     name: "Authorization",
@@ -114,7 +118,7 @@ export class TicketController {
     description: 'Unauthorized - Invalid or missing token',
   })
   @ApiOperation({ summary: 'Scan ticket' })
-  async scanTicket(@Body() body: { qrData: string }): Promise<{ message: string }> {
-    return await this.ticketService.scanTicket(body.qrData)
+  async scanTicket(@Body() qrData: QrPayloadDto): Promise<{ message: string }> {
+    return await this.ticketService.scanTicket(qrData)
   }
 }

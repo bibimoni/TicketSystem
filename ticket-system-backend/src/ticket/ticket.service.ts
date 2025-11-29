@@ -1,6 +1,8 @@
 import { Injectable, ForbiddenException, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateTicketTypeDto, CreateTicketPriceDto } from './dto/create-ticket.dto';
+import { UpdateTicketTypeDto } from './dto/update-ticket-type.dto';
+import { QrPayloadDto } from './dto/qr-payload.dto';
 
 @Injectable()
 export class TicketService {
@@ -20,12 +22,11 @@ export class TicketService {
   }
 
   async createTicketType(createTicketTypeDto: CreateTicketTypeDto, eventId: string, ticketPriceId: string) {
-    const { name, seat, amount } = createTicketTypeDto;
+    const { name, amount } = createTicketTypeDto;
 
     const ticketType = await this.prisma.ticketType.create({
       data: {
         name: name,
-        seat: seat,
         amount: amount ?? 0,
         remaining: amount ?? 0,
         event: { connect: { id: eventId } },
@@ -68,9 +69,25 @@ export class TicketService {
     return ticket;
   }
 
+  async updateTicketType(id: string, dto: UpdateTicketTypeDto) {
+    return this.prisma.ticketType.update({
+      where: { id },
+      data: dto,
+    });
+  }
+
+
   async findAll() {
-    return await this.prisma.ticket.findMany({
-      include: {
+    return this.prisma.ticket.findMany({
+      select: {
+        id: true,
+        code: true,
+        created_at: true,
+        updated_at: true,
+        status: true,
+        ticket_type_id: true,
+        qr_code_url: true,
+
         ticket_type: {
           include: {
             ticketPrice: true,
@@ -78,28 +95,27 @@ export class TicketService {
               select: {
                 name: true,
                 destination: true,
-                eventTime: true
-              }
-            }
-          }
+                eventTime: true,
+              },
+            },
+          },
         },
+
         transactionHasTicket: {
           include: {
             transaction: {
               include: {
                 customer: {
                   include: {
-                    user: true
-                  }
+                    user: true,
+                  },
                 },
-                vouchers: {
-                  include: { voucher: true }
-                }
-              }
-            }
-          }
-        }
-      }
+                vouchers: true,
+              },
+            },
+          },
+        },
+      },
     });
   }
 
@@ -135,23 +151,13 @@ export class TicketService {
     })
   }
 
-  async scanTicket(qrData: string): Promise<{ message: string }> {
-    let payload: any;
-
-    try {
-      payload = JSON.parse(qrData);
-    } catch (error) {
-      throw new BadRequestException('Invalid QR format');
-    }
-
-    const { code, user_id, order_id } = payload;
-
-    if (!code || !user_id || !order_id) {
+  async scanTicket(qrData: QrPayloadDto): Promise<{ message: string }> {
+    if (!qrData.code || !qrData.user_id || !qrData.transaction_id) {
       throw new BadRequestException('QR data missing fields');
     }
 
     const ticket = await this.prisma.ticket.findUnique({
-      where: { code },
+      where: { code: qrData.code },
     });
 
     if (!ticket) {
@@ -171,6 +177,6 @@ export class TicketService {
       data: { status: 'USED' },
     });
 
-    return { message: `Ticket ${code} marked as USED successfully.` };
+    return { message: `Ticket ${qrData.code} marked as USED successfully.` };
   }
 }

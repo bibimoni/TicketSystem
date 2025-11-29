@@ -1,6 +1,6 @@
-
 import React, { useState, useEffect, useCallback } from "react";
 import { CameraIcon, User, Ticket, Calendar } from "lucide-react";
+import userService from "../services/userService";
 
 function Profile() {
     const [user, setUser] = useState({
@@ -12,60 +12,67 @@ function Profile() {
         gender: "nam",
         address: "",
         information: "",
-        avatar: "/default-avatar.png",
-        avatarPublicId: "",
+        avatar: "/logo.png",
     });
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(false);
     const [error, setError] = useState("");
+    const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
     // --- Fetch profile ---
     const fetchProfile = useCallback(async () => {
-        const token = localStorage.getItem("token");
-        if (!token) {
-            setError("Vui lòng đăng nhập để xem profile!");
-            setLoading(false);
-            return;
-        }
-
         setLoading(true);
-        setError("");
-
         try {
-            const res = await fetch("/api/customer/profile", {
-                headers: { 
-                    "Content-Type": "application/json", 
-                    "Authorization": `Bearer ${token}`
-                },
-            });
-            if (!res.ok) {
-                if (res.status === 401) {
-                    localStorage.removeItem("token");
-                    throw new Error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
-                }
-                const errData = await res.json();
-                throw new Error(errData.message || `Lỗi ${res.status}`);
-            }
-            const data = await res.json();
-            console.log("Raw profile data from GET:", data);
+            const data = await userService.getProfile();
+            console.log("Profile Data:", data); // Log để kiểm tra cấu trúc
 
-            // Map data từ API (lowercase sex) sang state
-            const sexLower = (data.sex || "").toLowerCase();
+            // Tùy vào cấu trúc API trả về, có thể là data.user hoặc data
+            const profile = data.user || data;
+
+            // Xử lý giới tính (Backend trả về English -> Frontend hiển thị Tiếng Việt)
+            let genderRadio = "khac";
+            if (profile.sex?.toLowerCase() === "male") genderRadio = "nam";
+            else if (profile.sex?.toLowerCase() === "female") genderRadio = "nu";
+
+            // Xử lý ngày sinh (Chuyển về format yyyy-MM-dd cho input type="date")
+            let formattedBirthDate = "";
+            if (profile.birth_date) {
+                formattedBirthDate = new Date(profile.birth_date).toISOString().split("T")[0];
+            }
+
+            // Xử lý số điện thoại (Tách mã vùng nếu có)
+            // Giả sử backend lưu dạng: "+84-909123456" hoặc "0909123456"
+            let phoneCode = "+84";
+            let phoneNumber = profile.phone_number || "";
+
+            if (phoneNumber.includes("-")) {
+                const parts = phoneNumber.split("-");
+                if (parts.length === 2) {
+                    phoneCode = parts[0];
+                    phoneNumber = parts[1];
+                }
+            } else if (phoneNumber.startsWith("+")) {
+                // Logic tách tạm thời nếu không có dấu gạch ngang
+                phoneCode = phoneNumber.substring(0, 3);
+                phoneNumber = phoneNumber.substring(3);
+            }
+
             setUser({
-                name: data.name || data.username || "",
-                email: data.email || "",
-                phoneCode: data.phone_number?.includes("-") ? data.phone_number.split("-")[0] : "+84",
-                phoneNumber: data.phone_number?.includes("-") ? data.phone_number.split("-")[1] : (data.phone_number || ""),
-                birthDate: data.birth_date ? new Date(data.birth_date).toISOString().split("T")[0] : "",
-                gender: sexLower === "male" ? "nam" : sexLower === "female" ? "nu" : "khac",
-                address: data.address || "",
-                information: data.information || "",
-                avatar: data.avatar || "/default-avatar.png",
-                avatarPublicId: data.avatar_public_id || "",
+                name: profile.name || profile.username || "", // Ưu tiên name
+                email: profile.email || "",
+                gender: genderRadio,
+                phoneCode: phoneCode,
+                phoneNumber: phoneNumber,
+                birthDate: formattedBirthDate,
+                address: profile.address || "",
+                information: profile.information || "",
+                avatar: profile.avatar || "/logo.png",
             });
+
+            setError("");
         } catch (err) {
-            setError(err.message);
-            console.error("Profile load error:", err);
+            console.error(err);
+            setError(err.response?.data?.message || "Lấy thông tin thất bại");
         } finally {
             setLoading(false);
         }
@@ -80,72 +87,40 @@ function Profile() {
     }, []);
 
     // --- Handle submit ---
-    const handleSubmit = useCallback(async () => {
-        const token = localStorage.getItem("token");
-        if (!token) {
-            setError("Vui lòng đăng nhập!");
-            return;
-        }
-
-        if (!user.name) {
-            setError("Vui lòng điền đầy đủ họ tên và email!");
-            return;
-        }
-
+    const handleSubmit = async (e) => {
+        e.preventDefault();
         setUpdating(true);
         setError("");
 
         try {
-            // Build body theo format API
+            const fullPhoneNumber = `${user.phoneCode}-${user.phoneNumber}`;
+            
+            let apiGender = "other";
+            if (user.gender === "nam") apiGender = "male";
+            if (user.gender === "nu") apiGender = "female";
+
             const body = {
                 name: user.name,
-                phone_number: user.phoneNumber ? `${user.phoneCode}-${user.phoneNumber}` : undefined,
-                sex: user.gender === "nam" ? "Male" : user.gender === "nu" ? "Female" : "Other",
-                address: user.address || undefined,
-                birth_date: user.birthDate ? new Date(user.birthDate).toISOString() : undefined,
-                information: user.information || undefined,
-                avatar: user.avatar !== "/default-avatar.png" ? user.avatar : undefined,
-                avatar_public_id: user.avatarPublicId || undefined
+                phone_number: fullPhoneNumber,
+                sex: apiGender,
+                address: user.address,
+                birth_date: user.birthDate,
+                information: user.information,
+                avatar: user.avatar 
             };
 
-            // Remove undefined fields
-            Object.keys(body).forEach(k => body[k] === undefined && delete body[k]);
+            console.log("Sending update:", body); 
 
-            console.log("Sending PATCH body:", body);
-
-            const res = await fetch("/api/customer/profile", {
-                method: "PATCH",
-                headers: { 
-                    "Content-Type": "application/json", 
-                    "Authorization": `Bearer ${token}`
-                },
-                body: JSON.stringify(body)
-            });
-
-            if (!res.ok) {
-                const errorText = await res.text();
-                let errorData = {};
-                try {
-                    errorData = errorText ? JSON.parse(errorText) : {};
-                } catch (e) {
-                    console.error("Error parsing response:", e);
-                }
-                throw new Error(errorData.message || `Cập nhật thất bại ${res.status}`);
-            }
-
-            const data = await res.json();
-            console.log("Updated profile from PATCH:", data);
-
-            // Refresh profile để đồng bộ dữ liệu
+            await userService.updateProfile(body);
             await fetchProfile();
-
             alert("Cập nhật thành công!");
         } catch (err) {
-            setError(err.message);
+            console.error(err);
+            setError(err.response?.data?.message || "Cập nhật thất bại");
         } finally {
             setUpdating(false);
         }
-    }, [user, fetchProfile]);
+    };
 
     // --- Handle avatar change ---
     const handleAvatarChange = useCallback(async (e) => {
@@ -159,10 +134,26 @@ function Profile() {
         };
         reader.readAsDataURL(file);
 
-        // TODO: Upload to Cloudinary hoặc backend
-        console.log("Avatar preview set – upload cần được implement");
+        try {
+            setIsUploadingAvatar(true); 
+            console.log("Đang upload ảnh...");
+            const response = await userService.uploadImage(file);
+            console.log("Upload thành công:", response);
+            const serverUrl = response.url; 
+
+            if (serverUrl) {
+                setUser(prev => ({ ...prev, avatar: serverUrl }));
+            }
+
+        } catch (err) {
+            console.error("Lỗi upload ảnh:", err);
+            alert("Upload ảnh thất bại!");
+        } finally {
+            setIsUploadingAvatar(false);
+        }
     }, []);
 
+    // Catogory 
     const category = [
         { label: "Thông tin tài khoản", active: true, icon: User },
         { label: "Vé của tôi", active: false, icon: Ticket },
@@ -170,17 +161,17 @@ function Profile() {
     ];
 
     if (loading) return (
-        <div className="min-h-screen flex items-center justify-center text-lg text-gray-700">
+        <div className="min-h-screen flex items-center justify-center text-lg text-primary">
             Đang tải thông tin...
         </div>
     );
 
-    if (error && !user.name) return (
+    if (error && user.name) return (
         <div className="min-h-screen flex items-center justify-center">
             <div className="text-center">
                 <p className="text-primary mb-4">{error}</p>
-                <button 
-                    onClick={fetchProfile} 
+                <button
+                    onClick={fetchProfile}
                     className="bg-primary text-white px-4 py-2 rounded hover:bg-primary/75"
                 >
                     Thử lại
@@ -195,26 +186,26 @@ function Profile() {
                 {/* Sidebar */}
                 <aside className="w-[300px] flex flex-col items-center gap-6">
                     <div className="w-20 h-20 rounded-full overflow-hidden">
-                        <img src={user.avatar} alt="avatar" className="w-full h-full object-cover" />
+                        <img src={user.avatar} alt="avatar" className="w-full h-full object-cover"
+                            onError={(e) => { e.target.src = "/logo.png" }}
+                        />
                     </div>
 
                     <span className="font-bold text-secondary text-[15px]">
-                        {user.name || "Tên người dùng"}
+                        {user.name || user.email || "Người dùng"}
                     </span>
 
                     <nav className="w-full flex flex-col gap-4">
                         {category.map((item, index) => (
                             <button
                                 key={index}
-                                className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
-                                    item.active ? "bg-white/50" : "hover:bg-white/30"
-                                }`}
+                                className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${item.active ? "bg-white/50" : "hover:bg-white/30"
+                                    }`}
                             >
                                 <item.icon className="w-[25px] h-[25px] text-primary" />
                                 <span
-                                    className={`text-sm ${
-                                        item.active ? "font-extrabold" : "font-semibold"
-                                    } text-primary`}
+                                    className={`text-sm ${item.active ? "font-extrabold" : "font-semibold"
+                                        } text-primary`}
                                 >
                                     {item.label}
                                 </span>
@@ -243,7 +234,7 @@ function Profile() {
                             {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
                             {/* Họ tên */}
-                            <div className="flex flex-col gap-2">
+                            <div className="flex flex-col gap-2 ">
                                 <label className="font-bold text-black text-base">Họ và tên</label>
                                 <input
                                     value={user.name}
@@ -278,15 +269,14 @@ function Profile() {
                                 </div>
                             </div>
 
-                            {/* Email */}
+                            {/* Email - không cho sửa */}
                             <div className="flex flex-col gap-2">
                                 <label className="font-bold text-black text-base">Email</label>
                                 <input
                                     type="email"
                                     value={user.email}
-                                    onChange={(e) => handleChange("email", e.target.value)}
-                                    className="h-[50px] bg-white rounded-[5px] font-bold text-secondary text-base px-6"
-                                    required
+                                    readOnly
+                                    className="h-[50px] bg-gray-200 rounded-[5px] font-bold text-secondary text-base px-6 outline-none cursor-not-allowed"
                                 />
                             </div>
 
@@ -297,7 +287,7 @@ function Profile() {
                                     type="date"
                                     value={user.birthDate}
                                     onChange={(e) => handleChange("birthDate", e.target.value)}
-                                    className="h-[50px] bg-white rounded-[5px] font-bold text-secondary text-base px-6"
+                                    className="h-[50px] bg-white rounded-[5px] font-bold text-secondary text-base px-6 outline-none"
                                 />
                             </div>
 
@@ -310,7 +300,7 @@ function Profile() {
                                         { value: "nu", label: "Nữ" },
                                         { value: "khac", label: "Khác" },
                                     ].map((g) => (
-                                        <div key={g.value} className="flex items-center gap-5">
+                                        <div key={g.value} className="flex items-center gap-2">
                                             <input
                                                 type="radio"
                                                 id={g.value}
@@ -318,8 +308,9 @@ function Profile() {
                                                 value={g.value}
                                                 checked={user.gender === g.value}
                                                 onChange={(e) => handleChange("gender", e.target.value)}
+                                                className="w-5 h-5 accent-primary"
                                             />
-                                            <label htmlFor={g.value} className="font-bold text-base cursor-pointer">
+                                            <label htmlFor={g.value} className="font-bold text-base cursor-pointer select-none">
                                                 {g.label}
                                             </label>
                                         </div>
@@ -333,7 +324,7 @@ function Profile() {
                                 <input
                                     value={user.address}
                                     onChange={(e) => handleChange("address", e.target.value)}
-                                    className="h-[50px] bg-white rounded-[5px] font-bold text-secondary text-base px-6"
+                                    className="h-[50px] bg-white rounded-[5px] font-bold text-secondary text-base px-6 outline-none focus:border-primary border border-transparent"
                                 />
                             </div>
 
@@ -343,7 +334,7 @@ function Profile() {
                                 <textarea
                                     value={user.information}
                                     onChange={(e) => handleChange("information", e.target.value)}
-                                    className="h-[100px] bg-white rounded-[5px] font-bold text-secondary text-base px-6 py-3 resize-none"
+                                    className="h-[100px] bg-white rounded-[5px] font-bold text-secondary text-base px-6 py-3 resize-none outline-none focus:border-primary border border-transparent"
                                     placeholder="Giới thiệu bản thân..."
                                 />
                             </div>
@@ -352,7 +343,7 @@ function Profile() {
                             <button
                                 type="submit"
                                 disabled={updating}
-                                className="h-[60px] bg-primary rounded-[5px] font-extrabold text-white text-xl mt-4 hover:opacity-90 disabled:opacity-50"
+                                className="h-[60px] bg-primary rounded-[5px] font-extrabold text-white text-xl mt-4 hover:opacity-80 disabled:opacity-50 transition-opacity"
                             >
                                 {updating ? "Đang cập nhật..." : "Cập nhật"}
                             </button>

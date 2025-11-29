@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { Link } from "react-router-dom";
 import { ChevronRightIcon } from "lucide-react";
 import PropTypes from "prop-types";
 
@@ -50,27 +51,37 @@ const ListEvent = ({
                                 <div className="flex h-full relative overflow-hidden">
                                     {title === "SỰ KIỆN TRENDING" ? (
                                         <>
-                                            
+
                                             {/* Số thứ tự lớn bên trái */}
                                             <div className="font-monoto text-primary text-[170px] text-center absolute left-0 top-[55%] -translate-y-1/2 z-10">
                                                 {index + 1}
                                             </div>
 
                                             {/* Hình ảnh căn phải, chiếm 3/4 */}
-                                            <img
-                                                className="w-3/4 h-full object-cover rounded-lg ml-auto z-20"
-                                                alt={event.alt}
-                                                src={event.src}
-                                            />
-                                            
+                                            <Link
+                                                to={`/about-event/${event.id}`}
+                                                className="block w-3/4 h-full ml-auto z-20"
+                                            >
+                                                <img
+                                                    className="w-full h-full object-cover rounded-lg"
+                                                    alt={event.alt}
+                                                    src={event.src}
+                                                />
+                                            </Link>
+
                                         </>
                                     ) : (
                                         /* Các sự kiện khác hiển thị full width */
-                                        <img
-                                            className="w-full h-full object-cover object-left rounded-lg ml-auto"
-                                            alt={event.alt}
-                                            src={event.src}
-                                        />
+                                        <Link
+                                            to={`/about-event/${event.id}`}
+                                            className="block w-full h-full"
+                                        >
+                                            <img
+                                                className="w-full h-full object-cover object-center rounded-lg"
+                                                alt={event.alt}
+                                                src={event.src}
+                                            />
+                                        </Link>
                                     )}
                                 </div>
 
@@ -80,7 +91,7 @@ const ListEvent = ({
 
                     <button
                         onClick={scrollRight}
-                        className="absolute right-0 top-1/2 -translate-y-1/2 w-[45px] h-[45px] bg-white rounded-full flex items-center justify-center hover:opacity-80 transition-colors shadow-xl/30 z-50"
+                        className="absolute right-0 top-1/2 -translate-y-1/2 w-[45px] h-[45px] bg-white rounded-full flex items-center justify-center hover:bg-primary/80 transition-colors shadow-xl z-50"
                     >
                         <ChevronRightIcon className="w-[27px] h-8 text-black" />
                     </button>

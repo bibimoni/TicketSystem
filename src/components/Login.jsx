@@ -3,6 +3,7 @@ import logo from "../assets/images/logo.png";
 import illu from "../assets/images/illu.png";
 import logogg from "../assets/images/gglogo.png";
 import { useState } from "react";
+import authService from "../services/authService";
 
 export default function LoginModal({ isOpen, onClose, setIsLoggedIn, openRegister }) {
     const [identifier, setIdentifier] = useState("");
@@ -18,34 +19,16 @@ export default function LoginModal({ isOpen, onClose, setIsLoggedIn, openRegiste
         setError("");
 
         try {
-            const response = await fetch("/api/auth/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    username: identifier,
-                    password: password,
-                }),
-            });
-
-            if (!response.ok) {
-                let msg = "Đăng nhập thất bại";
-                try {
-                    const errData = await response.json();
-                    msg = errData.message || msg;
-                } catch { }
-                throw new Error(msg);
-            }
-
-            const data = await response.json();
+            const data = await authService.login(identifier, password);
+            
+            // Lấy data
             localStorage.setItem("token", data.access_token);
-            console.log("Token saved:", data.access_token);
             setIsLoggedIn(true);
             onClose();
         } catch (err) {
-            setError(err.message);
-            console.error("Login error:", err);
+            // Lỗi 
+            const message = err.response?.data?.message || "Đăng nhập thất bại";
+            setError(message);
         } finally {
             setLoading(false);
         }
@@ -65,7 +48,7 @@ export default function LoginModal({ isOpen, onClose, setIsLoggedIn, openRegiste
                     className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full h-[600px] flex animate-in fade-in zoom-in duration-200"
                     onClick={(e) => e.stopPropagation()}
                 >
-                    {/* LEFT */}
+                    {/* Left*/}
                     <div className="flex-1 p-12 flex flex-col justify-center">
                         <div className="max-w-sm mx-auto w-full">
                             <h2 className="font-playwrite text-xl mb-2 mt-4">
@@ -150,7 +133,7 @@ export default function LoginModal({ isOpen, onClose, setIsLoggedIn, openRegiste
                         </div>
                     </div>
 
-                    {/* RIGHT */}
+                    {/* Right */}
                     <div className="bg-primary flex-1 relative rounded-r-3xl">
                         <div className="absolute inset-0 flex flex-col items-center justify-center text-white px-8">
                             <img src={logo} alt="TickeZ" className="w-60 mb-2" />

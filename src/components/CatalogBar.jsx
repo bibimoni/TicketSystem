@@ -1,7 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { Menu as MenuIcon, ChevronDown as ChevronDownIcon } from "lucide-react";
 
-// categories sample
 const categories = [
   { label: "Concert", href: "/" },
   { label: "Văn hóa nghệ thuật", href: "/" },
@@ -9,7 +8,18 @@ const categories = [
   { label: "Thể thao", href: "/" },
 ];
 
-const CatalogBar = () => {
+const locations = ["HCM", "Hà Nội", "Đà Nẵng", "Cần Thơ"]; // ví dụ
+
+const CatalogBar = ({ onFilter }) => {
+  const [selectedLocation, setSelectedLocation] = useState("Chọn địa điểm");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const handleSelectLocation = (loc) => {
+    setSelectedLocation(loc);
+    setIsDropdownOpen(false);
+    if (onFilter) onFilter(loc); // callback để lọc sự kiện
+  };
+
   return (
     <nav className="w-full bg-white shadow-md animate-fade-in opacity-100 [--animation-delay:200ms]">
       <div className="flex items-center justify-between max-w-[1440px] mx-auto h-[45px] px-4 sm:px-6 md:px-8">
@@ -33,12 +43,31 @@ const CatalogBar = () => {
         </div>
 
         {/*Chọn địa điểm */}
-        <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <span className=" flex font-semibold text-white text-[11px] bg-primary px-3 py-1 rounded whitespace-nowrap">
-            Chọn địa điểm
-            <ChevronDownIcon className="w-4 h-4 text-white ml-3" />
-          </span>
-        </button>
+        <div className="relative">
+          <button
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+          >
+            <span className=" flex font-semibold text-white text-[11px] bg-primary px-3 py-1 rounded whitespace-nowrap">
+              {selectedLocation}
+              <ChevronDownIcon className="w-4 h-4 text-white ml-3" />
+            </span>
+          </button>
+
+          {isDropdownOpen && (
+            <div className="absolute right-0 mt-1 w-[150px] bg-white shadow-md rounded-md z-200">
+              {locations.map((loc, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleSelectLocation(loc)}
+                  className="w-full text-left px-4 py-2 hover:bg-primary hover:text-white transition-colors text-sm"
+                >
+                  {loc}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </nav>
   );

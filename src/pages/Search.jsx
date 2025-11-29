@@ -4,8 +4,7 @@ import HeaderBar from "../components/HeaderBar";
 import CatalogBar from "../components/CatalogBar";
 import Footer from "../components/Footer";
 import MoreEvent from "../components/MoreEvent";
-import SearchEvent from "../components/SeachEvent";
-
+import SearchEvent from "../components/SearchEvent";
 
 function Search() {
     

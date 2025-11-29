@@ -80,6 +80,7 @@ const HeaderBar = () => {
                         <Button
                             variant="outline"
                             className="group h-[45px] rounded-[25px] border-2 border-white bg-transparent transition-all duration-300 flex items-center hover:bg-white"
+                            onClick={() => navigate("/my-ticket")} 
                         >
                             <BsTicketPerforatedFill className="w-[40px] h-[40px] text-white mr-2 group-hover:text-primary transition-all duration-300" />
                             <span className="font-semibold text-white text-xs group-hover:text-primary transition-all duration-200">
@@ -122,7 +123,11 @@ const HeaderBar = () => {
                             </div>
                         ) : (
                             <div className="flex items-center gap-4 bg-primary px-5 py-2 rounded-lg">
-                                <button className="hover:opacity-80">
+                                <button 
+                                    className="hover:opacity-80"
+                                    onClick={() => navigate("/my-profile")} 
+
+                                >
                                     <User className="w-6 h-6 text-white" />
                                 </button>
 

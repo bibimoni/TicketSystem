@@ -96,6 +96,7 @@ export class EventController {
       information: createdEvent.information ?? null,
       destination: createdEvent.destination ?? null,
       organizer: createdEvent.organizer ?? null,
+      status: 'DRAFT',
       ticketTypes: aggregatedTickets.map(t => ({
         id: t.ticketTypeId,
         name: t.name,
@@ -222,14 +223,22 @@ export class EventController {
     return await this.eventService.findAllByStatus(status.status);
   }
 
-  @Get(':eventId/set-status')
+  @Get('set-status/:eventId/:status')
   @UseGuards(AuthGuard, AdminGuard)
-  @ApiOperation({ summary: 'Admin sets event status to PUBLISHED' })
+  @ApiOperation({ summary: 'Admin sets event status' })
   @HttpCode(HttpStatus.OK)
   @ApiParam({
     name: 'eventId',
     description: 'Event ID',
     example: '68e4e22c9815978759f58203'
+  })
+  @ApiParam({
+    name: 'status',
+    schema: {
+      type: 'string',
+      example: 'PUBLISHED'
+    },
+    description: 'Filter events by status [DRAFT, PUBLISHED, CANCELLED, COMPLETED]',
   })
   @ApiBearerAuth('JWT-auth')
   @ApiHeader({
@@ -252,10 +261,11 @@ export class EventController {
   async updateEventStatus(
     @Param('eventId', new ValidationPipe({ transform: true }))
     eventId: string,
+    @Param('status') status: string,
     @Request() req: any
   ) {
     const adminId = req.admin.id;
-    return await this.eventService.updateEventStatus(eventId, adminId);
+    return await this.eventService.updateEventStatus(eventId, status, adminId);
   }
 
 

@@ -30,6 +30,7 @@ export class EventService {
         information: true,
         destination: true,
         organizer: true,
+        status: true,
         eventTime: true,
         eventTicketStart: true,
         eventTicketEnd: true,
@@ -134,6 +135,7 @@ export class EventService {
         information: true,
         destination: true,
         organizer: true,
+        status: true,
         eventTime: true,
         eventTicketStart: true,
         eventTicketEnd: true,
@@ -148,7 +150,7 @@ export class EventService {
     });
   }
 
-  async updateEventStatus(eventId: string, adminId: string): Promise<Boolean> {
+  async updateEventStatus(eventId: string, status: string, adminId: string): Promise<Boolean> {
     const event = await this.prisma.event.findUnique({
       where: { id: eventId },
       select: { status: true }
@@ -158,14 +160,16 @@ export class EventService {
       throw new NotFoundException('Cannot find any event with the ID!');
     }
 
-    if (event.status !== event_status.DRAFT) {
-      throw new BadRequestException('Event is not in DRAFT state');
+    const newStatus = status as event_status;
+
+    if (!Object.values(event_status).includes(newStatus)) {
+      throw new BadRequestException('Invalid event status!');
     }
 
     await this.prisma.event.update({
       where: { id: eventId },
       data: {
-        status: event_status.PUBLISHED,
+        status: newStatus,
         admin_id: adminId,
         updated_at: new Date()
       }

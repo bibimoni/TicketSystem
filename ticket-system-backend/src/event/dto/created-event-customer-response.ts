@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsMongoId, IsNumber, IsString } from 'class-validator';
+import { IsEnum, IsMongoId, IsNumber, IsString } from 'class-validator';
 
 export class TicketPriceResponseDto {
   @ApiProperty({
@@ -50,7 +50,7 @@ export class TicketTypeResponseDto {
 
   @ApiProperty({
     description: 'Price of the ticket',
-    type: () => [TicketPriceResponseDto],
+    type: () => TicketPriceResponseDto,
   })
   ticketPrice: TicketPriceResponseDto
 }
@@ -109,6 +109,12 @@ export class CreatedEventCustomerResponseDto {
     example: 'Van Phuc City, Ho Chi Minh City, Vietnam',
   })
   destination?: string | null;
+
+  @ApiProperty({
+    description: 'The status of the event.',
+    example: 'DRAFT'
+  })
+  status: string;
 
   @ApiProperty({
     required: false,

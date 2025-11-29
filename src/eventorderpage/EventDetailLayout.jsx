@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FiPieChart, FiFileText, FiEdit } from 'react-icons/fi';
 import { RiCouponLine } from 'react-icons/ri';
 import { useParams, useNavigate, Outlet } from 'react-router-dom';
+import axios from 'axios'; // <--- THÊM AXIOS
 import rectangle7 from "../Elements/rectangle-7.png";
 import rectangle622 from "../Elements/rectangle-62.png";
 import rectangle62 from "../Elements/rectangle-62.png";
@@ -11,41 +12,65 @@ import rectangle53 from "../Elements/rectangle-53.svg";
 import rectangle56 from "../Elements/rectangle-56.svg";
 import rectangle57 from "../Elements/rectangle-57.svg";
 import rectangle58 from "../Elements/rectangle-58.svg";
-import { defaultEvents } from '../context/mockEventData';
 import OrganizerHeader from "../information/OrganizerHeader";
 import AdminHeader from "../information/AdminHeader";
+
+// --- CẤU HÌNH API ---
+const API_BASE_URL = 'https://ticket-system-backend-pkuf.onrender.com';
 
 export const EventDetailLayout = ({ isAdmin = false }) => {
   const navigate = useNavigate();
   const { eventId } = useParams(); 
   const [event, setEvent] = useState(null); 
 
-  // 2. Xác định đường dẫn cơ sở để các nút bên dưới hoạt động đúng
-  // Nếu là Admin -> dùng đường dẫn admin, ngược lại dùng đường dẫn user
   const basePath = isAdmin ? `/admin/event-detail/${eventId}` : `/event/${eventId}`;
 
   useEffect(() => {
-    // 1. Tìm trong localStorage trước (ưu tiên dữ liệu người dùng đã sửa)
-    const storedEvents = JSON.parse(localStorage.getItem('myEvents')) || [];
-    let foundEvent = storedEvents.find(e => e.id === eventId);
+    const fetchEventHeader = async () => {
+      try {
+        // 1. Token cứng (Lấy từ các bước trước)
+        const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4ZTc0YzBlMWQ1ZmIzZGY3MWQwMGJkZCIsInVzZXJuYW1lIjoiY3Jpc3RpYW5vIG1lc3NpIiwiaXNBZG1pbiI6dHJ1ZSwiaWF0IjoxNzYzOTk5MDcyLCJleHAiOjE3NjQ2MDM4NzJ9.FoE9wjyiqvJI0PZ6KrxNQRtM1vZS00F9lRbRBQynVNo";
+        
+        // 2. Gọi API lấy danh sách để tìm tên sự kiện (Workaround vì không có API get detail)
+        const response = await axios.get(`${API_BASE_URL}/event/customer_events`, {
+             headers: { 'Authorization': `Bearer ${token}` }
+        });
 
-    if (!foundEvent) {
-      foundEvent = defaultEvents.find(e => e.id === eventId);
-    }
+        let allEvents = [];
+        if (Array.isArray(response.data)) allEvents = response.data;
+        else if (response.data.events) allEvents = response.data.events;
+        else if (response.data.data) allEvents = response.data.data;
 
-    // 3. Cập nhật state
-    if (foundEvent) {
-      setEvent(foundEvent);
-    } else {
-      // Tùy chọn: Nếu tìm nát cả 2 nơi không thấy thì set tên mặc định
-      setEvent({ eventName: "Không tìm thấy sự kiện" }); 
-    }
+        // 3. Tìm sự kiện hiện tại
+        const foundEvent = allEvents.find(e => (e.id === eventId || e._id === eventId));
+
+        if (foundEvent) {
+            // Map dữ liệu API vào state (API trả về 'name', UI cần 'eventName')
+            setEvent({
+                ...foundEvent,
+                eventName: foundEvent.name 
+            });
+        } else {
+            setEvent({ eventName: "Không tìm thấy sự kiện" });
+        }
+
+      } catch (error) {
+        console.error("Lỗi tải header sự kiện:", error);
+        // Fallback: Nếu lỗi API thì thử tìm trong localStorage vớt vát
+        const storedEvents = JSON.parse(localStorage.getItem('myEvents')) || [];
+        const localFound = storedEvents.find(e => e.id === eventId);
+        if (localFound) setEvent(localFound);
+        else setEvent({ eventName: "Đang tải..." });
+      }
+    };
+
+    fetchEventHeader();
   }, [eventId]);
 
   return (
     <div className="bg-[#d9d9d9] overflow-hidden border border-solid border-[#d9d9d9] w-full min-w-[1440px] min-h-[1905px] relative">
 
-      {/* Tiêu đề sự kiện */}
+      {/* Tiêu đề sự kiện - Đã lấy từ API */}
       <div className="absolute top-[29px] left-[306px] w-auto min-w-[203px] [font-family:font-poppins font-extrabold,Helvetica] font-black italic text-[#f94f2f] text-xl text-center tracking-[0] leading-[normal] z-[10]">
         {event ? event.eventName : 'Đang tải...'}
       </div>
@@ -127,7 +152,7 @@ export const EventDetailLayout = ({ isAdmin = false }) => {
       {/* 3. Nút Chỉnh sửa (CHỈ HIỆN VỚI USER) */}
       {!isAdmin && (
         <div 
-            onClick={() => navigate(`/event-edit/${eventId}`)} 
+            onClick={() => navigate(`/event-edit/${eventId}/buoc-1`)} 
             className="absolute w-[243px] h-[54px] top-[306px] left-[19px] flex cursor-pointer">
             <div className="w-60 h-[54px] relative">
             <img className="absolute top-0 left-0 w-[238px] h-[54px]" alt="Rectangle" src={rectangle62} />
@@ -146,9 +171,12 @@ export const EventDetailLayout = ({ isAdmin = false }) => {
             className="absolute w-[243px] h-[54px] top-[389px] left-[19px] flex cursor-pointer">
             <div className="w-60 h-[54px] relative">
             <img className="absolute top-0 left-0 w-[238px] h-[54px]" alt="Rectangle" src={rectangle62} />
+            
+            {/* Đổi tên: Tạo voucher -> Mã giảm giá */}
             <div className="absolute top-[19px] left-[47px] [font-family:'Montserrat-SemiBold',Helvetica] font-semibold text-black text-xs text-center tracking-[0] leading-[normal]">
-                Tạo voucher
+                Mã giảm giá
             </div>
+            
             <RiCouponLine className="absolute top-[11px] left-[9px] w-8 h-8 text-black" />
             </div>
         </div>

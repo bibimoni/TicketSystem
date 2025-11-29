@@ -21,45 +21,60 @@ import OrganizerHeader from "../../information/OrganizerHeader";
 import AdminHeader from "../../information/AdminHeader";
 import { FiHome } from "react-icons/fi";
 
-const formatToDateTimePicker = (dateTimeString) => {
-  if (!dateTimeString || !dateTimeString.includes(' ')) return '';
+// const formatToDateTimePicker = (dateTimeString) => {
+//   if (!dateTimeString || !dateTimeString.includes(' ')) return '';
   
-  const parts = dateTimeString.split(' '); // ["HH:mm", "DD/MM/YYYY"]
-  if (parts.length !== 2) return '';
+//   const parts = dateTimeString.split(' '); // ["HH:mm", "DD/MM/YYYY"]
+//   if (parts.length !== 2) return '';
 
-  const time = parts[0];
-  const dateParts = parts[1].split('/'); // ["DD", "MM", "YYYY"]
+//   const time = parts[0];
+//   const dateParts = parts[1].split('/'); // ["DD", "MM", "YYYY"]
   
-  if (dateParts.length !== 3) return '';
+//   if (dateParts.length !== 3) return '';
   
-  const [day, month, year] = dateParts;
-  // Trả về định dạng "YYYY-MM-DDTHH:mm"
-  return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${time}`;
-};
+//   const [day, month, year] = dateParts;
+//   // Trả về định dạng "YYYY-MM-DDTHH:mm"
+//   return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${time}`;
+// };
 
-/**
- * Chuyển "YYYY-MM-DDTHH:mm" (từ input) sang "HH:mm DD/MM/YYYY" (lưu vào Context)
- */
-const formatFromDateTimePicker = (pickerString) => {
-  if (!pickerString || !pickerString.includes('T')) return '';
+// /**
+//  * Chuyển "YYYY-MM-DDTHH:mm" (từ input) sang "HH:mm DD/MM/YYYY" (lưu vào Context)
+//  */
+// const formatFromDateTimePicker = (pickerString) => {
+//   if (!pickerString || !pickerString.includes('T')) return '';
   
-  const parts = pickerString.split('T'); // ["YYYY-MM-DD", "HH:mm"]
-  if (parts.length !== 2) return '';
+//   const parts = pickerString.split('T'); // ["YYYY-MM-DD", "HH:mm"]
+//   if (parts.length !== 2) return '';
 
-  const time = parts[1];
-  const dateParts = parts[0].split('-'); // ["YYYY", "MM", "DD"]
+//   const time = parts[1];
+//   const dateParts = parts[0].split('-'); // ["YYYY", "MM", "DD"]
   
-  if (dateParts.length !== 3) return '';
+//   if (dateParts.length !== 3) return '';
   
-  const [year, month, day] = dateParts;
-  // Trả về định dạng "HH:mm DD/MM/YYYY"
-  return `${time} ${day}/${month}/${year}`;
-};
+//   const [year, month, day] = dateParts;
+//   // Trả về định dạng "HH:mm DD/MM/YYYY"
+//   return `${time} ${day}/${month}/${year}`;
+// };
 
 export const EventPage2 = ({ isAdmin = false }) => {
   const navigate = useNavigate();
   const { eventData, setEventData } = useContext(EventContext);
   const { eventId } = useParams();
+  
+  const handleStepClick = (step) => {
+    // Nếu đang ở Admin xem chi tiết
+    if (isAdmin) {
+       navigate(`/admin/duyet-su-kien/${eventId}/buoc-${step}`);
+    } 
+    // Nếu đang chỉnh sửa sự kiện cũ
+    else if (eventId) {
+       navigate(`/event-edit/${eventId}/buoc-${step}`);
+    } 
+    // Nếu đang tạo mới
+    else {
+        navigate(`/tao-su-kien/buoc-${step}`);
+    }
+  };
 
   const handleContinueClick = () => {
     if (isAdmin) {
@@ -149,61 +164,77 @@ export const EventPage2 = ({ isAdmin = false }) => {
 
       {isAdmin ? <AdminHeader /> : <OrganizerHeader />}
       {/* Thanh bước */}
-      <div className="absolute top-[88px] left-[286px] w-[148px] h-8 flex gap-1 ">
+      {/* --- BƯỚC 1: Thông tin sự kiện --- */}
+      <div 
+        onClick={() => handleStepClick(1)} // <--- Thêm sự kiện click
+        className="absolute top-[88px] left-[286px] w-[148px] h-8 flex gap-1 cursor-pointer hover:opacity-70 transition-opacity" // <--- Thêm cursor-pointer
+      >
         <div className="w-[34px] h-8 relative">
-          <div className="absolute top-0 left-0 w-8 h-8 bg-white rounded-2xl" />
-
+          <div className="absolute top-0 left-0 w-8 h-8 bg-white rounded-2xl border border-gray-200" /> {/* Thêm border nhẹ cho rõ */}
           <div className="left-3.5 absolute top-2 [font-family:'Montserrat-SemiBold',Helvetica] font-semibold text-black text-xs text-center tracking-[0] leading-[normal]">
             1
           </div>
         </div>
-
         <div className="mt-2 w-[108px] h-[15px] [font-family:'Montserrat-SemiBold',Helvetica] font-semibold text-black text-xs text-center tracking-[0] leading-[normal]">
           Thông tin sự kiện
         </div>
       </div>
 
-      <div className="absolute top-[90px] left-[572px] w-[150px] h-8 flex gap-0.5">
+      {/* --- BƯỚC 2: Thời gian & Loại vé --- */}
+      <div 
+        onClick={() => handleStepClick(2)} 
+        className="absolute top-[90px] left-[572px] w-[150px] h-8 flex gap-0.5 cursor-pointer hover:opacity-70 transition-opacity"
+      >
         <div className="w-[34px] h-8 relative">
-          <div className="absolute top-0 left-0 w-8 h-8 bg-white rounded-2xl" />
-
+          <div className="absolute top-0 left-0 w-8 h-8 bg-white rounded-2xl border border-gray-200" />
           <div className="absolute top-2 left-[13px] [font-family:'Montserrat-SemiBold',Helvetica] font-semibold text-black text-xs text-center tracking-[0] leading-[normal]">
             2
           </div>
         </div>
-
         <p className="mt-2 w-28 h-[15px] [font-family:'Montserrat-SemiBold',Helvetica] font-semibold text-black text-xs text-center tracking-[0] leading-[normal]">
           Thời gian &amp; loại vé
         </p>
       </div>
 
+      {/* --- BƯỚC 3 & 4 (Chung 1 khối flex) --- */}
       <div className="absolute top-[90px] left-[827px] w-[334px] h-[34px] flex">
-        <div className="w-[92px] flex gap-3">
+        
+        {/* Bước 3: Cài đặt */}
+        <div 
+            onClick={() => handleStepClick(3)}
+            className="w-[92px] flex gap-3 cursor-pointer hover:opacity-70 transition-opacity"
+        >
           <div className="w-[34px] h-8 relative">
-            <div className="absolute top-0 left-0 w-8 h-8 bg-white rounded-2xl" />
-
+            <div className="absolute top-0 left-0 w-8 h-8 bg-white rounded-2xl border border-gray-200" />
             <div className="absolute top-2 left-[13px] [font-family:'Montserrat-SemiBold',Helvetica] font-semibold text-black text-xs text-center tracking-[0] leading-[normal]">
               3
             </div>
           </div>
-
           <div className="mt-2 w-11 h-[15px] [font-family:'Montserrat-SemiBold',Helvetica] font-semibold text-black text-xs text-center tracking-[0] leading-[normal]">
             Cài đặt
           </div>
         </div>
 
-        <div className="mt-0.5 w-[34px] h-8 relative ml-[69px]">
-          <div className="absolute top-0 left-0 w-8 h-8 bg-white rounded-2xl" />
-
-          <div className="left-3 absolute top-2 [font-family:'Montserrat-SemiBold',Helvetica] font-semibold text-black text-xs text-center tracking-[0] leading-[normal]">
-            4
-          </div>
+        {/* Bước 4: Thông tin thanh toán */}
+        <div 
+            onClick={() => handleStepClick(4)}
+            className="flex ml-[69px] cursor-pointer hover:opacity-70 transition-opacity"
+        >
+            <div className="mt-0.5 w-[34px] h-8 relative">
+            <div className="absolute top-0 left-0 w-8 h-8 bg-white rounded-2xl border border-gray-200" />
+            <div className="left-3 absolute top-2 [font-family:'Montserrat-SemiBold',Helvetica] font-semibold text-black text-xs text-center tracking-[0] leading-[normal]">
+                4
+            </div>
+            </div>
+            <div className="mt-2.5 w-[132px] h-[15px] ml-[5px] [font-family:'Montserrat-SemiBold',Helvetica] font-semibold text-black text-xs text-center tracking-[0] leading-[normal]">
+            Thông tin thanh toán
+            </div>
         </div>
-
+         </div>
         <div className="mt-2.5 w-[132px] h-[15px] ml-[5px] [font-family:'Montserrat-SemiBold',Helvetica] font-semibold text-black text-xs text-center tracking-[0] leading-[normal]">
           Thông tin thanh toán
         </div>
-      </div>
+      
       {/* Line */}
     <div className="absolute top-[130px] left-[273px] w-[1500px] h-[3px] bg-gray-300 rounded-full opacity-70"></div>
 
@@ -217,30 +248,34 @@ export const EventPage2 = ({ isAdmin = false }) => {
         </div>
       </div>
 
+      {/* Input: Thời gian BẮT ĐẦU bán vé */}
       <input
-        type="datetime-local" // 1. Đổi type
-        // 2. Dùng hàm chuyển đổi mới
+        type="datetime-local"
         disabled={isAdmin}
-        value={formatToDateTimePicker(eventData.startTime) || ''}
-        // 3. Dùng hàm chuyển đổi mới
+        // Hiển thị: Cắt chuỗi để input hiểu
+        value={eventData.startTime ? eventData.startTime.substring(0, 16) : ''}
+        // Lưu: Nối thêm đuôi chuẩn API
         onChange={(e) => {
-          const newTime = formatFromDateTimePicker(e.target.value);
-          setEventData(prev => ({ ...prev, startTime: newTime }));
+          setEventData(prev => ({ 
+            ...prev, 
+            startTime: e.target.value + ":00+07:00" 
+          }));
         }}
-        className="absolute top-[216px] left-[327px] w-[513px] h-[31px]  bg-white rounded border border-[#ccc] px-3 text-xs text-[#6e6e6e] font-light focus:outline-none focus:ring-1 focus:ring-[#6e6e6e]"
+        className="absolute top-[216px] left-[327px] w-[513px] h-[31px] bg-white rounded border border-[#ccc] px-3 text-xs text-[#6e6e6e] font-light focus:outline-none focus:ring-1 focus:ring-[#6e6e6e]"
       />
 
+      {/* Input: Thời gian KẾT THÚC bán vé */}
       <input
-        type="datetime-local" // 1. Đổi type
-        // 2. Dùng hàm chuyển đổi mới
+        type="datetime-local"
         disabled={isAdmin}
-        value={formatToDateTimePicker(eventData.endTime) || ''}
-        // 3. Dùng hàm chuyển đổi mới
+        value={eventData.endTime ? eventData.endTime.substring(0, 16) : ''}
         onChange={(e) => {
-          const newTime = formatFromDateTimePicker(e.target.value);
-          setEventData(prev => ({ ...prev, endTime: newTime }));
+          setEventData(prev => ({ 
+            ...prev, 
+            endTime: e.target.value + ":00+07:00" 
+          }));
         }}
-        className="absolute top-[216px] left-[871px] w-[513px] h-[31px]  bg-white rounded border border-[#ccc] px-3 text-xs text-[#6e6e6e] font-light focus:outline-none focus:ring-1 focus:ring-[#6e6e6e]"
+        className="absolute top-[216px] left-[871px] w-[513px] h-[31px] bg-white rounded border border-[#ccc] px-3 text-xs text-[#6e6e6e] font-light focus:outline-none focus:ring-1 focus:ring-[#6e6e6e]"
       />
 <div className="absolute top-[300px] left-[305px] w-[1064px] min-h-[100px] bg-[#ffe8e2] rounded-md p-6 flex flex-col">
 

@@ -23,6 +23,20 @@ export const EventPage3 = ({ isAdmin = false })  => {
   const navigate = useNavigate();
   const { eventId } = useParams();
 
+  const handleStepClick = (step) => {
+    // Nếu đang ở Admin xem chi tiết
+    if (isAdmin) {
+       navigate(`/admin/duyet-su-kien/${eventId}/buoc-${step}`);
+    } 
+    // Nếu đang chỉnh sửa sự kiện cũ
+    else if (eventId) {
+       navigate(`/event-edit/${eventId}/buoc-${step}`);
+    } 
+    // Nếu đang tạo mới
+    else {
+       navigate(`/tao-su-kien/buoc-${step}`);
+    }
+  };
 
   const handleContinueClick = () => {
      if (isAdmin) {
@@ -103,61 +117,77 @@ export const EventPage3 = ({ isAdmin = false })  => {
       {isAdmin ? <AdminHeader /> : <OrganizerHeader />}
 
       {/* Thanh bước */}
-      <div className="absolute top-[88px] left-[286px] w-[148px] h-8 flex gap-1 ">
+      {/* --- BƯỚC 1: Thông tin sự kiện --- */}
+      <div 
+        onClick={() => handleStepClick(1)} // <--- Thêm sự kiện click
+        className="absolute top-[88px] left-[286px] w-[148px] h-8 flex gap-1 cursor-pointer hover:opacity-70 transition-opacity" // <--- Thêm cursor-pointer
+      >
         <div className="w-[34px] h-8 relative">
-          <div className="absolute top-0 left-0 w-8 h-8 bg-white rounded-2xl" />
-
+          <div className="absolute top-0 left-0 w-8 h-8 bg-white rounded-2xl border border-gray-200" /> {/* Thêm border nhẹ cho rõ */}
           <div className="left-3.5 absolute top-2 [font-family:'Montserrat-SemiBold',Helvetica] font-semibold text-black text-xs text-center tracking-[0] leading-[normal]">
             1
           </div>
         </div>
-
         <div className="mt-2 w-[108px] h-[15px] [font-family:'Montserrat-SemiBold',Helvetica] font-semibold text-black text-xs text-center tracking-[0] leading-[normal]">
           Thông tin sự kiện
         </div>
       </div>
 
-      <div className="absolute top-[90px] left-[572px] w-[150px] h-8 flex gap-0.5">
+      {/* --- BƯỚC 2: Thời gian & Loại vé --- */}
+      <div 
+        onClick={() => handleStepClick(2)} 
+        className="absolute top-[90px] left-[572px] w-[150px] h-8 flex gap-0.5 cursor-pointer hover:opacity-70 transition-opacity"
+      >
         <div className="w-[34px] h-8 relative">
-          <div className="absolute top-0 left-0 w-8 h-8 bg-white rounded-2xl" />
-
+          <div className="absolute top-0 left-0 w-8 h-8 bg-white rounded-2xl border border-gray-200" />
           <div className="absolute top-2 left-[13px] [font-family:'Montserrat-SemiBold',Helvetica] font-semibold text-black text-xs text-center tracking-[0] leading-[normal]">
             2
           </div>
         </div>
-
         <p className="mt-2 w-28 h-[15px] [font-family:'Montserrat-SemiBold',Helvetica] font-semibold text-black text-xs text-center tracking-[0] leading-[normal]">
           Thời gian &amp; loại vé
         </p>
       </div>
 
+      {/* --- BƯỚC 3 & 4 (Chung 1 khối flex) --- */}
       <div className="absolute top-[90px] left-[827px] w-[334px] h-[34px] flex">
-        <div className="w-[92px] flex gap-3">
+        
+        {/* Bước 3: Cài đặt */}
+        <div 
+            onClick={() => handleStepClick(3)}
+            className="w-[92px] flex gap-3 cursor-pointer hover:opacity-70 transition-opacity"
+        >
           <div className="w-[34px] h-8 relative">
-            <div className="absolute top-0 left-0 w-8 h-8 bg-white rounded-2xl" />
-
+            <div className="absolute top-0 left-0 w-8 h-8 bg-white rounded-2xl border border-gray-200" />
             <div className="absolute top-2 left-[13px] [font-family:'Montserrat-SemiBold',Helvetica] font-semibold text-black text-xs text-center tracking-[0] leading-[normal]">
               3
             </div>
           </div>
-
           <div className="mt-2 w-11 h-[15px] [font-family:'Montserrat-SemiBold',Helvetica] font-semibold text-black text-xs text-center tracking-[0] leading-[normal]">
             Cài đặt
           </div>
         </div>
 
-        <div className="mt-0.5 w-[34px] h-8 relative ml-[69px]">
-          <div className="absolute top-0 left-0 w-8 h-8 bg-white rounded-2xl" />
-
-          <div className="left-3 absolute top-2 [font-family:'Montserrat-SemiBold',Helvetica] font-semibold text-black text-xs text-center tracking-[0] leading-[normal]">
-            4
-          </div>
+        {/* Bước 4: Thông tin thanh toán */}
+        <div 
+            onClick={() => handleStepClick(4)}
+            className="flex ml-[69px] cursor-pointer hover:opacity-70 transition-opacity"
+        >
+            <div className="mt-0.5 w-[34px] h-8 relative">
+            <div className="absolute top-0 left-0 w-8 h-8 bg-white rounded-2xl border border-gray-200" />
+            <div className="left-3 absolute top-2 [font-family:'Montserrat-SemiBold',Helvetica] font-semibold text-black text-xs text-center tracking-[0] leading-[normal]">
+                4
+            </div>
+            </div>
+            <div className="mt-2.5 w-[132px] h-[15px] ml-[5px] [font-family:'Montserrat-SemiBold',Helvetica] font-semibold text-black text-xs text-center tracking-[0] leading-[normal]">
+            Thông tin thanh toán
+            </div>
         </div>
-
+        </div>
         <div className="mt-2.5 w-[132px] h-[15px] ml-[5px] [font-family:'Montserrat-SemiBold',Helvetica] font-semibold text-black text-xs text-center tracking-[0] leading-[normal]">
           Thông tin thanh toán
         </div>
-        </div>
+        
 
      
       {/* Sidebar buttons */}

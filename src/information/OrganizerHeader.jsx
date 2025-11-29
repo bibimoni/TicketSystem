@@ -1,38 +1,52 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
-import { StashUserAvatar } from "../Elements/StashUserAvatar"; // Hoặc dùng ảnh thật nếu có
+import axios from 'axios'; // 1. Import axios
+import { useAuth } from '../context/AuthContext'; // 2. Import AuthContext
 import TICKETZ_LOGO from '../Elements/ticketZ.png';
 
-// Import dữ liệu mẫu
-import { defaultOrganizerInfo } from '../context/mockOrganizerInfo';
-
+// --- CẤU HÌNH API ---
+const API_BASE_URL = 'https://ticket-system-backend-pkuf.onrender.com';
 const DEFAULT_AVATAR = TICKETZ_LOGO;
 
 const OrganizerHeader = () => {
   const navigate = useNavigate();
+  const { token, logout } = useAuth(); // Lấy token và hàm logout (nếu có)
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // 1. Lấy thông tin User từ LocalStorage (Giả lập)
-  const getUserData = () => {
-    const savedData = localStorage.getItem("organizerProfileData");
-    if (savedData) {
-        const parsed = JSON.parse(savedData);
-        return {
-            fullName: parsed.fullName || defaultOrganizerInfo.fullName,
-            avatar: parsed.avatar || DEFAULT_AVATAR
-        };
-    }
-    return {
-        fullName: defaultOrganizerInfo.fullName,
-        avatar: DEFAULT_AVATAR
-    };
-  };
+  // 3. State lưu thông tin User
+  const [userInfo, setUserInfo] = useState({
+      fullName: "Organizer",
+      avatar: DEFAULT_AVATAR
+  });
 
-  const userData = getUserData();
+  // 4. GỌI API LẤY PROFILE KHI HEADER ĐƯỢC LOAD
+  useEffect(() => {
+    const fetchProfile = async () => {
+        if (!token) return;
+        try {
+            const response = await axios.get(`${API_BASE_URL}/customer/profile`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            const user = response.data.user || {};
+            
+            setUserInfo({
+                // Ưu tiên lấy tên hiển thị, nếu không có thì lấy username
+                fullName: user.name || user.username || "Organizer",
+                // Nếu avatar null thì dùng ảnh mặc định
+                avatar: user.avatar || DEFAULT_AVATAR
+            });
+
+        } catch (error) {
+            console.error("Lỗi tải thông tin Header:", error);
+        }
+    };
+
+    fetchProfile();
+  }, [token]);
 
   // Component con cho Menu Item
   const MenuItem = ({ text, onClick }) => {
-    // Map icon tương ứng
     const icons = {
         "Vé của tôi": "🎫",
         "Sự kiện của tôi": "📅",
@@ -47,25 +61,31 @@ const OrganizerHeader = () => {
     );
   };
 
+  const handleLogout = () => {
+      // Xóa token và chuyển về login
+      if (logout) logout(); // Nếu context có hàm logout
+      else localStorage.removeItem('token'); // Fallback thủ công
+      navigate('/login');
+  };
+
   return (
     <div className="absolute top-0 left-[272px] w-[1200px] h-20 flex gap-[11px] bg-white shadow-[0px_4px_4px_#00000040]">
         
-        {/* 1. NÚT TẠO SỰ KIỆN (Chỉ có ở User) */}
+        {/* NÚT TẠO SỰ KIỆN */}
         <div className="mt-[17px] w-[102px] h-[45px] relative ml-[800px]">
           <button
-            onClick={() => navigate('/')} 
+            onClick={() => navigate('/tao-su-kien/buoc-1')} 
             className="flex items-center justify-center w-[108px] h-[45px] rounded-full bg-[#FF5331] text-white text-xs font-semibold shadow-md border-none outline-none hover:bg-[#e04020] transition-colors cursor-pointer"
           >
             Tạo sự kiện
           </button>
         </div>
 
-        {/* 2. THÔNG TIN USER & AVATAR */}
+        {/* THÔNG TIN USER & AVATAR (DỮ LIỆU THẬT) */}
         <div className="relative flex items-center h-full ml-4"> 
-             {/* Text Thông tin (Ẩn trên mobile, hiện trên desktop) */}
              <div className="text-right hidden md:block mr-3">
                 <p className="text-sm font-bold text-gray-800 leading-none mb-0.5">
-                    {userData.fullName}
+                    {userInfo.fullName}
                 </p>
                 <p className="text-[11px] text-gray-500 leading-none">
                     Organizer
@@ -73,12 +93,18 @@ const OrganizerHeader = () => {
             </div>
 
             <div className="relative"> 
-                {/* Click vào Avatar để mở menu */}
+                {/* Avatar Click */}
                 <div onClick={() => setIsMenuOpen(prev => !prev)} className="cursor-pointer">
                     <img 
-                        src={userData.avatar} 
+                        src={userInfo.avatar} 
                         alt="User Avatar" 
-                        className="w-10 h-10 rounded-full object-cover border border-gray-300" 
+                        className="w-10 h-10 rounded-full object-cover border border-gray-300"
+                        
+                        // --- FIX LỖI ẢNH VỠ ---
+                        onError={(e) => { 
+                            e.target.onerror = null; 
+                            e.target.src = DEFAULT_AVATAR; 
+                        }}
                     />
                 </div>
 
@@ -96,15 +122,12 @@ const OrganizerHeader = () => {
                         />
                         <MenuItem 
                             text="Tài khoản của tôi" 
-                            onClick={() => navigate('/tai-khoan-cua-toi')} // Đường dẫn User
+                            onClick={() => navigate('/tai-khoan-cua-toi')} 
                         />
                         <div className="h-px bg-gray-200 my-1" />
                         <MenuItem 
                             text="Đăng xuất" 
-                            onClick={() => { 
-                                // Logic đăng xuất
-                                navigate('/login'); 
-                            }} 
+                            onClick={handleLogout} 
                         />
                     </div>
                 </div>

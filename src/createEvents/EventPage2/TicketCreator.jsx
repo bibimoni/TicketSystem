@@ -10,8 +10,8 @@ export default function TicketCreator({ editingTicket, setEditingTicket }) {
     ticketName: '',
     ticketPrice: '',
     ticketQuantity: '',
-    minTickets: '',
-    maxTickets: '',
+    // minTickets: '',
+    // maxTickets: '',
     ticketInfo: '',
   });
   const { setEventData } = useContext(EventContext);
@@ -29,8 +29,8 @@ export default function TicketCreator({ editingTicket, setEditingTicket }) {
         ticketName: editingTicket.ticketName || '',
         ticketPrice: editingTicket.ticketPrice || '',
         ticketQuantity: editingTicket.ticketQuantity || '',
-        minTickets: editingTicket.minTickets || '',
-        maxTickets: editingTicket.maxTickets || '',
+        // minTickets: editingTicket.minTickets || '',
+        // maxTickets: editingTicket.maxTickets || '',
         ticketInfo: editingTicket.ticketInfo || '',
       });
       // Tự động mở modal
@@ -88,8 +88,8 @@ const handleSubmit = (e) => {
       ticketName: '',
       ticketPrice: '',
       ticketQuantity: '',
-      minTickets: '',
-      maxTickets: '',
+      // minTickets: '',
+      // maxTickets: '',
       ticketInfo: '',
     });
   };
@@ -210,10 +210,11 @@ const handleSubmit = (e) => {
                     Số vé tối thiểu / đơn
                   </label>
                   <input
+                    disabled
                     id="minTickets"
                     name="minTickets" // Thêm name
                     type="number"
-                    placeholder="VD: 1"
+                    placeholder="1"
                     value={formData.minTickets}
                     onChange={handleChange}
                     className="w-[150px]  bg-white border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#ff3b30] mt-2"
@@ -227,10 +228,11 @@ const handleSubmit = (e) => {
                     Số vé tối đa / đơn
                   </label>
                   <input
+                    disabled
                     id="maxTickets"
                     name="maxTickets" // Thêm name
                     type="number"
-                    placeholder="VD: 10"
+                    placeholder="2"
                     value={formData.maxTickets}
                     onChange={handleChange}
                     className="w-[150px] bg-white border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#ff3b30] mt-2"

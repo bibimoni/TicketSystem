@@ -1,86 +1,157 @@
-import React from "react";
+import React, { useContext, useEffect } from "react";
 import { useNavigate, useParams } from 'react-router-dom';
-import { useContext, useEffect } from "react";
-import { QlementineIconsMoney16 } from "../../Elements/QlementineIconsMoney16";
-import { StashUserAvatar } from "../../Elements/StashUserAvatar";
-import { Calendar } from "../../Elements/Calendar";
+import axios from 'axios'; // <--- NHỚ IMPORT AXIOS
 import { EventContext } from '../../context/EventContext';
 import TICKETZ_LOGO from '../../Elements/ticketZ.png';
-// import line12 from "./line-12.svg";
 import rectangle7 from "../../Elements/rectangle-7.png";
-//import { useImagePreview } from './useImagePreview';
-// import rectangle202 from "./rectangle-20.svg";
 import rectangle212 from "../../Elements/rectangle-21-2.png";
-//import rectangle21 from "./rectangle-21.svg";
-import rectangle53 from "../../Elements/rectangle-53.svg";
-import rectangle55 from "../../Elements/rectangle-55.png";
-import rectangle56 from "../../Elements/rectangle-56.svg";
-import rectangle57 from "../../Elements/rectangle-57.svg";
-import rectangle58 from "../../Elements/rectangle-58.svg";
 import rectangle622 from "../../Elements/rectangle-62.png";
 import rectangle62 from "../../Elements/rectangle-62.png";
 import ticke12 from "../../Elements/ticke-1-2.png";
 import { FiHome } from "react-icons/fi";
-// import dữ liệu mẫu 
-import { defaultEvents } from '../../context/mockEventData.js';
+import { Calendar } from "../../Elements/Calendar";
+import { QlementineIconsMoney16 } from "../../Elements/QlementineIconsMoney16";
 import OrganizerHeader from "../../information/OrganizerHeader";
 import AdminHeader from "../../information/AdminHeader";
+import rectangle53 from "../../Elements/rectangle-53.svg";
+import rectangle56 from "../../Elements/rectangle-56.svg";
+import rectangle57 from "../../Elements/rectangle-57.svg";
+import rectangle58 from "../../Elements/rectangle-58.svg";
+import { useAuth } from '../../context/AuthContext';
 
-const formatDateToPicker = (dateString) => {
-  if (!dateString) return '';
-  const parts = dateString.split('/');
-  if (parts.length === 3) {
-    const [day, month, year] = parts;
-    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-  }
-  return ''; // Trả về rỗng nếu định dạng sai
-};
+// --- CẤU HÌNH API ---
+const API_BASE_URL = 'https://ticket-system-backend-pkuf.onrender.com';
 
-/**
- * Chuyển "YYYY-MM-DD" (từ input) sang "DD/MM/YYYY" (lưu vào Context)
- */
-const formatPickerToDate = (dateString) => {
-  if (!dateString) return '';
-  const parts = dateString.split('-');
-  if (parts.length === 3) {
-    const [year, month, day] = parts;
-    return `${day}/${month}/${year}`;
-  }
-  return ''; // Trả về rỗng nếu định dạng sai
+// Helper: Tách link ảnh từ description
+const extractLink = (text, key) => {
+  if (!text) return null;
+  const regex = new RegExp(`\\[${key}\\]:\\s*([^\\s]+)`);
+  const match = text.match(regex);
+  return (match && !match[1].includes("Không")) ? match[1] : null;
 };
 
 export const EventPage1 = ({ isAdmin = false }) => {
   const navigate = useNavigate();
   const { eventData, setEventData } = useContext(EventContext);
   const { eventId } = useParams();
+  const { token } = useAuth();
 
-  
-  
-  // 2. Logic tải dữ liệu sự kiện khi trang được mở
-useEffect(() => {
-    if (eventId) {
-      const storedEvents = JSON.parse(localStorage.getItem('myEvents')) || [];
-      const storedIds = new Set(storedEvents.map(e => e.id));
-      const additionalEvents = defaultEvents.filter(
-        mockEvent => !storedIds.has(mockEvent.id)
-      );
-      const combinedEvents = [...storedEvents, ...additionalEvents];
-      const eventToEdit = combinedEvents.find(e => e.id === eventId);
+  // --- HÀM XỬ LÝ CHUYỂN BƯỚC ---
+  const handleStepClick = (step) => {
+    if (isAdmin) navigate(`/admin/duyet-su-kien/${eventId}/buoc-${step}`);
+    else if (eventId) navigate(`/event-edit/${eventId}/buoc-${step}`);
+    else navigate(`/tao-su-kien/buoc-${step}`);
+  };
 
-      if (eventToEdit) {
-        setEventData(eventToEdit);
-      } else {
-        alert("Không tìm thấy sự kiện để chỉnh sửa.");
-        navigate('/su-kien-cua-toi');
+  const handleContinueClick = () => {
+    // Validate đơn giản
+    if (!eventData.eventName) return alert("Vui lòng nhập tên sự kiện!");
+    handleStepClick(2); // Sang bước 2
+  };
+
+  // --- LOGIC TẢI DỮ LIỆU KHI VÀO TRANG ---
+  useEffect(() => {
+    const loadEventData = async () => {
+      if (eventId) {
+        try {
+          if (!token) return;
+          const endpoint = isAdmin 
+              ? `${API_BASE_URL}/event/all_events` 
+              : `${API_BASE_URL}/event/customer_events`;
+
+          console.log(`🚀 Đang tải dữ liệu từ: ${endpoint}`); // Log để kiểm tra
+
+          const response = await axios.get(endpoint, {
+             headers: { 'Authorization': `Bearer ${token}` }
+          });
+
+          let allEvents = [];
+          if (Array.isArray(response.data)) allEvents = response.data;
+          else if (response.data.events) allEvents = response.data.events;
+          else if (response.data.data) allEvents = response.data.data;
+
+          // Tìm sự kiện
+          const foundEvent = allEvents.find(e => (e.id === eventId || e._id === eventId));
+
+          if (foundEvent) {
+              console.log("✅ Dữ liệu sự kiện gốc:", foundEvent); // Debug xem API trả gì
+              const data = foundEvent;
+              
+              // Xử lý description: Nếu description cũ có chứa link ảnh (do code cũ), hãy lọc bỏ nó đi cho sạch
+              let cleanDescription = data.information || "";
+              if (cleanDescription.includes('[Banner]:')) {
+                  cleanDescription = cleanDescription.split('[Banner]:')[0].trim();
+              }
+
+              setEventData({
+                id: data.id || data._id,
+                eventName: data.name,
+                organizerName: data.organizer,
+                description: cleanDescription,
+                eventType: data.format?.toUpperCase() || 'OFFLINE',
+                eventDate: data.eventTime,
+                
+                // --- SỬA LỖI 1: Lấy ảnh trực tiếp từ trường API (Không dùng regex extractLink nữa) ---
+                bannerImage: data.event_picture_url || extractLink(data.information, 'Banner') || "", 
+    
+                logoImage: data.organizer_logo || extractLink(data.information, 'Logo') || "",
+                
+                suKienImage: data.event_picture_url || extractLink(data.information, 'suKien') || extractLink(data.information, 'Banner') || "",
+                
+                address: data.destination, 
+                // Nếu backend không trả riêng từng trường địa chỉ, ta để trống để user nhập lại hoặc tự parse
+                province: '', district: '', ward: '',
+                
+                startTime: data.eventTicketStart,
+                endTime: data.eventTicketEnd,
+                customPath: data.event_custom_slug,
+                confirmationMessage: data.messages,
+
+                // --- SỬA LỖI 2: Load vé từ ticketTypes (Cấu trúc phẳng) ---
+                tickets: (data.ticketTypes && data.ticketTypes.length > 0)
+    ? data.ticketTypes.map(ticketType => ({
+        id: ticketType.id,
+        
+        // GIỮ LẠI CÁC TRƯỜNG BẮT BUỘC ĐỂ GỬI LẠI KHI UPDATE
+        event_id: ticketType.event_id || ticketType.eventId, 
+        remaining: ticketType.remaining, // <--- QUAN TRỌNG: Backend cần cái này
+        
+        ticketName: ticketType.name,
+        ticketQuantity: ticketType.amount,
+        ticketPrice: ticketType.price || 0,
+        ticketInfo: ticketType.benefit_info || "Vé sự kiện"
+    })) 
+    : [],
+              });
+          } else {
+              console.error("❌ Không tìm thấy ID trong danh sách");
+              alert("Không tìm thấy sự kiện này!");
+              navigate('/su-kien-cua-toi');
+          }
+
+        } catch (error) {
+          console.error("❌ Lỗi tải sự kiện:", error);
+          alert("Lỗi kết nối Server!");
+        }
+      } 
+      // Logic tạo mới (Giữ nguyên)
+      else {
+        const hasData = eventData && Object.keys(eventData).length > 0;
+        if (!hasData) {
+           const draft = localStorage.getItem('event_draft');
+           if (draft) setEventData(JSON.parse(draft));
+           else setEventData({});
+        }
       }
+    };
 
-    } else {
-      setEventData({});
-    }
-  }, [eventId, setEventData, navigate]);
+    loadEventData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventId, token]); 
 
 
-  const readFileAsBase64 = (file) => {
+  // --- HÀM XỬ LÝ ẢNH ---
+const readFileAsBase64 = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result);
@@ -89,68 +160,43 @@ useEffect(() => {
     });
   };
 
-
-  const handleSuKienChange = async (e) => {
+  // --- 2. BA HÀM XỬ LÝ CHO 3 LOẠI ẢNH ---
+  const handleImageChange = async (e, field) => {
     const file = e.target.files[0];
     if (file) {
       const base64String = await readFileAsBase64(file);
-      setEventData(prev => ({ ...prev, suKienImage: base64String }));
-    }
-    e.target.value = null; 
-  };
-
-  const handleBannerChange = async (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const base64String = await readFileAsBase64(file);
-      setEventData(prev => ({ ...prev, bannerImage: base64String }));
+      setEventData(prev => ({ ...prev, [field]: base64String }));
     }
     e.target.value = null;
   };
 
-  const handleLogoChange = async (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const base64String = await readFileAsBase64(file);
-      setEventData(prev => ({ ...prev, logoImage: base64String }));
-    }
-    e.target.value = null;
-  };
+  // --- THÊM 3 HÀM NÀY ĐỂ FIX LỖI "NOT DEFINED" ---
+  const handleSuKienChange = (e) => handleImageChange(e, 'suKienImage');
+  const handleLogoChange = (e) => handleImageChange(e, 'logoImage');
+  const handleBannerChange = (e) => handleImageChange(e, 'bannerImage');
+  // ------------------------------------------------
 
   const suKienPreview = eventData.suKienImage;
   const bannerPreview = eventData.bannerImage;
   const logoPreview = eventData.logoImage;
 
-  const handleContinueClick = () => {
-    // Phải kiểm tra xem đang ở chế độ "edit" hay "create"
-    if (isAdmin) {
-        navigate(`/admin/duyet-su-kien/${eventId}/buoc-2`);
-    }
-    else {
-        if (eventId) {
-        navigate(`/event-edit/${eventId}/buoc-2`);
-      } else {
-        navigate('/tao-su-kien/buoc-2');
-      }
-    }
-  };
   
   return (
     <div className={`
       bg-[#d9d9d9] overflow-hidden border border-solid border-[#d9d9d9] w-full min-w-[1500px] 
-      ${eventData.eventType === 'offline' ? 'min-h-[1905px]' : 'min-h-[1775px]'}
+      ${eventData.eventType === 'OFFLINE' ? 'min-h-[1905px]' : 'min-h-[1775px]'}
       relative transition-all duration-300 ease-in-out
     `}>
       
       <div className={`
         absolute top-[72px] left-[267px] w-[1500px] bg-[#fff8f7]
-        ${eventData.eventType === 'offline' ? 'h-[1439px]' : 'h-[1309px]'}
+        ${eventData.eventType === 'OFFLINE' ? 'h-[1439px]' : 'h-[1309px]'}
         transition-all duration-300 ease-in-out
       `} />
 
       <div className={`
         absolute top-0 left-0 w-[272px] bg-[#f94f2f]
-        ${eventData.eventType === 'offline' ? 'h-[1511px]' : 'h-[1381px]'}
+        ${eventData.eventType === 'OFFLINE' ? 'h-[1511px]' : 'h-[1381px]'}
         transition-all duration-300 ease-in-out
       `} />
 
@@ -162,7 +208,7 @@ useEffect(() => {
 
       <div className={`
         absolute left-0 w-[1472px] h-[581px]
-        ${eventData.eventType === 'offline' ? 'top-[1511px]' : 'top-[1381px]'}
+        ${eventData.eventType === 'OFFLINE' ? 'top-[1511px]' : 'top-[1381px]'}
         transition-all duration-300 ease-in-out
       `}>
         <div className="absolute top-0 left-0 w-[1500px] h-[581px] bg-[#5d5c5c]" />
@@ -262,11 +308,11 @@ useEffect(() => {
         />
       </div>
 
-      <img
+      {/* <img
         className="absolute top-[1770px] left-[924px] w-[140px] h-10" // Vị trí này có vẻ không còn đúng, nhưng để tạm
         alt="Rectangle"
         src={rectangle55}
-      />
+      /> */}
 
     {/* Nút Tiếp Tục */}
     <div 
@@ -356,9 +402,13 @@ useEffect(() => {
       </div>
 
       {/* Thanh Bước (Step bar) */}
-      <div className="absolute top-[88px] left-[286px] w-[148px] h-8 flex gap-1 ">
+      {/* --- BƯỚC 1: Thông tin sự kiện --- */}
+      <div 
+        onClick={() => handleStepClick(1)} // <--- Thêm sự kiện click
+        className="absolute top-[88px] left-[286px] w-[148px] h-8 flex gap-1 cursor-pointer hover:opacity-70 transition-opacity" // <--- Thêm cursor-pointer
+      >
         <div className="w-[34px] h-8 relative">
-          <div className="absolute top-0 left-0 w-8 h-8 bg-white rounded-2xl" />
+          <div className="absolute top-0 left-0 w-8 h-8 bg-white rounded-2xl border border-gray-200" /> {/* Thêm border nhẹ cho rõ */}
           <div className="left-3.5 absolute top-2 [font-family:'Montserrat-SemiBold',Helvetica] font-semibold text-black text-xs text-center tracking-[0] leading-[normal]">
             1
           </div>
@@ -368,9 +418,13 @@ useEffect(() => {
         </div>
       </div>
 
-      <div className="absolute top-[90px] left-[572px] w-[150px] h-8 flex gap-0.5">
+      {/* --- BƯỚC 2: Thời gian & Loại vé --- */}
+      <div 
+        onClick={() => handleStepClick(2)} 
+        className="absolute top-[90px] left-[572px] w-[150px] h-8 flex gap-0.5 cursor-pointer hover:opacity-70 transition-opacity"
+      >
         <div className="w-[34px] h-8 relative">
-          <div className="absolute top-0 left-0 w-8 h-8 bg-white rounded-2xl" />
+          <div className="absolute top-0 left-0 w-8 h-8 bg-white rounded-2xl border border-gray-200" />
           <div className="absolute top-2 left-[13px] [font-family:'Montserrat-SemiBold',Helvetica] font-semibold text-black text-xs text-center tracking-[0] leading-[normal]">
             2
           </div>
@@ -380,10 +434,16 @@ useEffect(() => {
         </p>
       </div>
 
+      {/* --- BƯỚC 3 & 4 (Chung 1 khối flex) --- */}
       <div className="absolute top-[90px] left-[827px] w-[334px] h-[34px] flex">
-        <div className="w-[92px] flex gap-3">
+        
+        {/* Bước 3: Cài đặt */}
+        <div 
+            onClick={() => handleStepClick(3)}
+            className="w-[92px] flex gap-3 cursor-pointer hover:opacity-70 transition-opacity"
+        >
           <div className="w-[34px] h-8 relative">
-            <div className="absolute top-0 left-0 w-8 h-8 bg-white rounded-2xl" />
+            <div className="absolute top-0 left-0 w-8 h-8 bg-white rounded-2xl border border-gray-200" />
             <div className="absolute top-2 left-[13px] [font-family:'Montserrat-SemiBold',Helvetica] font-semibold text-black text-xs text-center tracking-[0] leading-[normal]">
               3
             </div>
@@ -392,14 +452,21 @@ useEffect(() => {
             Cài đặt
           </div>
         </div>
-        <div className="mt-0.5 w-[34px] h-8 relative ml-[69px]">
-          <div className="absolute top-0 left-0 w-8 h-8 bg-white rounded-2xl" />
-          <div className="left-3 absolute top-2 [font-family:'Montserrat-SemiBold',Helvetica] font-semibold text-black text-xs text-center tracking-[0] leading-[normal]">
-            4
-          </div>
-        </div>
-        <div className="mt-2.5 w-[132px] h-[15px] ml-[5px] [font-family:'Montserrat-SemiBold',Helvetica] font-semibold text-black text-xs text-center tracking-[0] leading-[normal]">
-          Thông tin thanh toán
+
+        {/* Bước 4: Thông tin thanh toán */}
+        <div 
+            onClick={() => handleStepClick(4)}
+            className="flex ml-[69px] cursor-pointer hover:opacity-70 transition-opacity"
+        >
+            <div className="mt-0.5 w-[34px] h-8 relative">
+            <div className="absolute top-0 left-0 w-8 h-8 bg-white rounded-2xl border border-gray-200" />
+            <div className="left-3 absolute top-2 [font-family:'Montserrat-SemiBold',Helvetica] font-semibold text-black text-xs text-center tracking-[0] leading-[normal]">
+                4
+            </div>
+            </div>
+            <div className="mt-2.5 w-[132px] h-[15px] ml-[5px] [font-family:'Montserrat-SemiBold',Helvetica] font-semibold text-black text-xs text-center tracking-[0] leading-[normal]">
+            Thông tin thanh toán
+            </div>
         </div>
       </div>
 
@@ -414,20 +481,20 @@ useEffect(() => {
         className={`
           absolute top-[601px] left-[305px] w-[1112px] 
           bg-[#ffe8e2] rounded-[var(--shape-corner-extra-small)]
-          ${eventData.eventType === 'offline' ? 'h-[242px]' : 'h-28'}
+          ${eventData.eventType === 'OFFLINE' ? 'h-[242px]' : 'h-28'}
           transition-all duration-300 ease-in-out
         `} 
       />
 
       <div className={`
         absolute left-[306px] w-[1112px] h-[242px] bg-[#ffe8e2] rounded-[var(--shape-corner-extra-small)]
-        ${eventData.eventType === 'offline' ? 'top-[851px]' : 'top-[721px]'}
+        ${eventData.eventType === 'OFFLINE' ? 'top-[851px]' : 'top-[721px]'}
         transition-all duration-300 ease-in-out
       `} />
 
       <div className={`
         absolute left-[306px] w-[1112px] h-[249px] bg-[#ffe8e2] rounded-[var(--shape-corner-extra-small)]
-        ${eventData.eventType === 'offline' ? 'top-[1101px]' : 'top-[971px]'}
+        ${eventData.eventType === 'OFFLINE' ? 'top-[1101px]' : 'top-[971px]'}
         transition-all duration-300 ease-in-out
       `} />
 
@@ -456,7 +523,7 @@ useEffect(() => {
 
     <div className={`
       absolute left-[341px] w-[174px] h-[188px]
-      ${eventData.eventType === 'offline' ? 'top-[1118px]' : 'top-[988px]'}
+      ${eventData.eventType === 'OFFLINE' ? 'top-[1118px]' : 'top-[988px]'}
       transition-all duration-300 ease-in-out
     `}>
       <label 
@@ -538,7 +605,7 @@ useEffect(() => {
 
       <div className={`
         absolute left-[339px] w-[173px] h-[29px]
-        ${eventData.eventType === 'offline' ? 'top-[868px]' : 'top-[738px]'}
+        ${eventData.eventType === 'OFFLINE' ? 'top-[868px]' : 'top-[738px]'}
         transition-all duration-300 ease-in-out
       `}>
         <div className="left-[22px] absolute top-0 w-[131px] h-[29px] bg-white rounded-[var(--shape-corner-large-increased)]" />
@@ -550,19 +617,19 @@ useEffect(() => {
 
       <div className={`
         absolute left-[513px] w-[173px] h-[29px]
-        ${eventData.eventType === 'offline' ? 'top-[1216px]' : 'top-[1086px]'}
+        ${eventData.eventType === 'OFFLINE' ? 'top-[1216px]' : 'top-[1086px]'}
         transition-all duration-300 ease-in-out
       `}>
-        <div className="left-[22px] absolute top-0 w-[131px] h-[29px] bg-white rounded-[var(--shape-corner-large-increased)]" />
+        {/* <div className="left-[22px] absolute top-0 w-[131px] h-[29px] bg-white rounded-[var(--shape-corner-large-increased)]" />
 
         <div className="absolute top-1.5 left-0 w-[171px] [font-family:'Montserrat-SemiBold',Helvetica] font-semibold text-[#f94f2f] text-xs text-center tracking-[0] leading-[normal]">
           Thông tin BTC
-        </div>
+        </div> */}
       </div>
 
       <div className={`
         absolute left-[492px] w-[175px] h-[29px]
-        ${eventData.eventType === 'offline' ? 'top-[1124px]' : 'top-[994px]'}
+        ${eventData.eventType === 'OFFLINE' ? 'top-[1124px]' : 'top-[994px]'}
         transition-all duration-300 ease-in-out
       `}>
         <div className="left-[43px] absolute top-0 w-[131px] h-[29px] bg-white rounded-[var(--shape-corner-large-increased)]" />
@@ -578,23 +645,30 @@ useEffect(() => {
 
       <div className={`
         absolute left-[535px] w-[724px] h-[31px] bg-white rounded-[var(--shape-corner-small)]
-        ${eventData.eventType === 'offline' ? 'top-[1169px]' : 'top-[1039px]'}
+        ${eventData.eventType === 'OFFLINE' ? 'top-[1169px]' : 'top-[1039px]'}
         transition-all duration-300 ease-in-out
       `} />
+      <div className={`
+  absolute left-[530px] w-[740px] h-[40px] bg-[#ffe8e2] z-50
+  ${eventData.eventType === 'OFFLINE' ? 'top-[1255px]' : 'top-[1125px]'}
+  transition-all duration-300 ease-in-out
+`} />
 
       <div className={`
         absolute left-[535px] w-[724px] h-[31px] bg-white rounded-[var(--shape-corner-small)]
-        ${eventData.eventType === 'offline' ? 'top-[1261px]' : 'top-[1131px]'}
+        ${eventData.eventType === 'OFFLINE' ? 'top-[1261px]' : 'top-[1131px]'}
         transition-all duration-300 ease-in-out
       `} />
 
     <div className={`
       absolute left-[361px] w-[972px] h-[130px] bg-white rounded-[var(--shape-corner-small)] p-3
-      ${eventData.eventType === 'offline' ? 'top-[905px]' : 'top-[775px]'}
+      ${eventData.eventType === 'OFFLINE' ? 'top-[905px]' : 'top-[775px]'}
       transition-all duration-300 ease-in-out
     `}>
       <textarea 
         disabled={isAdmin}
+        value={eventData.description || ''} // Map với biến description trong Context
+        onChange={(e) => setEventData({ ...eventData, description: e.target.value })}
         className="w-full h-full border-none focus:ring-0 outline-none resize-none [font-family:'Montserrat-Regular',Helvetica] text-sm"
         placeholder="Nhập Giới thiệu, Chi tiết, và Điều khoản sự kiện tại đây..."
       />
@@ -602,18 +676,18 @@ useEffect(() => {
       
       {/* Input "Ngày tổ chức" NẰM NGOÀI điều kiện, luôn hiển thị */}
       <input
-        type="date" 
+        type="datetime-local"
         disabled={isAdmin}
-        value={formatDateToPicker(eventData.eventDate) || ''} 
+        value={eventData.eventDate ? eventData.eventDate.substring(0, 16) : ''} 
         onChange={(e) => {
-          const newDate = formatPickerToDate(e.target.value);
-          setEventData({ ...eventData, eventDate: newDate });
+          const fullDateString = e.target.value + ":00+07:00";
+          setEventData({ ...eventData, eventDate: fullDateString });
         }}
         className="absolute top-[643px] left-[872px] w-[450px] h-[31px] rounded-md border border-gray-300 px-4 text-xs [font-family:'Montserrat-Light',Helvetica] text-black placeholder:text-[#6e6e6e] bg-white"
       />
 
       {/* Bọc tất cả các trường địa chỉ trong khối điều kiện này */}
-      {eventData.eventType === 'offline' && (
+      {eventData.eventType === 'OFFLINE' && (
         <>
           {/* Tỉnh / Thành */}
           <div className="absolute top-[682px] left-[339px] w-[457px] h-[68px] flex flex-col gap-2">
@@ -719,23 +793,23 @@ useEffect(() => {
         className={`
           absolute left-[535px] w-[785px] h-[31px] rounded-md border border-gray-300 px-4 text-xs 
           [font-family:'Montserrat-Light',Helvetica] text-black placeholder:text-[#6e6e6e] bg-white
-          ${eventData.eventType === 'offline' ? 'top-[1167px]' : 'top-[1037px]'}
+          ${eventData.eventType === 'OFFLINE' ? 'top-[1167px]' : 'top-[1037px]'}
           transition-all duration-300 ease-in-out
         `}
       />
-      <input
+      {/* <input
         type="text"
         disabled={isAdmin}
-        value={eventData.description || ''}
-        onChange={(e) => setEventData({ ...eventData, description: e.target.value })}
+        value={eventData.organizerInfo || ''}
+        onChange={(e) => setEventData({ ...eventData, organizerInfo: e.target.value })}
         placeholder="Thông tin BTC"
         className={`
           absolute left-[535px] w-[785px] h-[31px] rounded-md border border-gray-300 px-4 text-xs 
           [font-family:'Montserrat-Light',Helvetica] text-black placeholder:text-[#6e6e6e] bg-white
-          ${eventData.eventType === 'offline' ? 'top-[1259px]' : 'top-[1129px]'}
+          ${eventData.eventType === 'OFFLINE' ? 'top-[1259px]' : 'top-[1129px]'}
           transition-all duration-300 ease-in-out
         `}
-      />
+      /> */}
 
       <div className="absolute top-[646px] left-[366px] w-5 h-5 bg-white rounded-[10px]" />
 
@@ -746,20 +820,20 @@ useEffect(() => {
              absolute top-[646px] left-[366px] flex items-center
              ${isAdmin ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'} 
           `}
-          onClick={() => !isAdmin && setEventData({ ...eventData, eventType: 'offline' })}
+          onClick={() => !isAdmin && setEventData({ ...eventData, eventType: 'OFFLINE' })}
       >
           {/* Vòng tròn radio */}
           <div className="w-5 h-5 flex items-center justify-center bg-white rounded-full">
-              {eventData.eventType === 'offline' && (
+              {eventData.eventType === 'OFFLINE' && (
                   <div className="w-3.5 h-3.5 bg-[#f94f2f] rounded-full" />
               )}
           </div>
           {/* Nhãn */}
           <div className={`
               w-auto ml-[7px] [font-family:'Montserrat-Bold',Helvetica] font-bold text-xs 
-              ${eventData.eventType === 'offline' ? 'text-[#f94f2f]' : 'text-black'}
+              ${eventData.eventType === 'OFFLINE' ? 'text-[#f94f2f]' : 'text-black'}
           `}>
-              Sự kiện offline
+              Sự kiện OFFLINE
           </div>
       </div>
 
@@ -768,20 +842,20 @@ useEffect(() => {
              absolute top-[646px] left-[542px] flex items-center
              ${isAdmin ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'} 
           `}
-          onClick={() => !isAdmin && setEventData({ ...eventData, eventType: 'online' })}
+          onClick={() => !isAdmin && setEventData({ ...eventData, eventType: 'ONLINE' })}
       >
           {/* Vòng tròn radio */}
           <div className="w-5 h-5 flex items-center justify-center bg-white rounded-full">
-              {eventData.eventType === 'online' && (
+              {eventData.eventType === 'ONLINE' && (
                   <div className="w-3.5 h-3.5 bg-[#f94f2f] rounded-full" />
               )}
           </div>
           {/* Nhãn */}
           <div className={`
               w-auto ml-[7px] [font-family:'Montserrat-Bold',Helvetica] font-bold text-xs 
-              ${eventData.eventType === 'online' ? 'text-[#f94f2f]' : 'text-black'}
+              ${eventData.eventType === 'ONLINE' ? 'text-[#f94f2f]' : 'text-black'}
           `}>
-              Sự kiện online
+              Sự kiện ONLINE
           </div>
       </div>
 
@@ -797,7 +871,7 @@ useEffect(() => {
       {!isAdmin && (
           <div className="mt-[17px] w-[102px] h-[45px] relative ml-[989px]">
           <button
-              onClick={() => navigate('/')} 
+            onClick={() => { setEventData({}); navigate('/')} }
               className="flex items-center justify-center w-[108px] h-[45px] rounded-full bg-[#FF5331] text-white text-xs font-semibold [font-family:'Montserrat-SemiBold',Helvetica] shadow-[0_4px_8px_rgba(0,0,0,0.25)] border-none outline-none"
           >
               Tạo sự kiện

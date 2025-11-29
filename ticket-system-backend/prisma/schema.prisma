@@ -106,7 +106,6 @@ model TicketPrice {
 model TicketType {
   id        String @id @default(auto()) @map("_id") @db.ObjectId
   name      String
-  seat      String
   amount    Int
   remaining Int
 
@@ -185,8 +184,6 @@ model Voucher {
 
   created_at DateTime? @default(now())
   updated_at DateTime? @updatedAt
-
-  @@unique([event_id, code])
 }
 
 enum voucher_reduce_type {

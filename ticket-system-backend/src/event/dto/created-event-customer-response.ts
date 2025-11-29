@@ -36,14 +36,6 @@ export class TicketTypeResponseDto {
   name: string;
 
   @ApiProperty({
-    example: 'GA-A1',
-    description: 'The seat name type of the ticket type.',
-  })
-  @IsString()
-  seat: string;
-
-
-  @ApiProperty({
     example: 10000,
     description: 'The amount of the ticket type.',
   })
@@ -64,7 +56,7 @@ export class TicketTypeResponseDto {
 }
 
 export class VoucherResponseDto {
-  @ApiProperty({ example: '001', description: 'Human friendly voucher code (unique per event)' })
+  @ApiProperty({ example: 'GIAMGIA10K', description: 'Human friendly voucher code (unique per event)' })
   code: string;
 
   @ApiProperty({ example: '68e4e22c9815978759f58206', description: 'Voucher id' })

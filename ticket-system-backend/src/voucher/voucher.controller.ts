@@ -52,38 +52,19 @@ export class VoucherController {
     return await this.voucherService.findOne(id);
   }
 
-  @Delete(':id')
-  @UseGuards(AuthGuard, AdminGuard)
+  @Post('delete')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Delete voucher (Admin only)' })
-  @ApiBearerAuth('JWT-auth')
-  @ApiHeader({
-    name: "Authorization",
-    description: "Bearer admin token for authorization",
-    required: true,
-    schema: {
-      type: 'string',
-      example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+  @ApiOperation({ summary: 'Delete voucher by ID' })
+  @ApiBody({
+    description: 'Voucher ID',
+    examples: {
+      sample: {
+        summary: 'Example voucher ID',
+        value: { id: '68ea665bdfe71b734e5907ad' }
+      }
     }
   })
-  @ApiParam({
-    name: 'id',
-    description: 'Voucher ID',
-    example: '68ea665bdfe71b734e5907ad'
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Voucher deleted successfully',
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'Unauthorized - Invalid or missing token',
-  })
-  @ApiResponse({
-    status: 403,
-    description: 'Voucher not found',
-  })
-  async remove(@Param('id') id: string) {
-    return await this.voucherService.remove(id);
+  async deleteVoucher(@Body('id') voucherId: string) {
+    return this.voucherService.remove(voucherId);
   }
 }

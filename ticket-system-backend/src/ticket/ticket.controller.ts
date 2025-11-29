@@ -5,6 +5,7 @@ import { CreateTicketTypeDto, CreateTicketPriceDto } from './dto/create-ticket.d
 import { AuthGuard } from 'src/auth/auth.guard';
 import { AdminGuard } from 'src/auth/admin.guard';
 import { Ticket } from 'generated/prisma';
+import { QrPayloadDto } from './dto/qr-payload.dto';
 
 @ApiTags('ticket')
 @Controller('ticket')

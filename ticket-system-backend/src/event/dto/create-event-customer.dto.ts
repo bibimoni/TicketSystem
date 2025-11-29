@@ -13,7 +13,7 @@ export class CreateEventCustomerDto {
   name: string
 
   @ApiProperty({
-    example: 'This is the Vietname national concert featuring top artists from around the country. Join us for an unforgettable night of music, culture, and celebration.',
+    example: 'This is the Vietnam national concert featuring top artists from around the country. Join us for an unforgettable night of music, culture, and celebration.',
     description: 'Detailed information about the event'
   })
   @IsString()
@@ -51,13 +51,13 @@ export class CreateEventCustomerDto {
   eventTicketStart: Date
 
   @ApiProperty({
-    example: '2025-11-20T18:30:00+07:00',
+    example: '2025-12-31T18:30:00+07:00',
     description: 'Ticket sell end date and time'
   })
   eventTicketEnd: Date
 
   @ApiProperty({
-    example: '2025-12-20T18:30:00+07:00',
+    example: '2026-01-01T18:30:00+07:00',
     description: 'Event occurrence date and time'
   })
   @IsDateString()
@@ -116,11 +116,11 @@ export class CreateEventCustomerDto {
         benefit_info: 'Access to standard seating area',
         ticketTypes: [
           {
-            name: 'GA-A1',
+            name: "Anh tài",
             amount: 15000,
           },
           {
-            name: 'GA-A2',
+            name: 'Vé cứng',
             amount: 10000,
           }
         ]
@@ -130,11 +130,11 @@ export class CreateEventCustomerDto {
         benefit_info: 'Access to VIP seating area and complimentary drinks',
         ticketTypes: [
           {
-            name: "VIP-A1",
+            name: "Anh tài VIP",
             amount: 5000,
           },
           {
-            name: "VIP-B1",
+            name: 'Vé cứng VIP',
             amount: 5000,
           }
         ]
@@ -151,10 +151,11 @@ export class CreateEventCustomerDto {
     type: () => CreateVoucherDto,
     example: [
       {
+        code: 'GIAMGIA10K',
         reduce_type: 'FIXED',
         reduce_price: 100000,
         price: 1000000,
-        start_date: '2025-12-01T00:00:00.000Z',
+        start_date: '2025-11-01T00:00:00.000Z',
         end_date: '2025-12-31T23:59:59.000Z'
       }
     ],

@@ -1,6 +1,8 @@
 import { Injectable, ForbiddenException, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateTicketTypeDto, CreateTicketPriceDto } from './dto/create-ticket.dto';
+import { UpdateTicketTypeDto } from './dto/update-ticket-type.dto';
+import { QrPayloadDto } from './dto/qr-payload.dto';
 
 @Injectable()
 export class TicketService {
@@ -20,12 +22,11 @@ export class TicketService {
   }
 
   async createTicketType(createTicketTypeDto: CreateTicketTypeDto, eventId: string, ticketPriceId: string) {
-    const { name, seat, amount } = createTicketTypeDto;
+    const { name, amount } = createTicketTypeDto;
 
     const ticketType = await this.prisma.ticketType.create({
       data: {
         name: name,
-        seat: seat,
         amount: amount ?? 0,
         remaining: amount ?? 0,
         event: { connect: { id: eventId } },
@@ -68,9 +69,25 @@ export class TicketService {
     return ticket;
   }
 
+  async updateTicketType(id: string, dto: UpdateTicketTypeDto) {
+    return this.prisma.ticketType.update({
+      where: { id },
+      data: dto,
+    });
+  }
+
+
   async findAll() {
-    return await this.prisma.ticket.findMany({
-      include: {
+    return this.prisma.ticket.findMany({
+      select: {
+        id: true,
+        code: true,
+        created_at: true,
+        updated_at: true,
+        status: true,
+        ticket_type_id: true,
+        qr_code_url: true,
+
         ticket_type: {
           include: {
             ticketPrice: true,
@@ -78,28 +95,27 @@ export class TicketService {
               select: {
                 name: true,
                 destination: true,
-                eventTime: true
-              }
-            }
-          }
+                eventTime: true,
+              },
+            },
+          },
         },
+
         transactionHasTicket: {
           include: {
             transaction: {
               include: {
                 customer: {
                   include: {
-                    user: true
-                  }
+                    user: true,
+                  },
                 },
-                vouchers: {
-                  include: { voucher: true }
-                }
-              }
-            }
-          }
-        }
-      }
+                vouchers: true,
+              },
+            },
+          },
+        },
+      },
     });
   }
 

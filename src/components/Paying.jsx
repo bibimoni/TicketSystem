@@ -1,40 +1,62 @@
-import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import eventsData from "../database/Event";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
+import transactionService from "../services/transactionService";
 
-const Paying = () => {
+// Nhận props từ Pay.jsx
+const Paying = ({ eventData, selectedTickets }) => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [selectedMethod, setSelectedMethod] = useState("stripe");
 
-  const { eventId } = useParams();
-  const [event, setEvent] = useState(null);
-  const [selectedTickets, setSelectedTickets] = useState([]);
-  const [selectedMethod, setSelectedMethod] = useState("vietqr");
-
-  useEffect(() => {
-    const foundEvent = eventsData.find((e) => e.id === eventId);
-    setEvent(foundEvent || null);
-
-    if (foundEvent) {
-      const chosenTickets = foundEvent.ticketCategories.filter(
-        (t) => t.quantity > 0
-      );
-      setSelectedTickets(chosenTickets);
-    }
-  }, [eventId]);
-
-  if (!event) return <div className="text-center py-10">Sự kiện không tồn tại...</div>;
-
+  // Tính tổng tiền
   const totalPrice = selectedTickets.reduce((sum, ticket) => {
-    // Chuyển giá từ string "8.000.000 đ" => số 8000000
-    const priceNumber = Number(ticket.price.replace(/\D/g, ""));
+    let priceNumber = ticket.amount || ticket.price; 
+    if (typeof priceNumber === 'string') {
+        priceNumber = Number(priceNumber.replace(/\D/g, ""));
+    }
     return sum + priceNumber * ticket.quantity;
   }, 0);
 
+  // Xử lý thanh toán
+  const handlePayment = async () => {
+    setLoading(true);
+    try {
+      const payload = {
+        eventId: eventData.id,
+        items: selectedTickets.map(ticket => ({
+            ticketTypeId: ticket.id,
+            quantity: ticket.quantity
+        })),
+        paymentMethod: selectedMethod, 
+        totalAmount: totalPrice,
+        voucherCode: "" 
+      };
+
+      const response = await transactionService.checkout(payload);
+
+      if (response && response.paymentUrl) {
+          window.location.href = response.paymentUrl;
+      } else {
+          alert("Đặt vé thành công!");
+          navigate("/my-ticket");
+      }
+
+    } catch (error) {
+      console.error("Lỗi thanh toán:", error);
+      alert(error.response?.data?.message || "Có lỗi xảy ra khi thanh toán.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const paymentMethods = [
-    { id: "vietqr", label: "VietQR" },
+    { id: "stripe", label: "Thẻ quốc tế (Visa/Mastercard/JCB)" },
+    { id: "vietqr", label: "VietQR (Chuyển khoản)" },
     { id: "banking-app", label: "Ứng dụng ngân hàng" },
-    { id: "credit-card", label: "Thẻ tín dụng/ Thẻ ghi nợ" },
   ];
+
+  const formatPrice = (val) => val.toLocaleString("vi-VN") + " đ";
 
   return (
     <main className="flex py-9 max-w-7xl mx-auto px-4 relative">
@@ -53,7 +75,7 @@ const Paying = () => {
                     Thông tin nhận vé
                   </h3>
                   <p className="font-bold text-secondary text-sm">
-                    Vé điện tử sẽ được hiển thị trong mục "VÉ CỦA TÔI"
+                    Vé điện tử sẽ được hiển thị trong mục "VÉ CỦA TÔI" và gửi qua Email.
                   </p>
                 </div>
               </div>
@@ -112,13 +134,15 @@ const Paying = () => {
           <div className="bg-white rounded-b-[5px] p-6">
             <h2 className="font-bold text-black text-xl mb-4">Thông tin vé</h2>
             <div className="space-y-4 mb-4">
-              {selectedTickets.map((ticket) => (
-                <div key={ticket.id} className="flex items-center justify-between">
+              {selectedTickets.map((ticket, idx) => (
+                <div key={idx} className="flex items-center justify-between">
                   <div>
                     <p className="font-bold text-secondary text-base">{ticket.name}</p>
-                    <p className="font-medium italic text-secondary text-sm">{ticket.price}</p>
+                    <p className="font-medium italic text-secondary text-sm">
+                        {formatPrice(ticket.amount || ticket.price)}
+                    </p>
                   </div>
-                  <span className="font-bold text-primary text-lg">{ticket.quantity}</span>
+                  <span className="font-bold text-primary text-lg">x{ticket.quantity}</span>
                 </div>
               ))}
             </div>
@@ -128,16 +152,17 @@ const Paying = () => {
             <div className="flex items-center justify-between mb-6">
               <span className="font-bold text-black text-base">Tạm tính</span>
               <span className="font-extrabold text-primary text-xl">
-                {totalPrice.toLocaleString("vi-VN")} đ
+                {formatPrice(totalPrice)}
               </span>
             </div>
 
             <button
-              className="w-full h-[50px] bg-primary hover:bg-red-600 rounded-[10px] transition-colors"
-              disabled={!selectedMethod}
+              onClick={handlePayment}
+              className="w-full h-[50px] bg-primary hover:bg-red-600 rounded-[10px] transition-colors disabled:opacity-50"
+              disabled={loading || !selectedMethod}
             >
               <span className="font-extrabold text-white text-xl">
-                TIẾP TỤC
+                {loading ? "ĐANG XỬ LÝ..." : "THANH TOÁN"}
               </span>
             </button>
           </div>

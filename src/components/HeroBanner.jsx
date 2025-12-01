@@ -1,6 +1,7 @@
 // src/components/HeroBanner.jsx
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+
 import eventService from "../services/eventService";
 import defaultImage from "../assets/images/default_img.png";
 
@@ -23,13 +24,11 @@ const HeroBanner = () => {
                 const response = await eventService.getAllEvents();
                 const now = new Date();
 
-                // Map data và tách ảnh
                 let processedEvents = Array.isArray(response) ? response.map(evt => {
                     const bannerUrl = extractBannerUrl(evt.information);
                     return {
                         id: evt.id,
                         title: evt.name,
-                        // Format ngày tháng hiển thị
                         subtitle: new Date(evt.eventTime).toLocaleDateString("vi-VN", {
                             weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
                         }).toUpperCase() + ` - ${evt.destination}`,
@@ -38,7 +37,6 @@ const HeroBanner = () => {
                     };
                 }) : [];
 
-                // Lọc sự kiện và sắp xếp
                 processedEvents = processedEvents
                     .filter(evt => new Date(evt.eventTime) > now)
                     .sort((a, b) => new Date(a.eventTime) - new Date(b.eventTime))
@@ -50,12 +48,11 @@ const HeroBanner = () => {
                 if (processedEvents.length > 0) {
                     // Tạo bản sao 
                     const shuffled = [...processedEvents].sort(() => 0.5 - Math.random());
-                    // Lấy 2 phần tử đầu
                     setRandomEvents(shuffled.slice(0, 2));
                 }
 
             } catch (error) {
-                console.error("Lỗi tải HeroBanner:", error); //Debug
+                // console.error("Lỗi tải HeroBanner:", error); //Debug
             } finally {
                 setLoading(false);
             }

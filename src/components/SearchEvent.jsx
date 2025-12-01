@@ -6,20 +6,19 @@ import defaultImage from "../assets/images/default_img.png";
 
 const SearchEvent = () => {
     const [searchParams] = useSearchParams();
-    const query = searchParams.get("q") || ""; // Lấy từ khóa tìm kiếm
+    const query = searchParams.get("q") || ""; 
 
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [visibleCount, setVisibleCount] = useState(8);
 
-    // Hàm tách link ảnh (Reused)
+    // Hàm tách link ảnh
     const extractBannerUrl = (infoString) => {
         if (!infoString) return null;
         const match = infoString.match(/\[Banner\]:\s*([^\s\n]+)/);
         return match ? match[1] : null;
     };
 
-    // Hàm lấy giá vé thấp nhất
     const getMinPrice = (ticketTypes) => {
         if (!ticketTypes || ticketTypes.length === 0) return 0;
         const prices = ticketTypes.map(t => t.amount);
@@ -76,7 +75,6 @@ const SearchEvent = () => {
     if (loading) return <div className="text-center py-20 text-lg font-bold text-primary">Đang tìm kiếm sự kiện...</div>;
 
     return (
-
         <>
             {/* KẾT QUẢ TÌM KIẾM */}
             <div className="max-w-7xl mx-auto px-6 py-12">
@@ -134,10 +132,9 @@ const SearchEvent = () => {
                                     {/* Phần Nội dung */}
                                     <div className="p-4 flex flex-col flex-grow justify-between">
                                         <div>
-                                            {/* Tiêu đề: 1 dòng, cắt đuôi ... */}
                                             <h3
                                                 className="font-bold text-lg uppercase truncate text-gray-800 group-hover:text-primary transition-colors"
-                                                title={event.title} // Hover vào sẽ hiện full tên
+                                                title={event.title}
                                             >
                                                 {event.title}
                                             </h3>

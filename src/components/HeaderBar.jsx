@@ -1,14 +1,15 @@
 // src/components/HeaderBar.js
-import { Button } from "../components/ui/button";
-import logo from "../assets/images/logo.png";
-import "../index.css";
-import { Search as SearchIcon, User } from "lucide-react";
-import { BsTicketPerforatedFill } from "react-icons/bs";
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 import LoginModal from "../components/Login.jsx";
 import RegisterModal from "../components/Register.jsx";
+
+import logo from "../assets/images/logo.png";
+import "../index.css";
+import { Search as SearchIcon, User } from "lucide-react";
+import { BsTicketPerforatedFill } from "react-icons/bs";
 
 const HeaderBar = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -41,7 +42,7 @@ const HeaderBar = () => {
     return (
         <>
             <header className="w-full bg-primary shadow-[0px_4px_6px_#00000026] sticky top-0 z-50 font-montserrat">
-                <div className="flex items-center justify-between px-[18px] py-[15px] max-w-[1440px] mx-auto">
+                <div className="flex items-center justify-between px-[20px] py-[8px] max-w-[1440px] mx-auto">
                     <a href="/">
                         <img className="w-[204px]" alt="TickeZ Logo" src={logo} />
                     </a>
@@ -77,49 +78,46 @@ const HeaderBar = () => {
                         </div>
 
                         {/* Vé của tôi */}
-                        <Button
-                            variant="outline"
-                            className="group h-[45px] rounded-[25px] border-2 border-white bg-transparent transition-all duration-300 flex items-center hover:bg-white"
+                        <button
+                            className="group h-[45px] rounded-[25px] border-2 border-white bg-transparent transition-all duration-300 flex items-center hover:bg-white px-5"
                             onClick={() => navigate("/my-ticket")} 
                         >
-                            <BsTicketPerforatedFill className="w-[40px] h-[40px] text-white mr-2 group-hover:text-primary transition-all duration-300" />
-                            <span className="font-semibold text-white text-xs group-hover:text-primary transition-all duration-200">
+                            <BsTicketPerforatedFill className="w-[25px] h-[25px] text-white mr-2 group-hover:text-primary transition-all duration-300" />
+                            <span className="font-bold text-white text-xs group-hover:text-primary transition-all duration-200">
                                 Vé của tôi
                             </span>
-                        </Button>
+                        </button>
 
                         {/* Tạo sự kiện */}
-                        <Button
-                            variant="ghost"
+                        <button
                             className="h-[45px] rounded-[25px] border-2 border-transparent 
-                           bg-white text-primary font-semibold text-xs
+                           bg-white text-primary font-bold text-xs
                            hover:bg-primary hover:text-white hover:border-white hover:border-2
-                           transition-colors duration-200"
-                            onClick={() => console.log("Chuyển sang trang tạo sự kiện")}
+                           transition-colors duration-200 px-4"
+                            onClick={() => console.log("Chuyển sang trang tạo sự kiện")} // Connect với tạo sự kiện
                         >
                             Tạo sự kiện
-                        </Button>
+                        </button>
 
                         {/* Đăng nhập / Đăng ký */}
                         {!isLoggedIn ? (
                             <div className="flex items-center gap-2 bg-white rounded-lg shadow-[0px_4px_4px_#00000033] w-[240px] h-[45px] px-4">
-                                <Button
-                                    variant="ghost"
+                                <button
                                     className="flex-1 h-full text-primary font-bold text-xs"
                                     onClick={() => setShowLogin(true)}
                                 >
                                     Đăng nhập
-                                </Button>
+                                </button>
 
                                 <div className="w-px h-5 bg-gray-300" />
 
-                                <Button
+                                <button
                                     variant="ghost"
                                     className="flex-1 h-full text-primary font-bold text-xs"
                                     onClick={() => setShowRegister(true)}
                                 >
                                     Đăng ký
-                                </Button>
+                                </button>
                             </div>
                         ) : (
                             <div className="flex items-center gap-4 bg-primary px-5 py-2 rounded-lg">
@@ -149,8 +147,8 @@ const HeaderBar = () => {
                 <LoginModal
                     isOpen={showLogin}
                     onClose={() => setShowLogin(false)}
-                    setIsLoggedIn={setIsLoggedIn}  // New prop
-                    openRegister={() => { setShowLogin(false); setShowRegister(true); }}  // Mở register khi clic
+                    setIsLoggedIn={setIsLoggedIn}
+                    openRegister={() => { setShowLogin(false); setShowRegister(true); }}  // Mở register khi click
                 />
             )}
 

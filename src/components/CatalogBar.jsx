@@ -8,7 +8,7 @@ const categories = [
   { label: "Thể thao", href: "/" },
 ];
 
-const locations = ["HCM", "Hà Nội", "Đà Nẵng", "Cần Thơ"]; // ví dụ
+const locations = ["HCM", "Hà Nội", "Đà Nẵng", "Cần Thơ"];
 
 const CatalogBar = ({ onFilter }) => {
   const [selectedLocation, setSelectedLocation] = useState("Chọn địa điểm");
@@ -55,7 +55,7 @@ const CatalogBar = ({ onFilter }) => {
           </button>
 
           {isDropdownOpen && (
-            <div className="absolute right-0 mt-1 w-[150px] bg-white shadow-md rounded-md z-200">
+            <div className="absolute right-0 mt-1 w-[150px] bg-white shadow-md rounded-md z-90">
               {locations.map((loc, idx) => (
                 <button
                   key={idx}

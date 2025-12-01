@@ -1,6 +1,7 @@
 // src/components/MoreEvent.jsx
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+
 import eventService from "../services/eventService";
 import defaultImage from "../assets/images/default_img.png";
 
@@ -32,7 +33,7 @@ const MoreEvent = () => {
                     setEvents(randomEvents);
                 }
             } catch (error) {
-                console.error("Lỗi tải MoreEvent:", error);
+                // console.error("Lỗi tải MoreEvent:", error);
             }
         };
 
@@ -55,7 +56,7 @@ const MoreEvent = () => {
                     </h2>
                 </div>
 
-                {/* Grid 5 hình */}
+                {/* 5 hình */}
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                     {events.map((item) => (
                         <Link 
@@ -71,7 +72,7 @@ const MoreEvent = () => {
                                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                     onError={(e) => {e.target.src = defaultImage}}
                                 />
-                                
+                            
                                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
                             </div>
                         </Link>

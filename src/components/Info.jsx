@@ -1,23 +1,17 @@
-import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import eventsData from "../database/Event";
+// src/components/Info.jsx
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import { ChevronDownIcon, ChevronUpIcon, ChevronRightIcon } from "lucide-react";
+import defaultAvatar from "../assets/images/default_img.png";
 
-const Info = () => {
-    const { eventId } = useParams();
+const Info = ({ eventData }) => {
     const [expanded, setExpanded] = useState(false);
     const [openItem, setOpenItem] = useState(null);
-    const [event, setEvent] = useState(null);
 
-    useEffect(() => {
-        const foundEvent = eventsData.find(e => e.id === eventId);
-        setEvent(foundEvent || null);
-    }, [eventId]);
+    if (!eventData) return <div className="text-center py-10">Đang tải thông tin...</div>;
 
-    if (!event) return <div className="text-center py-10">Sự kiện không tồn tại hoặc đang tải...</div>;
-
-    // Cắt nội dung mô tả
-    const shortText = event.description.slice(0, 300) + "...";
+    const description = eventData.description || "Đang cập nhật mô tả...";
+    const shortText = description.slice(0, 300) + (description.length > 300 ? "..." : "");
 
     const toggle = (id) => {
         setOpenItem(openItem === id ? null : id);
@@ -34,8 +28,8 @@ const Info = () => {
                                 GIỚI THIỆU
                             </h2>
 
-                            <p className="font-medium text-secondary text-sm leading-normal whitespace-pre-line">
-                                {expanded ? event.description : shortText}
+                            <p className="font-medium text-secondary text-sm leading-normal whitespace-pre-line text-justify">
+                                {expanded ? description : shortText}
                             </p>
 
                             {/* Nút xem thêm */}
@@ -63,14 +57,14 @@ const Info = () => {
                                 <img
                                     className="w-[100px] h-[100px] object-cover rounded-full border-grey border-[2px]"
                                     alt="Organization Logo"
-                                    src={event.organizationLogo}
+                                    src={defaultAvatar}
                                 />
                                 <div>
                                     <h3 className="font-bold text-black text-base mb-2">
-                                        {event.organizationName}
+                                        {eventData.organizer}
                                     </h3>
                                     <p className="font-medium text-secondary text-sm">
-                                        {event.organizationDesc}
+                                        Đối tác chính thức của TickeZ
                                     </p>
                                 </div>
                             </div>
@@ -94,10 +88,11 @@ const Info = () => {
 
                             {/* LIST */}
                             <div className="space-y-0">
-                                {event.ticketCategories.map((ticket, index) => {
+                                {eventData.ticketTypes && eventData.ticketTypes.map((ticket, index) => {
                                     const isFirst = index === 0;
-                                    const isLast = index === event.ticketCategories.length - 1;
+                                    const isLast = index === eventData.ticketTypes.length - 1;
                                     const isOpen = openItem === ticket.id;
+                                    const isSoldOut = ticket.remaining <= 0;
 
                                     return (
                                         <div key={ticket.id} className="border-0">
@@ -123,10 +118,10 @@ const Info = () => {
                                                 </div>
 
                                                 <span className="font-extrabold text-primary text-xl mr-10">
-                                                    {ticket.price}
+                                                    {ticket.amount.toLocaleString("vi-VN")} đ
                                                 </span>
 
-                                                {ticket.soldOut && (
+                                                {isSoldOut && (
                                                     <div
                                                         className={`
                                                             absolute top-0 right-0
@@ -142,22 +137,17 @@ const Info = () => {
                                                 )}
                                             </div>
 
-                                            {/* DETAILS */}
-                                            {ticket.hasDetails && isOpen && (
+                                            {/* DETAILS  */}
+                                            {isOpen && (
                                                 <div
                                                     className={`px-6 py-4 
                                                                 ${isLast ? "rounded-b-[5px]" : ""}
                                                                 ${index % 2 === 0 ? "bg-white" : "bg-[#f2f2f2]"}`}
                                                 >
                                                     <div className="space-y-2">
-                                                        {ticket.details?.map((detail, idx) => (
-                                                            <p
-                                                                key={idx}
-                                                                className="font-bold text-secondary text-base"
-                                                            >
-                                                                {detail}
-                                                            </p>
-                                                        ))}
+                                                        <p className="font-bold text-secondary text-base">
+                                                            Mô tả vé chưa cập nhật
+                                                        </p>
                                                     </div>
                                                 </div>
                                             )}
@@ -168,9 +158,11 @@ const Info = () => {
 
                             {/* BUTTON */}
                             <div className="flex justify-center">
-                                <button className="mt-6 w-40 bg-primary hover:bg-red-600 text-white font-bold py-3 rounded-xl transition">
-                                    Mua vé ngay
-                                </button>
+                                <Link to={`/booking/${eventData.id}`}>
+                                    <button className="mt-6 w-40 bg-primary hover:bg-red-600 text-white font-bold py-3 rounded-2xl transition text-white text-lg border-[3px] border-primary hover:bg-white hover:text-primary">
+                                        Mua vé ngay
+                                    </button>
+                                </Link>
                             </div>
                         </div>
                     </div>
@@ -179,9 +171,10 @@ const Info = () => {
                 {/* BANNER */}
                 <div className="flex-1 translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:800ms]">
                     <img
-                        className="bg-white rounded-[10px] border-0"
+                        className="bg-white rounded-[10px] border-0 w-full object-cover"
                         alt="Event Banner"
-                        src={event.bannerPortrait} 
+                        src={eventData.banner}
+                        onError={(e) => { e.target.src = {defaultAvatar} }}
                     />
                 </div>
             </section>

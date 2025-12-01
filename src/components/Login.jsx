@@ -1,9 +1,11 @@
 import { X } from "lucide-react";
+import { useState } from "react";
+
+import authService from "../services/authService";
+
 import logo from "../assets/images/logo.png";
 import illu from "../assets/images/illu.png";
 import logogg from "../assets/images/gglogo.png";
-import { useState } from "react";
-import authService from "../services/authService";
 
 export default function LoginModal({ isOpen, onClose, setIsLoggedIn, openRegister }) {
     const [identifier, setIdentifier] = useState("");
@@ -20,18 +22,20 @@ export default function LoginModal({ isOpen, onClose, setIsLoggedIn, openRegiste
 
         try {
             const data = await authService.login(identifier, password);
-            
-            // Lấy data
+
             localStorage.setItem("token", data.access_token);
             setIsLoggedIn(true);
             onClose();
         } catch (err) {
-            // Lỗi 
-            const message = err.response?.data?.message || "Đăng nhập thất bại";
+            // const message = err.response?.data?.message || "Đăng nhập thất bại";
             setError(message);
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleGoogleLogin = () => {
+        authService.loginWithGoogle();
     };
 
     return (
@@ -110,7 +114,8 @@ export default function LoginModal({ isOpen, onClose, setIsLoggedIn, openRegiste
                                 </div>
                             </div>
 
-                            <button className="w-full h-12 border border-gray-300 rounded-lg flex items-center justify-center gap-3 hover:border-gray-400">
+                            <button className="w-full h-12 border border-gray-300 rounded-lg flex items-center justify-center gap-3 hover:border-gray-400"
+                                onClick={handleGoogleLogin}>
                                 <img src={logogg} alt="Google" className="w-5 h-5" />
                                 <span className="font-medium text-gray-700">
                                     Google

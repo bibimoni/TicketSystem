@@ -4,23 +4,23 @@ import textlogo from '../assets/images/textlogo.png'
 const Footer = () => {
     const socialMedia = [
         {
-            src: "https://c.animaapp.com/mhfr4mzcpTXBLq/img/rectangle-53.svg",
+            src: "https://upload.wikimedia.org/wikipedia/commons/e/ee/Logo_de_Facebook.png",
             alt: "Social 1",
             link: "facebook.com",
         },
         {
-            src: "https://c.animaapp.com/mhfr4mzcpTXBLq/img/rectangle-56.svg",
+            src: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS7ZW0jLTs-p4e66QtRLpcWL0yu23OZmPA6ye8g5wqeWt9mveJkP7L1StdT8-MfM6WPuN8&usqp=CAU",
             alt: "Social 2",
             link: "threads.com",
 
         },
         {
-            src: "https://c.animaapp.com/mhfr4mzcpTXBLq/img/rectangle-57.svg",
+            src: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Instagram_logo_2022.svg/1024px-Instagram_logo_2022.svg.png",
             alt: "Social 3",
             link: "instagram.com",
         },
         {
-            src: "https://c.animaapp.com/mhfr4mzcpTXBLq/img/rectangle-58.svg",
+            src: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Tiktok_icon.svg/1024px-Tiktok_icon.svg.png",
             alt: "Social 4",
             link: "tiktok.com",
         },

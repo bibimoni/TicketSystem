@@ -1,8 +1,11 @@
+import { useState } from "react";
+
 import { X } from "lucide-react";
 import logo from "../assets/images/logo.png";
 import illu from "../assets/images/illu.png";
 import logogg from "../assets/images/gglogo.png";
-import { useState } from "react";
+
+import authService from "../services/authService";
 
 export default function RegisterModal({ isOpen, onClose, setIsLoggedIn, openLogin }) {
 
@@ -17,6 +20,7 @@ export default function RegisterModal({ isOpen, onClose, setIsLoggedIn, openLogi
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
         if (password !== confirmPassword) {
             setError("Mật khẩu xác nhận không khớp!");
             return;
@@ -30,54 +34,36 @@ export default function RegisterModal({ isOpen, onClose, setIsLoggedIn, openLogi
         setError("");
 
         try {
-            // Gọi API register
-            const response = await fetch("/api/customer", {  // Dùng proxy như login
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    email: email,
-                    username: username,
-                    password: password,
-                }),
+            await authService.register({
+                email,
+                username,
+                password
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || "Đăng ký thất bại. Vui lòng thử lại.");
+            // console.log("User created successfully");
+
+            const loginData = await authService.login(username, password);
+
+            if (loginData && loginData.access_token) {
+                localStorage.setItem("token", loginData.access_token);
+                // console.log("Token saved:", loginData.access_token);
+                setIsLoggedIn(true);
+                onClose();
+            } else {
+                throw new Error("Không nhận được token sau khi đăng nhập.");
             }
 
-            const userData = await response.json();
-            console.log("User created:", userData);
-
-            // Tự động đăng nhập sau khi đăng ký thành công
-            const loginResponse = await fetch("/api/auth/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    username: username,  // Hoặc email, tùy backend expect gì
-                    password: password,
-                }),
-            });
-
-            if (!loginResponse.ok) {
-                throw new Error("Đăng ký thành công nhưng đăng nhập thất bại!");
-            }
-
-            const loginData = await loginResponse.json();
-            localStorage.setItem("token", loginData.access_token);
-            console.log("Token saved after register:", loginData.access_token);
-            setIsLoggedIn(true);
-            onClose();
         } catch (err) {
-            setError(err.message);
-            console.error("Register error:", err);
+            // console.error("Register flow error:", err);
+            const message = err.response?.data?.message || err.message || "Đăng ký thất bại. Vui lòng thử lại.";
+            setError(message);
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleGoogleLogin = () => {
+        authService.loginWithGoogle();
     };
 
     return (
@@ -107,7 +93,7 @@ export default function RegisterModal({ isOpen, onClose, setIsLoggedIn, openLogi
                             <form className="space-y-4" onSubmit={handleSubmit}>
                                 <input
                                     type="text"
-                                    placeholder="Tên đăng nhập"  // Đổi thành username để match API
+                                    placeholder="Tên đăng nhập"
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
                                     className="w-full h-[40px] px-4 border border-gray-300 rounded-lg focus:border-primary outline-none"
@@ -145,9 +131,9 @@ export default function RegisterModal({ isOpen, onClose, setIsLoggedIn, openLogi
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="w-full bg-primary hover:bg-red-600 text-white font-semibold py-3 rounded-lg disabled:opacity-50"
+                                    className="w-full bg-primary hover:bg-red-600 text-white font-semibold py-3 rounded-lg disabled:opacity-50 transition-colors"
                                 >
-                                    {loading ? "Đang tạo..." : "Tạo tài khoản"}
+                                    {loading ? "Đang xử lý..." : "Tạo tài khoản"}
                                 </button>
                             </form>
 
@@ -162,7 +148,11 @@ export default function RegisterModal({ isOpen, onClose, setIsLoggedIn, openLogi
                                 </div>
                             </div>
 
-                            <button className="w-full h-[40px] border border-gray-300 rounded-lg flex items-center justify-center gap-3 hover:border-gray-400">
+                            <button 
+                                type="button"
+                                className="w-full h-[40px] border border-gray-300 rounded-lg flex items-center justify-center gap-3 hover:border-gray-400 transition-colors"
+                                onClick={handleGoogleLogin}
+                            >
                                 <img src={logogg} alt="Google" className="w-5 h-5" />
                                 <span className="font-medium">Google</span>
                             </button>
@@ -173,7 +163,7 @@ export default function RegisterModal({ isOpen, onClose, setIsLoggedIn, openLogi
                                     type="button"
                                     onClick={() => {
                                         onClose();
-                                        openLogin();  // Mở modal login
+                                        openLogin();
                                     }}
                                     className="text-primary font-bold hover:underline"
                                 >
@@ -200,7 +190,7 @@ export default function RegisterModal({ isOpen, onClose, setIsLoggedIn, openLogi
                         {/* Nút X */}
                         <button
                             onClick={onClose}
-                            className="absolute -top-6 -right-6 w-[50px] h-[50px] bg-white rounded-full shadow-2xl border-4 border-white flex items-center justify-center"
+                            className="absolute -top-6 -right-6 w-[50px] h-[50px] bg-white rounded-full shadow-2xl border-4 border-white flex items-center justify-center hover:bg-gray-100 transition-colors"
                         >
                             <X size={32} className="text-gray-600" />
                         </button>

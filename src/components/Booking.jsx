@@ -1,28 +1,49 @@
-import React, { useState } from "react";
-import { useParams } from "react-router-dom";
+// src/components/Booking.jsx
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { BsTicketPerforatedFill } from "react-icons/bs";
 import { Minus, Plus, InfoIcon } from "lucide-react";
+
 import BackButton from "../components/BackButton";
-import eventsData from "../database/Event";
+
+import eventService from "../services/eventService";
 
 const Booking = () => {
   const { eventId } = useParams();
+  const navigate = useNavigate();
 
-  // Tìm event
-  const eventData = eventsData.find((e) => e.id === eventId);
+  const [eventData, setEventData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [quantities, setQuantities] = useState([]);
 
-  // **Gọi useState trước mọi return**
-  const [quantities, setQuantities] = useState(
-    eventData ? Array(eventData.ticketCategories.length).fill(0) : []
-  );
+  // Fetch sự kiện
+  useEffect(() => {
+    const fetchEvent = async () => {
+      try {
+        const response = await eventService.getEventById(eventId);
+        const data = response.data || response; // Handle response wrapper
 
-  // Nếu không tìm thấy event
-  if (!eventData) return <div>Sự kiện không tồn tại</div>;
+        if (data) {
+          setEventData(data);
+          const types = data.ticketTypes || [];
+          setQuantities(new Array(types.length).fill(0));
+        }
+      } catch (error) {
+        // console.error("Lỗi tải thông tin sự kiện:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const ticketCategories = eventData.ticketCategories;
+    fetchEvent();
+  }, [eventId]);
 
   const handleIncrement = (index) => {
     const newQuantities = [...quantities];
+    const ticket = eventData.ticketTypes[index];
+    if (ticket.remaining !== undefined && newQuantities[index] >= ticket.remaining) {
+      return; 
+    }
     newQuantities[index] += 1;
     setQuantities(newQuantities);
   };
@@ -33,7 +54,36 @@ const Booking = () => {
     setQuantities(newQuantities);
   };
 
+  const handleContinue = () => {
+    const totalTickets = quantities.reduce((sum, qty) => sum + qty, 0);
+    if (totalTickets === 0) {
+      alert("Vui lòng chọn ít nhất 1 vé!");
+      return;
+    }
+
+    const selectedTickets = eventData.ticketTypes
+      .map((ticket, index) => ({
+        ...ticket,
+        quantity: quantities[index],
+        price: ticket.amount || ticket.price,
+        name: ticket.name
+      }))
+      .filter((ticket) => ticket.quantity > 0);
+
+    navigate(`/question-form/${eventId}`, { state: { selectedTickets, eventData } });
+  };
+
+  if (loading) return <div className="text-center py-10 font-bold text-primary">Đang tải thông tin vé...</div>;
+  if (!eventData) return <div className="text-center py-10 text-primary font-bold">Sự kiện không tồn tại</div>;
+
+  const ticketTypes = eventData.ticketTypes || [];
   const totalTickets = quantities.reduce((sum, qty) => sum + qty, 0);
+
+  // Helper format tiền
+  const formatPrice = (price) => {
+    if (typeof price === 'number') return price.toLocaleString("vi-VN") + " đ";
+    return price;
+  }
 
   return (
     <div className="min-h-screen w-full overflow-x-auto">
@@ -41,9 +91,9 @@ const Booking = () => {
         <main className="px-[122px] py-8">
           <BackButton className="mb-4" />
 
-          <div className="flex gap-5">
+          <div className="grid grid-cols-12  w-full relative gap-5">
             {/* LEFT content */}
-            <section className="flex-1">
+            <section className="relative col-span-8">
               <div className="bg-white rounded-[10px] p-7 shadow-none">
                 <div className="flex justify-between mb-6">
                   <h2 className="font-bold text-primary text-xl">Hạng vé</h2>
@@ -51,68 +101,75 @@ const Booking = () => {
                 </div>
 
                 <div className="space-y-4">
-                  {ticketCategories.map((ticket, index) => (
-                    <div
-                      key={ticket.id}
-                      className="relative bg-[#d9d9d9] rounded-[10px] p-5"
-                    >
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="flex-1">
-                          <h3 className="font-bold text-secondary text-lg mb-2">
-                            {ticket.name}
-                          </h3>
-                          <p className="font-extrabold text-primary text-xl">
-                            {ticket.price}
-                          </p>
+                  {ticketTypes.map((ticket, index) => {
+                    
+                    const isSoldOut = ticket.remaining <= 0;
+
+                    return (
+                      <div
+                        key={ticket.id}
+                        className="relative bg-[#d9d9d9] rounded-[10px] p-5"
+                      >
+                        <div className="flex justify-between items-start mb-4">
+                          <div className="flex-1">
+                            <h3 className="font-bold text-secondary text-lg mb-2">
+                              {ticket.name}
+                            </h3>
+                            <p className="font-extrabold text-primary text-xl">
+                              {formatPrice(ticket.amount)}
+                            </p>
+                            {/* <p className="text-xs italic text-gray-500 mt-1">
+                              Còn lại: {ticket.remaining} vé
+                            </p> */}
+                          </div>
+
+                          <div className="flex items-center gap-3">
+                            {isSoldOut ? (
+                              <div className="absolute bg-primary top-0 right-0 text-white rounded-[0px_10px_0px_10px] h-[30px] px-4 flex items-center">
+                                <span className="font-bold text-sm">Hết vé</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2 bg-white rounded-[20px] px-3 py-1">
+                                <button onClick={() => handleDecrement(index)}>
+                                  <Minus className="w-3.5 h-3.5 text-primary" />
+                                </button>
+
+                                <span className="font-bold text-primary text-sm min-w-[20px] text-center">
+                                  {quantities[index]}
+                                </span>
+
+                                <button onClick={() => handleIncrement(index)}>
+                                  <Plus className="w-3.5 h-3.5 text-primary" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
 
-                        <div className="flex items-center gap-3">
-                          {ticket.soldOut ? (
-                            <div className="absolute bg-primary top-0 right-0 text-white rounded-[0px_10px_0px_10px] h-[30px] px-4 flex items-center">
-                              <span className="font-bold text-sm">Hết vé</span>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2 bg-white rounded-[20px] px-3 py-1">
-                              <button onClick={() => handleDecrement(index)}>
-                                <Minus className="w-3.5 h-3.5 text-primary" />
-                              </button>
-
-                              <span className="font-bold text-primary text-sm min-w-[20px] text-center">
-                                {quantities[index]}
-                              </span>
-
-                              <button onClick={() => handleIncrement(index)}>
-                                <Plus className="w-3.5 h-3.5 text-primary" />
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {ticket.details.length > 0 && (
+                        {/* Hiển thị mô tả vé nếu có */}
+                      {ticket.description && (
                         <div className="bg-white rounded-[10px] p-4">
                           <div className="flex items-start gap-2">
                             <InfoIcon className="w-5 h-5 mt-0.5 text-primary" />
                             <div className="font-medium text-secondary text-sm">
-                              {ticket.details.map((detail, idx) => (
-                                <div key={idx}>{detail}</div>
-                              ))}
+                                {ticket.description}
                             </div>
                           </div>
                         </div>
                       )}
-                    </div>
-                  ))}
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             </section>
 
             {/* RIGHT SIDEBAR */}
-            <aside className="w-[467px]">
-              <div className="bg-secondary rounded-[10px] h-[682px]">
+            <aside className="relative col-span-4">
+              <div className="bg-secondary rounded-[10px]">
                 <div className="bg-secondary rounded-t-[10px] p-6">
                   <h2 className="font-extrabold text-white text-xl text-center">
-                    {eventData.title}
+                    {eventData.name}
                   </h2>
                 </div>
 
@@ -124,13 +181,13 @@ const Booking = () => {
                   </h3>
 
                   <div className="space-y-4">
-                    {ticketCategories.map((item, index) => (
+                    {ticketTypes.map((item, index) => (
                       <div key={index} className="flex justify-between">
                         <span className="font-bold text-secondary text-base">
                           {item.name}
                         </span>
                         <span className="font-extrabold text-primary text-base">
-                          {item.price}
+                          {formatPrice(item.amount)}
                         </span>
                       </div>
                     ))}
@@ -148,7 +205,9 @@ const Booking = () => {
                 </div>
 
                 <div className="flex justify-center">
-                  <button className="mt-6 w-40 bg-primary hover:bg-red-600 text-white font-bold py-3 rounded-xl transition">
+                  <button className="mt-6 w-40 bg-primary hover:bg-red-600 text-white font-bold py-3 rounded-xl transition mb-6"
+                          onClick={handleContinue}
+                  >
                     TIẾP TỤC
                   </button>
                 </div>

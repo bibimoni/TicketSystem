@@ -1,14 +1,15 @@
 // src/pages/Home.jsx
 import React, { useState, useEffect, useMemo } from "react";
+
 import Footer from "../components/Footer";
 import HeaderBar from "../components/HeaderBar";
 import CatalogBar from "../components/CatalogBar";
 import HeroBanner from "../components/HeroBanner";
 import ListEvent from "../components/ListEvent";
 import AdvertisingBanner from "../components/AdvertisingBanner";
+
 import eventService from "../services/eventService";
-// Import ảnh mặc định để dùng khi sự kiện không có Banner
-import defaultImage from "../assets/images/default_img.png"; 
+import defaultImage from "../assets/images/default_img.png";
 
 function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -22,7 +23,7 @@ function Home() {
 
   const extractBannerUrl = (infoString) => {
     if (!infoString) return null;
-    
+
     const match = infoString.match(/\[Banner\]:\s*([^\s\n]+)/);
     return match ? match[1] : null;
   };
@@ -37,8 +38,8 @@ function Home() {
 
           return {
             id: evt.id,
-            title: evt.name, 
-            src: bannerUrl || defaultImage, 
+            title: evt.name,
+            src: bannerUrl || defaultImage,
             alt: evt.name,
             date: evt.eventTime,
             ...evt
@@ -75,7 +76,7 @@ function Home() {
       {/* SỰ KIỆN NỔI BẬT */}
       <ListEvent
         title={"SỰ KIỆN NỔI BẬT"}
-        events={upcomingEvents.slice(0, 15)} 
+        events={upcomingEvents.slice(0, 15)}
         imageWidth={"225px"}
         imageHeight={"290px"}
         gap={30}
@@ -90,6 +91,7 @@ function Home() {
         gap={30}
       />
 
+      {/* CONCERT GÌ NÀO ? */}
       <ListEvent
         title="CONCERT GÌ NÀO ?"
         events={events}
@@ -99,6 +101,7 @@ function Home() {
       />
       <AdvertisingBanner banner="https://techcombank.com/content/dam/techcombank/public-site/articles/non-blog/Banner-cashback-ther-VISA-c6315ae326.jpg" height={500} />
 
+      {/* NGHỆ THUẬT VÀ SÂN KHẤU */}
       <ListEvent
         title="NGHỆ THUẬT VÀ SÂN KHẤU"
         events={events}
@@ -107,6 +110,7 @@ function Home() {
         gap={30}
       />
 
+      {/* THỂ THAO */}
       <ListEvent
         title="THỂ THAO"
         events={events}

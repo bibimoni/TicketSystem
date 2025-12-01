@@ -1,8 +1,12 @@
+// src/components/Profile.jsx
 import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { CameraIcon, User, Ticket, Calendar } from "lucide-react";
+
 import userService from "../services/userService";
 
 function Profile() {
+    const navigate = useNavigate();
     const [user, setUser] = useState({
         name: "",
         email: "",
@@ -17,6 +21,7 @@ function Profile() {
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(false);
     const [error, setError] = useState("");
+    
     const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
     // --- Fetch profile ---
@@ -24,24 +29,18 @@ function Profile() {
         setLoading(true);
         try {
             const data = await userService.getProfile();
-            console.log("Profile Data:", data); // Log để kiểm tra cấu trúc
 
-            // Tùy vào cấu trúc API trả về, có thể là data.user hoặc data
             const profile = data.user || data;
 
-            // Xử lý giới tính (Backend trả về English -> Frontend hiển thị Tiếng Việt)
             let genderRadio = "khac";
             if (profile.sex?.toLowerCase() === "male") genderRadio = "nam";
             else if (profile.sex?.toLowerCase() === "female") genderRadio = "nu";
 
-            // Xử lý ngày sinh (Chuyển về format yyyy-MM-dd cho input type="date")
             let formattedBirthDate = "";
             if (profile.birth_date) {
                 formattedBirthDate = new Date(profile.birth_date).toISOString().split("T")[0];
             }
 
-            // Xử lý số điện thoại (Tách mã vùng nếu có)
-            // Giả sử backend lưu dạng: "+84-909123456" hoặc "0909123456"
             let phoneCode = "+84";
             let phoneNumber = profile.phone_number || "";
 
@@ -52,13 +51,12 @@ function Profile() {
                     phoneNumber = parts[1];
                 }
             } else if (phoneNumber.startsWith("+")) {
-                // Logic tách tạm thời nếu không có dấu gạch ngang
                 phoneCode = phoneNumber.substring(0, 3);
                 phoneNumber = phoneNumber.substring(3);
             }
 
             setUser({
-                name: profile.name || profile.username || "", // Ưu tiên name
+                name: profile.name || profile.username || "",
                 email: profile.email || "",
                 gender: genderRadio,
                 phoneCode: phoneCode,
@@ -71,22 +69,26 @@ function Profile() {
 
             setError("");
         } catch (err) {
-            console.error(err);
-            setError(err.response?.data?.message || "Lấy thông tin thất bại");
+            // console.error(err);
+            if (err.response && err.response.status === 401) {
+                alert("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
+                localStorage.removeItem("token");
+                navigate("/");
+            } else {
+                setError(err.response?.data?.message || "Lấy thông tin thất bại");
+            }
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [navigate]);
 
     useEffect(() => { fetchProfile(); }, [fetchProfile]);
 
-    // --- Handle field change ---
     const handleChange = useCallback((field, value) => {
         setUser(prev => ({ ...prev, [field]: value }));
         setError("");
     }, []);
 
-    // --- Handle submit ---
     const handleSubmit = async (e) => {
         e.preventDefault();
         setUpdating(true);
@@ -109,25 +111,27 @@ function Profile() {
                 avatar: user.avatar 
             };
 
-            console.log("Sending update:", body); 
-
             await userService.updateProfile(body);
-            await fetchProfile();
+            await fetchProfile(); 
             alert("Cập nhật thành công!");
         } catch (err) {
-            console.error(err);
-            setError(err.response?.data?.message || "Cập nhật thất bại");
+            // console.error(err);
+            if (err.response && err.response.status === 401) {
+                alert("Phiên đăng nhập hết hạn.");
+                localStorage.removeItem("token");
+                navigate("/");
+            } else {
+                setError(err.response?.data?.message || "Cập nhật thất bại");
+            }
         } finally {
             setUpdating(false);
         }
     };
 
-    // --- Handle avatar change ---
     const handleAvatarChange = useCallback(async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        // Preview local
         const reader = new FileReader();
         reader.onloadend = () => {
             setUser(prev => ({ ...prev, avatar: reader.result }));
@@ -136,9 +140,7 @@ function Profile() {
 
         try {
             setIsUploadingAvatar(true); 
-            console.log("Đang upload ảnh...");
             const response = await userService.uploadImage(file);
-            console.log("Upload thành công:", response);
             const serverUrl = response.url; 
 
             if (serverUrl) {
@@ -146,27 +148,32 @@ function Profile() {
             }
 
         } catch (err) {
-            console.error("Lỗi upload ảnh:", err);
-            alert("Upload ảnh thất bại!");
+            // console.error("Lỗi upload ảnh:", err);
+            if (err.response && err.response.status === 401) {
+                alert("Phiên đăng nhập hết hạn.");
+                localStorage.removeItem("token");
+                navigate("/");
+            } else {
+                alert("Upload ảnh thất bại!");
+            }
         } finally {
             setIsUploadingAvatar(false);
         }
-    }, []);
+    }, [navigate]);
 
-    // Catogory 
     const category = [
-        { label: "Thông tin tài khoản", active: true, icon: User },
-        { label: "Vé của tôi", active: false, icon: Ticket },
-        { label: "Sự kiện của tôi", active: false, icon: Calendar },
+        { label: "Thông tin tài khoản", active: true, icon: User, href: "/my-profile" },
+        { label: "Vé của tôi", active: false, icon: Ticket, href: "/my-ticket" },
+        { label: "Sự kiện của tôi", active: false, icon: Calendar, href: "/" },
     ];
 
     if (loading) return (
-        <div className="min-h-screen flex items-center justify-center text-lg text-primary">
+        <div className="min-h-screen flex items-center justify-center text-lg text-primary font-bold">
             Đang tải thông tin...
         </div>
     );
 
-    if (error && user.name) return (
+    if (error && !user.name) return (
         <div className="min-h-screen flex items-center justify-center">
             <div className="text-center">
                 <p className="text-primary mb-4">{error}</p>
@@ -185,8 +192,11 @@ function Profile() {
             <main className="flex px-10 py-8 gap-8">
                 {/* Sidebar */}
                 <aside className="w-[300px] flex flex-col items-center gap-6">
-                    <div className="w-20 h-20 rounded-full overflow-hidden">
-                        <img src={user.avatar} alt="avatar" className="w-full h-full object-cover"
+                    <div className="w-20 h-20 rounded-full overflow-hidden border border-gray-300">
+                        <img 
+                            src={user.avatar} 
+                            alt="avatar" 
+                            className="w-full h-full object-cover"
                             onError={(e) => { e.target.src = "/logo.png" }}
                         />
                     </div>
@@ -199,13 +209,14 @@ function Profile() {
                         {category.map((item, index) => (
                             <button
                                 key={index}
-                                className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${item.active ? "bg-white/50" : "hover:bg-white/30"
-                                    }`}
+                                onClick={() => navigate(item.href)} 
+                                className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors w-full text-left ${
+                                    item.active ? "bg-white/50 shadow-sm" : "hover:bg-white/30"
+                                }`}
                             >
                                 <item.icon className="w-[25px] h-[25px] text-primary" />
                                 <span
-                                    className={`text-sm ${item.active ? "font-extrabold" : "font-semibold"
-                                        } text-primary`}
+                                    className={`text-sm ${item.active ? "font-extrabold" : "font-semibold"} text-primary`}
                                 >
                                     {item.label}
                                 </span>
@@ -214,7 +225,6 @@ function Profile() {
                     </nav>
                 </aside>
 
-                {/* Separator */}
                 <div className="w-[2px] bg-black/20" />
 
                 {/* Main section */}
@@ -239,7 +249,7 @@ function Profile() {
                                 <input
                                     value={user.name}
                                     onChange={(e) => handleChange("name", e.target.value)}
-                                    className="h-[50px] bg-white rounded-[5px] font-bold text-secondary text-base px-6"
+                                    className="h-[50px] bg-white rounded-[5px] font-bold text-secondary text-base px-6 outline-none focus:ring-1 focus:ring-primary"
                                     required
                                 />
                             </div>
@@ -251,19 +261,17 @@ function Profile() {
                                     <select
                                         value={user.phoneCode}
                                         onChange={(e) => handleChange("phoneCode", e.target.value)}
-                                        className="w-[162px] h-[50px] bg-white rounded-[5px] font-bold text-secondary text-base px-6"
+                                        className="w-[162px] h-[50px] bg-white rounded-[5px] font-bold text-secondary text-base px-6 outline-none"
                                     >
                                         <option value="+84">+84</option>
                                         <option value="+1">+1</option>
                                         <option value="+44">+44</option>
-                                        <option value="+81">+81</option>
-                                        <option value="+82">+82</option>
                                     </select>
 
                                     <input
                                         value={user.phoneNumber}
                                         onChange={(e) => handleChange("phoneNumber", e.target.value)}
-                                        className="flex-1 h-[50px] bg-white rounded-[5px] font-bold text-secondary text-base px-6"
+                                        className="flex-1 h-[50px] bg-white rounded-[5px] font-bold text-secondary text-base px-6 outline-none focus:ring-1 focus:ring-primary"
                                         required
                                     />
                                 </div>
@@ -287,7 +295,7 @@ function Profile() {
                                     type="date"
                                     value={user.birthDate}
                                     onChange={(e) => handleChange("birthDate", e.target.value)}
-                                    className="h-[50px] bg-white rounded-[5px] font-bold text-secondary text-base px-6 outline-none"
+                                    className="h-[50px] bg-white rounded-[5px] font-bold text-secondary text-base px-6 outline-none focus:ring-1 focus:ring-primary"
                                 />
                             </div>
 
@@ -308,7 +316,7 @@ function Profile() {
                                                 value={g.value}
                                                 checked={user.gender === g.value}
                                                 onChange={(e) => handleChange("gender", e.target.value)}
-                                                className="w-5 h-5 accent-primary"
+                                                className="w-5 h-5 accent-primary cursor-pointer"
                                             />
                                             <label htmlFor={g.value} className="font-bold text-base cursor-pointer select-none">
                                                 {g.label}
@@ -324,7 +332,7 @@ function Profile() {
                                 <input
                                     value={user.address}
                                     onChange={(e) => handleChange("address", e.target.value)}
-                                    className="h-[50px] bg-white rounded-[5px] font-bold text-secondary text-base px-6 outline-none focus:border-primary border border-transparent"
+                                    className="h-[50px] bg-white rounded-[5px] font-bold text-secondary text-base px-6 outline-none focus:ring-1 focus:ring-primary"
                                 />
                             </div>
 
@@ -334,7 +342,7 @@ function Profile() {
                                 <textarea
                                     value={user.information}
                                     onChange={(e) => handleChange("information", e.target.value)}
-                                    className="h-[100px] bg-white rounded-[5px] font-bold text-secondary text-base px-6 py-3 resize-none outline-none focus:border-primary border border-transparent"
+                                    className="h-[100px] bg-white rounded-[5px] font-bold text-secondary text-base px-6 py-3 resize-none outline-none focus:ring-1 focus:ring-primary"
                                     placeholder="Giới thiệu bản thân..."
                                 />
                             </div>
@@ -343,7 +351,7 @@ function Profile() {
                             <button
                                 type="submit"
                                 disabled={updating}
-                                className="h-[60px] bg-primary rounded-[5px] font-extrabold text-white text-xl mt-4 hover:opacity-80 disabled:opacity-50 transition-opacity"
+                                className="h-[60px] bg-primary rounded-[5px] font-extrabold text-white text-xl mt-4 hover:bg-red-600 disabled:opacity-50 transition-all"
                             >
                                 {updating ? "Đang cập nhật..." : "Cập nhật"}
                             </button>
@@ -351,19 +359,25 @@ function Profile() {
 
                         {/* AVATAR */}
                         <div className="flex flex-col items-center mx-8">
-                            <div className="relative w-[200px] h-[200px] rounded-full">
+                            <div className="relative w-[200px] h-[200px] rounded-full border-2 border-white shadow-md">
                                 <img
                                     src={user.avatar}
                                     alt="avatar"
                                     className="w-full h-full object-cover rounded-full"
+                                    onError={(e) => { e.target.src = "/logo.png" }}
                                 />
 
                                 {/* Nút camera */}
                                 <button
                                     onClick={() => document.getElementById("avatarInput").click()}
-                                    className="absolute bottom-0 right-0 w-10 h-10 bg-primary rounded-full flex items-center justify-center shadow-lg"
+                                    disabled={isUploadingAvatar}
+                                    className="absolute bottom-0 right-0 w-12 h-12 bg-primary hover:bg-red-600 rounded-full flex items-center justify-center shadow-lg transition-colors cursor-pointer"
                                 >
-                                    <CameraIcon className="w-6 h-6 text-white" />
+                                    {isUploadingAvatar ? (
+                                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                    ) : (
+                                        <CameraIcon className="w-6 h-6 text-white" />
+                                    )}
                                 </button>
                             </div>
 

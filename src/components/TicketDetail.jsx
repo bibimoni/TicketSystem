@@ -1,24 +1,23 @@
-// src/components/TicketDetail.js
+// src/components/TicketDetail.jsx
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
 import { CalendarIcon, MapPinIcon } from "lucide-react";
-import eventsData from "../database/Event";
+import { Link } from "react-router-dom";
 
-const TicketDetail = ({ pageType }) => {
-    const { eventId } = useParams();
-    const [event, setEvent] = useState(null);
-    const [remainingTime, setRemainingTime] = useState(20 * 60); // 20 phút
+import defaultImage from "../assets/images/default_img.png"; 
 
-    useEffect(() => {
-        const foundEvent = eventsData.find(e => e.id === eventId);
-        setEvent(foundEvent || null);
-    }, [eventId]);
+const TicketDetail = ({ pageType, eventData, onTimeout }) => {
+    const [remainingTime, setRemainingTime] = useState(20 * 60);
 
     useEffect(() => {
         if (pageType !== "confirmation") return;
 
+        if (remainingTime === 0) {
+            if (onTimeout) onTimeout();
+            return;
+        }
+
         const timer = setInterval(() => {
-            setRemainingTime(prev => {
+            setRemainingTime((prev) => {
                 if (prev <= 1) {
                     clearInterval(timer);
                     return 0;
@@ -28,20 +27,34 @@ const TicketDetail = ({ pageType }) => {
         }, 1000);
 
         return () => clearInterval(timer);
-    }, [pageType]);
+    }, [remainingTime, pageType, onTimeout]);
 
-    if (!event) return <div className="text-center py-10">Sự kiện không tồn tại hoặc đang tải...</div>;
+    if (!eventData) return null;
 
-    // Format ngày
-    const formattedDate = new Date(event.date).toLocaleDateString("vi-VN", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-    });
+    const title = eventData.title || eventData.name || "Tên sự kiện đang cập nhật";
+    const rawDate = eventData.date || eventData.eventTime;
+    const location = eventData.location || eventData.destination || "Địa điểm đang cập nhật";
 
-    const minPrice = event.ticketCategories?.length
-    ? Math.min(...event.ticketCategories.map(t => parseInt(t.price.replace(/\D/g, ''))))
-    : 0;
+    let bannerSrc = eventData.banner || eventData.image || defaultImage;
+    if (!eventData.banner && !eventData.image && eventData.information) {
+        const match = eventData.information.match(/\[Banner\]:\s*([^\s\n]+)/);
+        if (match) bannerSrc = match[1];
+    }
+
+    const formattedDate = rawDate 
+        ? new Date(rawDate).toLocaleDateString("vi-VN", {
+            weekday: "long", day: "numeric", month: "long", year: "numeric",
+          })
+        : "Thời gian đang cập nhật";
+
+    const getMinPrice = () => {
+        if (!eventData.ticketTypes || eventData.ticketTypes.length === 0) return 0;
+        const prices = eventData.ticketTypes.map(t => t.amount);
+        return Math.min(...prices);
+    };
+
+    const minPrice = getMinPrice();
+
     const formatTime = (seconds) => {
         const m = Math.floor(seconds / 60).toString().padStart(2, "0");
         const s = (seconds % 60).toString().padStart(2, "0");
@@ -49,28 +62,27 @@ const TicketDetail = ({ pageType }) => {
     };
 
     const renderAction = () => {
-        if (!event) return null;
-
         if (pageType === "home" || pageType === "event") {
             return (
                 <>
-                    <div className="h-0.5 bg-secondary opacity-40 my-2" />
-                    <div className="mb-3 flex items-center">
+                    <div className="mb-4 flex items-center">
                         <span className="font-semibold italic text-black text-base opacity-70 mr-6">Giá từ</span>
                         <div className="font-extrabold text-primary text-2xl text-center">
-                            {minPrice.toLocaleString("vi-VN")} đ
+                            {minPrice > 0 ? minPrice.toLocaleString("vi-VN") + " đ" : "Đang cập nhật"}
                         </div>
                     </div>
                     <div className="flex justify-center">
-                        <button className="w-40 mb-4 bg-primary hover:bg-red-600 text-white font-bold py-3 rounded-xl transition">
-                            Mua vé ngay
-                        </button>
+                        <Link to={`/booking/${eventData.id}`}>
+                            <button className="w-40 mb-4 border-[3px] bg-primary border-primary hover:bg-white hover:text-primary text-white font-bold py-3 rounded-xl transition">
+                                Mua vé ngay
+                            </button>
+                        </Link>
                     </div>
                 </>
             );
         } else if (pageType === "confirmation") {
             return (
-                <div className="flex justify-center item-center">
+                <div className="flex justify-center item-center mt-4">
                     <div className="bg-white rounded-[15px] border-4 border-solid border-[#d9d9d9] p-3 inline-block">
                         <p className="font-bold text-primary text-base text-center mb-2">
                             Hoàn tất đặt vé trong
@@ -93,7 +105,9 @@ const TicketDetail = ({ pageType }) => {
                 {/* Cột trái */}
                 <div className="relative col-span-5 h-[300px] rounded-l-3xl bg-white">
                     <div className="p-6">
-                        <h1 className="font-bold text-black text-lg mb-4">{event.title}</h1>
+                        <h1 className="font-bold text-black text-lg mb-4 uppercase line-clamp-2" title={title}>
+                            {title}
+                        </h1>
 
                         <div className="flex items-center gap-3 mb-3">
                             <CalendarIcon className="w-[25px] h-[25px] text-secondary" />
@@ -102,8 +116,9 @@ const TicketDetail = ({ pageType }) => {
 
                         <div className="flex items-center gap-3 mb-6">
                             <MapPinIcon className="w-[25px] h-[25px] text-secondary" />
-                            <span className="font-medium text-secondary text-xs">{event.location}</span>
+                            <span className="font-medium text-secondary text-xs line-clamp-2">{location}</span>
                         </div>
+                        <div className="h-0.5 bg-secondary opacity-40 my-4" />
                         {renderAction()}
                     </div>
                 </div>
@@ -118,8 +133,9 @@ const TicketDetail = ({ pageType }) => {
                 <div className="relative col-span-7 h-[300px] overflow-hidden">
                     <img
                         className="w-full h-full object-cover"
-                        alt="Concert Poster"
-                        src={event.bannerLandscape}
+                        alt={title}
+                        src={bannerSrc}
+                        onError={(e) => { e.target.onerror = null; e.target.src = defaultImage }}
                     />
                     <div className="absolute top-1/2 -right-9 transform -translate-y-1/2 flex flex-col items-center justify-between h-[80%]">
                         <div className="w-6 h-6 rounded-full bg-gray-100" />

@@ -52,12 +52,12 @@ const ListEvent = ({
                                     {title === "SỰ KIỆN TRENDING" ? (
                                         <>
 
-                                            {/* Số thứ tự lớn bên trái */}
+                                            {/* Số thứ tự*/}
                                             <div className="font-monoto text-primary text-[170px] text-center absolute left-0 top-[55%] -translate-y-1/2 z-10">
                                                 {index + 1}
                                             </div>
 
-                                            {/* Hình ảnh căn phải, chiếm 3/4 */}
+                                            {/* Hình ảnh */}
                                             <Link
                                                 to={`/about-event/${event.id}`}
                                                 className="block w-3/4 h-full ml-auto z-20"
@@ -71,7 +71,7 @@ const ListEvent = ({
 
                                         </>
                                     ) : (
-                                        /* Các sự kiện khác hiển thị full width */
+                                        /* Các sự kiện khác*/
                                         <Link
                                             to={`/about-event/${event.id}`}
                                             className="block w-full h-full"
@@ -91,9 +91,9 @@ const ListEvent = ({
 
                     <button
                         onClick={scrollRight}
-                        className="absolute right-0 top-1/2 -translate-y-1/2 w-[45px] h-[45px] bg-white rounded-full flex items-center justify-center hover:bg-primary/80 transition-colors shadow-xl z-50"
+                        className="absolute right-0 top-1/2 -translate-y-1/2 w-[45px] h-[45px] bg-white rounded-full flex items-center justify-center hover:bg-primary/50 transition-colors shadow-xl z-50"
                     >
-                        <ChevronRightIcon className="w-[27px] h-8 text-black" />
+                        <ChevronRightIcon className="w-[27px] h-8 text-black"/>
                     </button>
                 </div>
             </div>
@@ -106,8 +106,8 @@ ListEvent.propTypes = {
         PropTypes.shape({
             src: PropTypes.string.isRequired,
             alt: PropTypes.string.isRequired,
-            title: PropTypes.string, // For overlay text
-            subtitle: PropTypes.string, // For overlay text
+            title: PropTypes.string, 
+            subtitle: PropTypes.string, 
         })
     ),
     imageWidth: PropTypes.string,

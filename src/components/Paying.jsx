@@ -1,58 +1,30 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
+
 import transactionService from "../services/transactionService";
 
-// Nhận props từ Pay.jsx
 const Paying = ({ eventData, selectedTickets }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState("stripe");
 
-  // Tính tổng tiền
   const totalPrice = selectedTickets.reduce((sum, ticket) => {
-    let priceNumber = ticket.amount || ticket.price; 
+    let priceNumber = ticket.amount || ticket.price;
     if (typeof priceNumber === 'string') {
-        priceNumber = Number(priceNumber.replace(/\D/g, ""));
+      priceNumber = Number(priceNumber.replace(/\D/g, ""));
     }
     return sum + priceNumber * ticket.quantity;
   }, 0);
 
   // Xử lý thanh toán
   const handlePayment = async () => {
-    setLoading(true);
-    try {
-      const payload = {
-        eventId: eventData.id,
-        items: selectedTickets.map(ticket => ({
-            ticketTypeId: ticket.id,
-            quantity: ticket.quantity
-        })),
-        paymentMethod: selectedMethod, 
-        totalAmount: totalPrice,
-        voucherCode: "" 
-      };
-
-      const response = await transactionService.checkout(payload);
-
-      if (response && response.paymentUrl) {
-          window.location.href = response.paymentUrl;
-      } else {
-          alert("Đặt vé thành công!");
-          navigate("/my-ticket");
-      }
-
-    } catch (error) {
-      console.error("Lỗi thanh toán:", error);
-      alert(error.response?.data?.message || "Có lỗi xảy ra khi thanh toán.");
-    } finally {
-      setLoading(false);
-    }
+    alert("Chức năng thanh toán đang được phát triển.");
   };
 
   const paymentMethods = [
-    { id: "stripe", label: "Thẻ quốc tế (Visa/Mastercard/JCB)" },
-    { id: "vietqr", label: "VietQR (Chuyển khoản)" },
+    { id: "stripe", label: "Thẻ quốc tế" },
+    { id: "vietqr", label: "VietQR" },
     { id: "banking-app", label: "Ứng dụng ngân hàng" },
   ];
 
@@ -139,7 +111,7 @@ const Paying = ({ eventData, selectedTickets }) => {
                   <div>
                     <p className="font-bold text-secondary text-base">{ticket.name}</p>
                     <p className="font-medium italic text-secondary text-sm">
-                        {formatPrice(ticket.amount || ticket.price)}
+                      {formatPrice(ticket.amount || ticket.price)}
                     </p>
                   </div>
                   <span className="font-bold text-primary text-lg">x{ticket.quantity}</span>

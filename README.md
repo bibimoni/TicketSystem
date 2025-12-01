@@ -8,7 +8,7 @@ tickez-frontend/
 │ ├── assets/
 │ │ └── images/
 │ │ ├── ....
-│ ├── components/
+│ ├── components/ # các component được sử dụng trong /pages
 │ │ ├── AdvertisingBanner.jsx
 │ │ ├── BackButton.jsx
 │ │ ├── Booking.jsx
@@ -25,12 +25,12 @@ tickez-frontend/
 │ │ ├── SeachEvent.jsx
 │ │ └── TicketDetail.jsx
 │ │ └── Profile.jsx
-│ ├── database/
+│ ├── database/ # mockdata, có thể remove
 │ │ ├── Event.js
 │ │ ├── Events.js
 │ │ └── TrendingEvent.js
 │ │ └── User.js
-│ ├── pages/
+│ ├── pages/ # các trang hiển thị
 │ │ ├── AboutEvent.jsx
 │ │ ├── BookingTicket.jsx
 │ │ ├── Home.jsx
@@ -38,7 +38,9 @@ tickez-frontend/
 │ │ ├── QuestionForm.jsx
 │ │ └── Search.jsx
 │ │ └── MyProfile.jsx
-│ ├── App.jsx
+│ ├── services/ # cấu hình để call API
+│ │ ├── ...
+│ ├── App.jsx # Chứa các routes
 │ ├── App.css
 │ ├── index.css
 │ └── index.jsx
@@ -58,4 +60,4 @@ tickez-frontend/
 
 ```npm run dev```
 
-Ứng dụng sẽ chạy ở ```http://localhost:5173/```
+Ứng dụng sẽ chạy ở ```http://localhost:3000/``` vì server chạy ở port này.

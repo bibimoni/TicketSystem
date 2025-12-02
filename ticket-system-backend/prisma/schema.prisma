@@ -93,27 +93,18 @@ enum event_format {
   OFFLINE
 }
 
-model TicketPrice {
+model TicketType {
   id           String  @id @default(auto()) @map("_id") @db.ObjectId
-  price        Float
+  name         String
+  amount       Int
+  remaining    Int
+  // -- Adopted field from the old TicketPrice
+  price        Float?
   benefit_info String?
 
-  created_at  DateTime?    @default(now())
-  updated_at  DateTime?    @updatedAt
-  ticketTypes TicketType[]
-}
-
-model TicketType {
-  id        String @id @default(auto()) @map("_id") @db.ObjectId
-  name      String
-  amount    Int
-  remaining Int
-
   // --- Relationships to other collections ---
-  event_id        String      @db.ObjectId
-  event           Event       @relation(fields: [event_id], references: [id])
-  ticket_price_id String      @db.ObjectId
-  ticketPrice     TicketPrice @relation(fields: [ticket_price_id], references: [id])
+  event_id String @db.ObjectId
+  event    Event  @relation(fields: [event_id], references: [id])
 
   created_at DateTime? @default(now())
   updated_at DateTime? @updatedAt

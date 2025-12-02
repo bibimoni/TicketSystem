@@ -239,7 +239,6 @@ export class StripeService {
     const result = await this.prisma.$transaction(async (tx) => {
       const ticketTypes = await tx.ticketType.findMany({
         where: { id: { in: ticketTypeIds } },
-        include: { ticketPrice: true }
       });
 
       for (const type of ticketTypes) {
@@ -249,7 +248,7 @@ export class StripeService {
       }
 
       let priceBeforeVoucher = ticketTypes.reduce(
-        (sum, type) => sum + type.ticketPrice.price,
+        (sum, type) => sum + (type.price ?? 0),
         0
       );
 
@@ -396,7 +395,6 @@ export class StripeService {
           ticket_type: {
             include: {
               event: true,
-              ticketPrice: true
             }
           }
         }
@@ -477,7 +475,6 @@ export class StripeService {
         ticket_type: {
           include: {
             event: true,
-            ticketPrice: true
           }
         }
       }

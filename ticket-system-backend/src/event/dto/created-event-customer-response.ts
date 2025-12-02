@@ -1,25 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsMongoId, IsNumber, IsString } from 'class-validator';
+import { IsEnum, IsMongoId, IsNumber, IsString, IsOptional } from 'class-validator';
 
-export class TicketPriceResponseDto {
-  @ApiProperty({
-    example: '68e4e22c9815978759f58203',
-    description: 'The unique identifier of the ticket price.',
-  })
-  id: string;
 
-  @ApiProperty({
-    example: 50,
-    description: 'The price of the ticket.',
-  })
-  price: number;
-
-  @ApiProperty({
-    example: 'Access to standard seating area',
-    description: 'Benefits associated with this ticket price tier.',
-  })
-  benefit_info?: string | null;
-}
 
 export class TicketTypeResponseDto {
   @ApiProperty({
@@ -43,16 +25,29 @@ export class TicketTypeResponseDto {
   amount: number;
 
   @ApiProperty({
+    example: 500000,
+    description: 'The price of the ticket type.',
+    required: false,
+    nullable: true
+  })
+  @IsNumber()
+  @IsOptional()
+  price?: number | null;
+
+  @ApiProperty({
+    example: 'Access to VIP area',
+    description: 'Benefit info of the ticket type.',
+    required: false,
+    nullable: true
+  })
+  @IsString()
+  benefit_info?: string | null;
+
+  @ApiProperty({
     example: 'AVAILABLE',
     description: 'The status of the ticket.',
   })
   status: string;
-
-  @ApiProperty({
-    description: 'Price of the ticket',
-    type: () => TicketPriceResponseDto,
-  })
-  ticketPrice: TicketPriceResponseDto
 }
 
 export class VoucherResponseDto {

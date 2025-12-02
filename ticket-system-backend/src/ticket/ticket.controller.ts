@@ -1,7 +1,6 @@
 import { Controller, Post, Body, Get, Param, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiHeader, ApiBody } from '@nestjs/swagger';
 import { TicketService } from './ticket.service';
-import { CreateTicketTypeDto, CreateTicketPriceDto } from './dto/create-ticket.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { AdminGuard } from 'src/auth/admin.guard';
 import { Ticket } from 'generated/prisma';

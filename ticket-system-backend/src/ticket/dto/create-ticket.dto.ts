@@ -9,24 +9,6 @@ export class CreateTicketTypeDto {
   @ApiProperty({ example: 10000, required: true, description: 'Ticket amount' })
   @IsString()
   amount: number;
-}
-
-export class CreateTicketPriceDto {
-  @ApiProperty({
-    type: () => [CreateTicketTypeDto],
-    example: [
-      {
-        name: 'Anh tài',
-        amount: 10000
-      },
-      {
-        name: 'Vé cứng',
-        amount: 10000
-      }
-    ],
-    description: 'Name and amount of the ticket type',
-  })
-  ticketTypes: CreateTicketTypeDto[]
 
   @ApiProperty({
     example: 500000,

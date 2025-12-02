@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger"
 import { IsArray, IsDateString, IsEnum, IsOptional, IsString, MinLength } from "class-validator"
 import { event_format } from "generated/prisma"
-import { CreateTicketPriceDto } from "src/ticket/dto/create-ticket.dto"
+import { CreateTicketTypeDto } from "src/ticket/dto/create-ticket.dto"
 import { CreateVoucherDto } from "src/voucher/dto/create-voucher.dto"
 
 export class CreateEventCustomerDto {
@@ -109,40 +109,24 @@ export class CreateEventCustomerDto {
 
   @IsArray()
   @ApiProperty({
-    type: () => CreateTicketPriceDto,
+    type: () => CreateTicketTypeDto,
     example: [
       {
+        name: "Anh tài",
+        amount: 15000,
         price: 1800000,
         benefit_info: 'Access to standard seating area',
-        ticketTypes: [
-          {
-            name: "Anh tài",
-            amount: 15000,
-          },
-          {
-            name: 'Vé cứng',
-            amount: 10000,
-          }
-        ]
       },
       {
-        price: 2000000,
-        benefit_info: 'Access to VIP seating area and complimentary drinks',
-        ticketTypes: [
-          {
-            name: "Anh tài VIP",
-            amount: 5000,
-          },
-          {
-            name: 'Vé cứng VIP',
-            amount: 5000,
-          }
-        ]
+        name: 'Vé cứng',
+        amount: 10000,
+        price: 1800000,
+        benefit_info: 'Access to standard seating area',
       }
     ],
-    description: 'Array of ticket types and prices available for the event',
+    description: 'Array of ticket types available for the event',
   })
-  ticketsPrice: CreateTicketPriceDto[]
+  ticketTypes: CreateTicketTypeDto[]
 
   @IsOptional()
   @IsArray()

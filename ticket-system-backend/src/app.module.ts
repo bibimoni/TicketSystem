@@ -39,7 +39,7 @@ import { MailModule } from './mail/mail.module';
       useFactory: () => ({
         apiKey: config.stripeApiKey || '',
         options: {
-          apiVersion: '2025-09-30.clover'
+          apiVersion: '2025-10-29.clover',
         }
       })
     }),

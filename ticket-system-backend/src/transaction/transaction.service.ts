@@ -23,7 +23,6 @@ export class TransactionService {
                 ticket_type: {
                   include: {
                     event: true,
-                    ticketPrice: true
                   }
                 }
               }
@@ -80,11 +79,8 @@ export class TransactionService {
               eventTime: th.ticket.ticket_type.event.eventTime
             },
 
-            ticketPrice: {
-              id: th.ticket.ticket_type.ticketPrice.id,
-              price: th.ticket.ticket_type.ticketPrice.price,
-              benefit_info: th.ticket.ticket_type.ticketPrice.benefit_info ?? undefined
-            }
+            price: th.ticket.ticket_type.price,
+            benefit_info: th.ticket.ticket_type.benefit_info ?? undefined
           }
         }
       })),
@@ -131,13 +127,7 @@ export class TransactionService {
                         eventTime: true
                       }
                     },
-                    ticketPrice: {
-                      select: {
-                        id: true,
-                        price: true,
-                        benefit_info: true
-                      }
-                    }
+
                   }
                 }
               }
@@ -204,11 +194,8 @@ export class TransactionService {
               eventTime: th.ticket.ticket_type.event.eventTime
             },
 
-            ticketPrice: {
-              id: th.ticket.ticket_type.ticketPrice.id,
-              price: th.ticket.ticket_type.ticketPrice.price,
-              benefit_info: th.ticket.ticket_type.ticketPrice.benefit_info ?? undefined
-            }
+            price: th.ticket.ticket_type.price,
+            benefit_info: th.ticket.ticket_type.benefit_info ?? undefined
           }
         }
       })),

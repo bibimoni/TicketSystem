@@ -1,6 +1,6 @@
 import { Injectable, ForbiddenException, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateTicketTypeDto, CreateTicketPriceDto } from './dto/create-ticket.dto';
+import { CreateTicketTypeDto } from './dto/create-ticket.dto';
 import { UpdateTicketTypeDto } from './dto/update-ticket-type.dto';
 import { QrPayloadDto } from './dto/qr-payload.dto';
 
@@ -8,20 +8,9 @@ import { QrPayloadDto } from './dto/qr-payload.dto';
 export class TicketService {
   constructor(private prisma: PrismaService) { }
 
-  async createTicketPrice(createTicketPriceDto: CreateTicketPriceDto) {
-    const { price, benefit_info } = createTicketPriceDto;
 
-    const ticketPrice = await this.prisma.ticketPrice.create({
-      data: {
-        price,
-        benefit_info: benefit_info || null
-      }
-    });
 
-    return ticketPrice;
-  }
-
-  async createTicketType(createTicketTypeDto: CreateTicketTypeDto, eventId: string, ticketPriceId: string) {
+  async createTicketType(createTicketTypeDto: CreateTicketTypeDto, eventId: string) {
     const { name, amount } = createTicketTypeDto;
 
     const ticketType = await this.prisma.ticketType.create({
@@ -30,7 +19,8 @@ export class TicketService {
         amount: amount ?? 0,
         remaining: amount ?? 0,
         event: { connect: { id: eventId } },
-        ticketPrice: { connect: { id: ticketPriceId } }
+        price: createTicketTypeDto.price,
+        benefit_info: createTicketTypeDto.benefit_info
       }
     });
 
@@ -49,7 +39,6 @@ export class TicketService {
       include: {
         ticket_type: {
           include: {
-            ticketPrice: true,
             event: {
               select: {
                 name: true,
@@ -90,7 +79,6 @@ export class TicketService {
 
         ticket_type: {
           include: {
-            ticketPrice: true,
             event: {
               select: {
                 name: true,
@@ -125,7 +113,6 @@ export class TicketService {
       include: {
         ticket_type: {
           include: {
-            ticketPrice: true,
             event: {
               select: {
                 name: true,

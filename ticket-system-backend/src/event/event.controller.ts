@@ -6,7 +6,7 @@ import { CreateEventCustomerDto } from './dto/create-event-customer.dto';
 import { TicketService } from 'src/ticket/ticket.service';
 import { AdminGuard } from 'src/auth/admin.guard';
 import { CreatedEventCustomerResponseDto } from './dto/created-event-customer-response';
-import { CreateTicketPriceDto, CreateTicketTypeDto } from 'src/ticket/dto/create-ticket.dto';
+import { CreateTicketTypeDto } from 'src/ticket/dto/create-ticket.dto';
 import { EventStatusDto } from './dto/event-status.dto';
 import { event_status, Voucher } from 'generated/prisma';
 import { UpdateEventDto } from './dto/update-event-info.dto';
@@ -44,49 +44,33 @@ export class EventController {
       name: string,
       amount: number;
       remaining?: number;
-      ticketPrice: { id: string; name?: string | null; price: number; benefit_info?: string | null };
+      price: number;
+      benefit_info?: string | null;
     }[] = [];
 
-    if (Array.isArray(createEventCustomerDto.ticketsPrice) && createEventCustomerDto.ticketsPrice.length > 0) {
-      for (const tp of createEventCustomerDto.ticketsPrice) {
-        const createTicketPriceDto: CreateTicketPriceDto = {
-          price: tp.price,
-          benefit_info: tp.benefit_info ?? '',
-          ticketTypes: tp.ticketTypes ?? []
+    if (Array.isArray(createEventCustomerDto.ticketTypes) && createEventCustomerDto.ticketTypes.length > 0) {
+      for (const tt of createEventCustomerDto.ticketTypes) {
+        const createTicketTypeDto: CreateTicketTypeDto = {
+          name: tt.name,
+          amount: tt.amount ?? 0,
+          price: tt.price,
+          benefit_info: tt.benefit_info
         };
-        const createdTicketPrice = await this.ticketService.createTicketPrice(createTicketPriceDto);
 
-        if (!createdTicketPrice) {
-          throw new BadRequestException("Failed to create ticket price");
+        const createdTicketType = await this.ticketService.createTicketType(createTicketTypeDto, createdEvent.id);
+
+        if (!createdTicketType) {
+          throw new BadRequestException("Failed to create ticket type");
         }
 
-        if (Array.isArray(tp.ticketTypes) && tp.ticketTypes.length > 0) {
-          for (const tt of tp.ticketTypes) {
-            const createTicketTypeDto: CreateTicketTypeDto = {
-              name: tt.name,
-              amount: tt.amount ?? 0
-            };
-
-            const createdTicketType = await this.ticketService.createTicketType(createTicketTypeDto, createdEvent.id, createdTicketPrice.id);
-
-            if (!createdTicketType) {
-              throw new BadRequestException("Failed to create ticket type");
-            }
-
-            aggregatedTickets.push({
-              ticketTypeId: createdTicketType.id,
-              name: createTicketTypeDto.name,
-              amount: createdTicketType.amount,
-              remaining: createdTicketType.remaining ?? createdTicketType.amount,
-              ticketPrice: {
-                id: createdTicketPrice.id,
-                name: createdTicketType.name ?? null,
-                price: createdTicketPrice.price,
-                benefit_info: createdTicketPrice.benefit_info
-              }
-            });
-          }
-        }
+        aggregatedTickets.push({
+          ticketTypeId: createdTicketType.id,
+          name: createdTicketType.name,
+          amount: createdTicketType.amount,
+          remaining: createdTicketType.remaining ?? createdTicketType.amount,
+          price: createdTicketType.price ?? 0,
+          benefit_info: createdTicketType.benefit_info
+        });
       }
     }
 
@@ -102,7 +86,8 @@ export class EventController {
         name: t.name,
         amount: t.amount,
         status: 'AVAILABLE',
-        ticketPrice: t.ticketPrice
+        price: t.price ?? 0,
+        benefit_info: t.benefit_info
       })),
       vouchers: createdEvent.vouchers ?? []
     };

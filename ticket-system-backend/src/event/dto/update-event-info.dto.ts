@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger"
 import { IsArray, IsDateString, IsEnum, IsMongoId, IsNotEmpty, IsOptional, IsString, MinLength } from "class-validator"
 import { event_format } from "generated/prisma"
-import { CreateTicketPriceDto, CreateTicketTypeDto } from "src/ticket/dto/create-ticket.dto"
+import { CreateTicketTypeDto } from "src/ticket/dto/create-ticket.dto"
 import { CreateVoucherDto } from "src/voucher/dto/create-voucher.dto"
 
 export class UpdateEventDto {
@@ -120,5 +120,7 @@ export class UpdateEventDto {
     id: string;
     name?: string;
     amount?: number;
+    price?: number;
+    benefit_info?: string;
   }[];
 }

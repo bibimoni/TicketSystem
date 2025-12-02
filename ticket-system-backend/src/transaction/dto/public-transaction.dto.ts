@@ -1,16 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class TicketPriceInTransactionDto {
-  @ApiProperty({ example: '68ea665bdfe71b734e5907ad' })
-  id: string;
-
-  @ApiProperty({ example: 500000 })
-  price: number;
-
-  @ApiProperty({ example: 'Front row seat, free drink', required: false })
-  benefit_info?: string;
-}
-
 export class EventInTransactionDto {
   @ApiProperty({ example: '68f8beb3de728e3006433b22' })
   id: string;
@@ -38,8 +27,11 @@ export class TicketTypeInTransactionDto {
   @ApiProperty({ type: () => EventInTransactionDto })
   event: EventInTransactionDto;
 
-  @ApiProperty({ type: () => TicketPriceInTransactionDto })
-  ticketPrice: TicketPriceInTransactionDto;
+  @ApiProperty({ example: 500000, required: false, nullable: true })
+  price?: number | null;
+
+  @ApiProperty({ example: 'Front row seat, free drink', required: false })
+  benefit_info?: string;
 }
 
 export class TicketInTransactionDto {
@@ -169,7 +161,7 @@ export class PublicTransactionResponseDto {
             organzier: '8Wonder',
             eventTime: '2025-12-06T18:00:00.000+07:00'
           },
-          ticketPrice: {
+          ticket_type: {
             id: '68ea665bdfe71b734e5907ad',
             name: 'VIP',
             price: 1400000,

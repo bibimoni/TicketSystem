@@ -36,7 +36,7 @@ export class StripeService {
 
   constructor(private readonly prisma: PrismaService, private readonly cloudinaryService: CloudinaryService, private readonly mailService: MailService, private readonly ticketService: TicketService) {
     this.stripe = new Stripe(config.stripeApiKey, {
-      apiVersion: '2025-09-30.clover'
+      apiVersion: '2025-10-29.clover'
     })
   };
 

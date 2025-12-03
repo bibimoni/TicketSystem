@@ -18,6 +18,7 @@ export class UpdateEventDto {
   })
   @IsString()
   @MinLength(6)
+  @IsOptional()
   name?: string
 
   @ApiProperty({
@@ -26,6 +27,7 @@ export class UpdateEventDto {
   })
   @IsString()
   @MinLength(20)
+  @IsOptional()
   information?: string
 
   @ApiProperty({
@@ -34,6 +36,7 @@ export class UpdateEventDto {
   })
   @IsString()
   @MinLength(6)
+  @IsOptional()
   destination?: string
 
   @ApiProperty({
@@ -42,6 +45,7 @@ export class UpdateEventDto {
   })
   @IsString()
   @MinLength(2)
+  @IsOptional()
   organizer?: string
 
   @ApiProperty({
@@ -50,18 +54,21 @@ export class UpdateEventDto {
     example: event_format.ONLINE,
   })
   @IsEnum(event_format)
+  @IsOptional()
   format?: event_format;
 
   @ApiProperty({
     example: '2025-10-20T18:30:00+07:00',
     description: 'Ticket sell start date and time'
   })
+  @IsOptional()
   eventTicketStart?: Date
 
   @ApiProperty({
     example: '2025-12-31T18:30:00+07:00',
     description: 'Ticket sell end date and time'
   })
+  @IsOptional()
   eventTicketEnd?: Date
 
   @ApiProperty({
@@ -69,6 +76,7 @@ export class UpdateEventDto {
     description: 'Event occurrence date and time'
   })
   @IsDateString()
+  @IsOptional()
   eventTime?: Date
 
   @IsOptional()
@@ -111,7 +119,9 @@ export class UpdateEventDto {
       {
         id: '6927ccef449dbf7b6bcedab7',
         name: 'Anh tài',
-        amount: 3000
+        amount: 3000,
+        price: 1000000,
+        benefit_info: 'Standing upfront'
       }
     ],
     required: false

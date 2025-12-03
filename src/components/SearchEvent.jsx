@@ -21,7 +21,7 @@ const SearchEvent = () => {
 
     const getMinPrice = (ticketTypes) => {
         if (!ticketTypes || ticketTypes.length === 0) return 0;
-        const prices = ticketTypes.map(t => t.amount);
+        const prices = ticketTypes.map(t => t.price);
         return Math.min(...prices);
     };
 
@@ -143,7 +143,7 @@ const SearchEvent = () => {
                                             <p className="text-[15px] mt-2 flex gap-3 items-center">
                                                 <span className="text-gray-500 font-medium text-sm italic">Giá chỉ từ </span>
                                                 <span className="text-primary font-extrabold text-lg block leading-tight">
-                                                    {event.price}
+                                                    {event.ticketTypes.price}
                                                 </span>
                                             </p>
 

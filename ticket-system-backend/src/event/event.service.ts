@@ -32,6 +32,7 @@ export class EventService {
         destination: true,
         organizer: true,
         status: true,
+        format: true,
         eventTime: true,
         eventTicketStart: true,
         eventTicketEnd: true,
@@ -99,6 +100,7 @@ export class EventService {
       information: event.information ?? null,
       destination: event.destination ?? null,
       organizer: event.organizer ?? null,
+      format: event.format,
       vouchers: createdVouchers.map(v => ({
         id: v.id,
         code: v.code,
@@ -137,6 +139,7 @@ export class EventService {
         destination: true,
         organizer: true,
         status: true,
+        format: true,
         eventTime: true,
         eventTicketStart: true,
         eventTicketEnd: true,
@@ -202,10 +205,13 @@ export class EventService {
         await this.ticketService.updateTicketType(t.id, {
           name: t.name,
           amount: t.amount,
-        })
-        return updatedEvent;
+          price: t.price,
+          benefit_info: t.benefit_info,
+        });
       }
     }
+
+    return updatedEvent;
   }
 
   async findEventById(eventId: string) {

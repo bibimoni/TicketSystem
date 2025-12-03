@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsMongoId, IsNumber, IsString, IsOptional } from 'class-validator';
+import { event_format } from 'generated/prisma';
 
 
 
@@ -110,6 +111,14 @@ export class CreatedEventCustomerResponseDto {
     example: 'DRAFT'
   })
   status: string;
+
+  @ApiProperty({
+    enum: event_format,
+    enumName: 'event_format',
+    example: event_format.ONLINE,
+  })
+  @IsEnum(event_format)
+  format: event_format;
 
   @ApiProperty({
     required: false,

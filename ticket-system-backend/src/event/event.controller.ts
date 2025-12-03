@@ -80,6 +80,7 @@ export class EventController {
       information: createdEvent.information ?? null,
       destination: createdEvent.destination ?? null,
       organizer: createdEvent.organizer ?? null,
+      format: createdEvent.format,
       status: 'DRAFT',
       ticketTypes: aggregatedTickets.map(t => ({
         id: t.ticketTypeId,

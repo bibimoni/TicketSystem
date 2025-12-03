@@ -59,9 +59,13 @@ export class TicketService {
   }
 
   async updateTicketType(id: string, dto: UpdateTicketTypeDto) {
+    const dataToUpdate = Object.fromEntries(
+      Object.entries(dto).filter(([_, v]) => v !== undefined)
+    );
+
     return this.prisma.ticketType.update({
       where: { id },
-      data: dto,
+      data: dataToUpdate,
     });
   }
 

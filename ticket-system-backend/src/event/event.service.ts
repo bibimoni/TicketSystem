@@ -124,7 +124,8 @@ export class EventService {
         organizer: true,
         eventTime: true,
         eventTicketStart: true,
-        eventTicketEnd: true
+        eventTicketEnd: true,
+        ticketTypes: true
       },
     });
   }

@@ -23,9 +23,7 @@ function Home() {
 
   const extractBannerUrl = (infoString) => {
     if (!infoString) return null;
-
-    const match = infoString.match(/\[Banner\]:\s*([^\s\n]+)/);
-    return match ? match[1] : null;
+    return infoString.trim();
   };
 
   useEffect(() => {
@@ -34,7 +32,8 @@ function Home() {
         const response = await eventService.getAllEvents();
 
         const mappedEvents = Array.isArray(response) ? response.map(evt => {
-          const bannerUrl = extractBannerUrl(evt.information);
+          // const bannerUrl = extractBannerUrl(evt.event_banner_url);
+          const bannerUrl = evt.event_banner_url;
 
           return {
             id: evt.id,

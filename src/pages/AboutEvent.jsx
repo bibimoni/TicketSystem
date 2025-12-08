@@ -20,14 +20,7 @@ function AboutEvent() {
     // Hàm tách link ảnh 
     const extractBannerUrl = (infoString) => {
         if (!infoString) return null;
-        const match = infoString.match(/\[Banner\]:\s*([^\s\n]+)/);
-        return match ? match[1] : null;
-    };
-
-    // Hàm làm sạch mô tả - xóa Banner
-    const cleanDescription = (infoString) => {
-        if (!infoString) return "";
-        return infoString.replace(/\[Banner\]:\s*[^\s\n]+/, "").trim();
+        return infoString.trim();
     };
 
     useEffect(() => {
@@ -35,13 +28,14 @@ function AboutEvent() {
             setLoading(true);
             try {
                 const response = await eventService.getEventById(eventId);
-                
-                const evtData = response.data || response; 
+
+                const evtData = response.data || response;
 
                 // Xử lý dữ liệu
-                const bannerUrl = extractBannerUrl(evtData.information);
-                const cleanDesc = cleanDescription(evtData.information);
-                
+                // const bannerUrl = extractBannerUrl(evtData.event_banner_url);
+                const bannerUrl = evtData.event_banner_url;
+                const cleanDesc = evtData.information;
+
                 const processedEvent = {
                     id: evtData.id,
                     title: evtData.name,
@@ -76,7 +70,7 @@ function AboutEvent() {
 
             <TicketDetail pageType="event" eventData={event} />
             <Info eventData={event} />
-            
+
             <MoreEvent />
             <Footer />
         </div>

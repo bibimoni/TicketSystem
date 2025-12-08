@@ -22,13 +22,7 @@ function Pay() {
     // Helper functions
     const extractBannerUrl = (infoString) => {
         if (!infoString) return null;
-        const match = infoString.match(/\[Banner\]:\s*([^\s\n]+)/);
-        return match ? match[1] : null;
-    };
-
-    const cleanDescription = (infoString) => {
-        if (!infoString) return "";
-        return infoString.replace(/\[Banner\]:\s*[^\s\n]+/, "").trim();
+        return infoString.trim();
     };
 
     useEffect(() => {
@@ -37,8 +31,8 @@ function Pay() {
 
             alert("Vui lòng đăng nhập để thực hiện thanh toán!");
 
-            navigate("/"); 
-            return; 
+            navigate("/");
+            return;
         }
 
         if (selectedTickets.length === 0) {
@@ -52,8 +46,8 @@ function Pay() {
                     const response = await eventService.getEventById(eventId);
                     const data = response.data || response;
 
-                    const bannerUrl = extractBannerUrl(data.information);
-                    const cleanDesc = cleanDescription(data.information);
+                    const bannerUrl = extractBannerUrl(data.event_banner_url);
+                    const cleanDesc = data.information;
 
                     setEventData({
                         id: data.id,

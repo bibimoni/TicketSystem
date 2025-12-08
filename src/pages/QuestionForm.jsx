@@ -22,13 +22,7 @@ function QuestionForm() {
     // Helper Functions
     const extractBannerUrl = (infoString) => {
         if (!infoString) return null;
-        const match = infoString.match(/\[Banner\]:\s*([^\s\n]+)/);
-        return match ? match[1] : null;
-    };
-
-    const cleanDescription = (infoString) => {
-        if (!infoString) return "";
-        return infoString.replace(/\[Banner\]:\s*[^\s\n]+/, "").trim();
+        return infoString.trim();
     };
 
     useEffect(() => {
@@ -53,9 +47,9 @@ function QuestionForm() {
                 try {
                     const response = await eventService.getEventById(eventId);
                     const data = response.data || response;
-                    
-                    const bannerUrl = extractBannerUrl(data.information);
-                    const cleanDesc = cleanDescription(data.information);
+
+                    const bannerUrl = extractBannerUrl(data.event_banner_url);
+                    const cleanDesc = data.information;
 
                     setEventData({
                         id: data.id,
@@ -87,18 +81,18 @@ function QuestionForm() {
     return (
         <div className="min-h-screen bg-gray-100">
             <HeaderBar />
-            
-            <TicketDetail 
-                pageType="confirmation" 
+
+            <TicketDetail
+                pageType="confirmation"
                 eventData={eventData}
                 onTimeout={handleTimeout}
             />
-            
-            <Form 
-                eventData={eventData} 
-                selectedTickets={selectedTickets} 
+
+            <Form
+                eventData={eventData}
+                selectedTickets={selectedTickets}
             />
-            
+
             <Footer />
         </div>
     );

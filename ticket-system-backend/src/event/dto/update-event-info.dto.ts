@@ -1,8 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger"
-import { IsArray, IsDateString, IsEnum, IsMongoId, IsNotEmpty, IsOptional, IsString, MinLength } from "class-validator"
+import { IsDateString, IsEnum, IsMongoId, IsNotEmpty, IsOptional, IsString, MinLength } from "class-validator"
 import { event_format } from "generated/prisma"
-import { CreateTicketTypeDto } from "src/ticket/dto/create-ticket.dto"
-import { CreateVoucherDto } from "src/voucher/dto/create-voucher.dto"
 
 export class UpdateEventDto {
   @ApiProperty({
@@ -91,6 +89,14 @@ export class UpdateEventDto {
     required: false
   })
   event_picture_url?: string
+
+  @IsOptional()
+  @IsString()
+  @ApiProperty({
+    example: 'https://cloudinary...',
+    required: false
+  })
+  event_banner_url?: string
 
   @IsOptional()
   @IsString()

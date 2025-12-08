@@ -3,7 +3,6 @@ import { IsEnum, IsMongoId, IsNumber, IsString, IsOptional } from 'class-validat
 import { event_format } from 'generated/prisma';
 
 
-
 export class TicketTypeResponseDto {
   @ApiProperty({
     example: '68e4e22c9815978759f58204',
@@ -43,12 +42,6 @@ export class TicketTypeResponseDto {
   })
   @IsString()
   benefit_info?: string | null;
-
-  @ApiProperty({
-    example: 'AVAILABLE',
-    description: 'The status of the ticket.',
-  })
-  status: string;
 }
 
 export class VoucherResponseDto {

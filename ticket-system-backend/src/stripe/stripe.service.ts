@@ -486,7 +486,7 @@ export class StripeService {
         code: t.code,
         quantity: 1,
         qr: t.qr_code_url,
-        price: t.ticket_type.ticketPrice.price
+        price: t.ticket_type.price
       }));
 
       const rawEventTime = fullTickets[0].ticket_type.event.eventTime;

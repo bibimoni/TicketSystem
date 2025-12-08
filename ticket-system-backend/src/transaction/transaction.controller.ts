@@ -100,6 +100,27 @@ export class TransactionController {
     return await this.transactionService.getTransactionsByCustomer(customer.id);
   }
 
+  @Get('revenue')
+  @UseGuards(AuthGuard, AdminGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Admin get total revenue' })
+  @ApiHeader({
+    name: "Authorization",
+    description: "Bearer admin token for authorization",
+    required: true,
+    schema: {
+      type: 'string',
+      example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+    }
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Total revenue',
+  })
+  async getTotalRevenue(): Promise<number> {
+    return await this.transactionService.getTotalRevenue();
+  }
+
   @Get(':id')
   @UseGuards(AuthGuard)
   @ApiBearerAuth('JWT-auth')
@@ -126,26 +147,5 @@ export class TransactionController {
     }
 
     return transaction;
-  }
-
-  @Get('revenue')
-  @UseGuards(AuthGuard, AdminGuard)
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Admin get total revenue' })
-  @ApiHeader({
-    name: "Authorization",
-    description: "Bearer admin token for authorization",
-    required: true,
-    schema: {
-      type: 'string',
-      example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-    }
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Total revenue',
-  })
-  async getTotalRevenue(): Promise<number> {
-    return await this.transactionService.getTotalRevenue();
   }
 }

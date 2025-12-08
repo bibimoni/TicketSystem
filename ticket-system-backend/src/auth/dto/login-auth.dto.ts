@@ -3,13 +3,13 @@ import { MinLength } from "class-validator"
 
 export class SignInDto {
   @ApiProperty({
-    example: 'cristiano messi'
+    example: 'alice_admin'
   })
   @MinLength(6)
   username: string
 
   @ApiProperty({
-    example: '1myverysecuredpassword1'
+    example: 'Pass@1234'
   })
   @MinLength(6)
   password: string

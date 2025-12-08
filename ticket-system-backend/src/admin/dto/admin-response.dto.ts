@@ -7,7 +7,6 @@ export class PublicAdminResponseDto {
     required: true,
     nullable: false,
     example: '68e8c558dc27a404d99b4ca5',
-    // 68e8c18291173321a86a8d4b
     description: 'The unique identifier of Admin.',
   })
   id: string;

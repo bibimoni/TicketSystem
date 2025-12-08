@@ -6,6 +6,7 @@ import { VoucherService } from 'src/voucher/voucher.service';
 import { event_status } from 'generated/prisma';
 import { UpdateEventDto } from './dto/update-event-info.dto';
 import { TicketService } from 'src/ticket/ticket.service';
+import { PublicEventResponseDto } from './dto/public-event-response';
 
 @Injectable()
 export class EventService {
@@ -64,6 +65,7 @@ export class EventService {
         format: createEventCustomerDto.format,
         event_custom_slug: createEventCustomerDto.event_custom_slug ?? '',
         event_picture_url: createEventCustomerDto.event_picture_url ?? '',
+        event_banner_url: createEventCustomerDto.event_banner_url ?? '',
         organizer_logo: createEventCustomerDto.organizer_logo ?? '',
         organizer_information: createEventCustomerDto.organizer_information ?? '',
         messages: createEventCustomerDto.messages
@@ -112,7 +114,7 @@ export class EventService {
     };
   }
 
-  async findAllByStatus(status: event_status) {
+  async findAllByStatus(status: event_status): Promise<PublicEventResponseDto[]> {
     return await this.prisma.event.findMany({
       where: { status },
       select: {
@@ -121,16 +123,41 @@ export class EventService {
         information: true,
         destination: true,
         organizer: true,
+        status: true,
+        format: true,
+        event_picture_url: true,
+        event_banner_url: true,
+        organizer_logo: true,
+        organizer_information: true,
         eventTime: true,
         eventTicketStart: true,
         eventTicketEnd: true,
-        ticketTypes: true
+        ticketTypes: {
+          select: {
+            id: true,
+            name: true,
+            amount: true,
+            price: true,
+            benefit_info: true
+          }
+        },
+        vouchers: {
+          select: {
+            code: true,
+            id: true,
+            reduce_type: true,
+            reduce_price: true,
+            price: true,
+            start_date: true,
+            end_date: true
+          }
+        }
       },
     });
   }
 
 
-  async findAll() {
+  async findAll(): Promise<PublicEventResponseDto[]> {
     return await this.prisma.event.findMany({
       select: {
         id: true,
@@ -140,10 +167,33 @@ export class EventService {
         organizer: true,
         status: true,
         format: true,
+        event_picture_url: true,
+        event_banner_url: true,
+        organizer_logo: true,
+        organizer_information: true,
         eventTime: true,
         eventTicketStart: true,
         eventTicketEnd: true,
-        ticketTypes: true
+        ticketTypes: {
+          select: {
+            id: true,
+            name: true,
+            amount: true,
+            price: true,
+            benefit_info: true
+          }
+        },
+        vouchers: {
+          select: {
+            code: true,
+            id: true,
+            reduce_type: true,
+            reduce_price: true,
+            price: true,
+            start_date: true,
+            end_date: true
+          }
+        }
       },
     });
   }

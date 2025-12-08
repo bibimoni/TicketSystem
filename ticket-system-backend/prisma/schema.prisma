@@ -69,6 +69,7 @@ model Event {
   status            event_status @default(DRAFT)
   format            event_format
   event_picture_url String?
+  event_banner_url  String?
   event_custom_slug String
   messages          String
 

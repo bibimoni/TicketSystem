@@ -82,6 +82,14 @@ export class CreateEventCustomerDto {
     example: 'https://cloudinary...',
     required: false
   })
+  event_banner_url?: string
+
+  @IsOptional()
+  @IsString()
+  @ApiProperty({
+    example: 'https://cloudinary...',
+    required: false
+  })
   organizer_logo?: string
 
   @IsOptional()

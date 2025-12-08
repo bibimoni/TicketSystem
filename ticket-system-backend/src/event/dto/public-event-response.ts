@@ -1,4 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsString } from 'class-validator';
+import { event_format, event_status } from 'generated/prisma';
+import { TicketTypeResponseDto, VoucherResponseDto } from './created-event-customer-response';
 
 export class PublicEventResponseDto {
   @ApiProperty({
@@ -38,6 +41,51 @@ export class PublicEventResponseDto {
   organizer: string | null;
 
   @ApiProperty({
+    enum: event_status,
+    example: 'PUBLISHED'
+  })
+  status: event_status
+
+  @ApiProperty({
+    enum: event_format,
+    example: 'ONLINE'
+  })
+  format: event_format
+
+  @IsString()
+  @ApiProperty({
+    example: 'https://cloudinary...',
+    required: false,
+    nullable: true,
+  })
+  event_picture_url: string | null
+
+  @IsString()
+  @ApiProperty({
+    example: 'https://cloudinary...',
+    required: false,
+    nullable: true,
+  })
+  event_banner_url: string | null
+
+  @IsString()
+  @ApiProperty({
+    example: 'https://cloudinary...',
+    required: false,
+    nullable: true,
+  })
+  organizer_logo: string | null
+
+  @IsString()
+  @ApiProperty({
+    example: 'This is...',
+    required: false,
+    nullable: true,
+  })
+  organizer_information: string | null
+
+
+  @ApiProperty({
     required: true,
     nullable: false,
     example: "2025-10-10T09:00:00.000Z",
@@ -57,4 +105,17 @@ export class PublicEventResponseDto {
     example: "2025-10-31T09:00:00.000Z"
   })
   eventTicketEnd: Date;
+
+  @ApiProperty({
+    required: true,
+    type: () => [TicketTypeResponseDto]
+  })
+  ticketTypes: TicketTypeResponseDto[]
+
+
+  @ApiProperty({
+    required: true,
+    type: () => [VoucherResponseDto]
+  })
+  vouchers: VoucherResponseDto[]
 }

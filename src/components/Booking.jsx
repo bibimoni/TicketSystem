@@ -41,7 +41,7 @@ const Booking = () => {
   const handleIncrement = (index) => {
     const newQuantities = [...quantities];
     const ticket = eventData.ticketTypes[index];
-    if (ticket.remaining !== undefined && newQuantities[index] >= ticket.remaining) {
+    if (ticket.amount !== undefined && newQuantities[index] >= ticket.amount) {
       return;
     }
     newQuantities[index] += 1;
@@ -103,7 +103,7 @@ const Booking = () => {
                 <div className="space-y-4">
                   {ticketTypes.map((ticket, index) => {
 
-                    const isSoldOut = ticket.remaining <= 0;
+                    const isSoldOut = ticket.amount <= 0;
 
                     return (
                       <div

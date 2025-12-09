@@ -21,7 +21,7 @@ const Booking = () => {
     const fetchEvent = async () => {
       try {
         const response = await eventService.getEventById(eventId);
-        const data = response.data || response; // Handle response wrapper
+        const data = response.data || response;
 
         if (data) {
           setEventData(data);
@@ -118,9 +118,9 @@ const Booking = () => {
                             <p className="font-extrabold text-primary text-xl">
                               {formatPrice(ticket.price)}
                             </p>
-                            {/* <p className="text-xs italic text-gray-500 mt-1">
-                              Còn lại: {ticket.remaining} vé
-                            </p> */}
+                            <p className="text-xs italic text-gray-500 mt-1">
+                              Còn lại: {ticket.amount} vé
+                            </p>
                           </div>
 
                           <div className="flex items-center gap-3">
@@ -147,12 +147,12 @@ const Booking = () => {
                         </div>
 
                         {/* Hiển thị mô tả vé nếu có */}
-                        {ticket.description && (
+                        {ticket.benefit_info && (
                           <div className="bg-white rounded-[10px] p-4">
-                            <div className="flex items-start gap-2">
+                            <div className="flex items-start gap-3">
                               <InfoIcon className="w-5 h-5 mt-0.5 text-primary" />
                               <div className="font-medium text-secondary text-sm">
-                                {ticket.description}
+                                {ticket.benefit_info}
                               </div>
                             </div>
                           </div>

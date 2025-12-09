@@ -51,8 +51,7 @@ const ListEvent = ({
                                 <div className="flex h-full relative overflow-hidden">
                                     {title === "SỰ KIỆN TRENDING" ? (
                                         <>
-
-                                            {/* Số thứ tự*/}
+                                            {/* Số thứ tự */}
                                             <div className="font-monoto text-primary text-[170px] text-center absolute left-0 top-[55%] -translate-y-1/2 z-10">
                                                 {index + 1}
                                             </div>
@@ -68,10 +67,20 @@ const ListEvent = ({
                                                     src={event.src}
                                                 />
                                             </Link>
-
                                         </>
+                                    ) : title === "SỰ KIỆN NỔI BẬT" ? (
+                                        <Link
+                                            to={`/about-event/${event.id}`}
+                                            className="block w-full h-full"
+                                        >
+                                            <img
+                                                className="w-full h-full object-cover object-center rounded-lg"
+                                                alt={event.alt}
+                                                src={event.picture}
+                                            />
+                                        </Link>
                                     ) : (
-                                        /* Các sự kiện khác*/
+                                        /* Các sự kiện khác */
                                         <Link
                                             to={`/about-event/${event.id}`}
                                             className="block w-full h-full"
@@ -85,15 +94,16 @@ const ListEvent = ({
                                     )}
                                 </div>
 
+
                             </div>
                         ))}
                     </div>
 
                     <button
                         onClick={scrollRight}
-                        className="absolute right-0 top-1/2 -translate-y-1/2 w-[45px] h-[45px] bg-white rounded-full flex items-center justify-center hover:bg-primary/50 transition-colors shadow-xl z-50"
+                        className="absolute right-0 top-1/2 -translate-y-1/2 w-[45px] h-[45px] bg-white rounded-full flex items-center justify-center hover:bg-white/50 transition-colors shadow-xl z-50"
                     >
-                        <ChevronRightIcon className="w-[27px] h-8 text-black"/>
+                        <ChevronRightIcon className="w-[27px] h-8 text-black" />
                     </button>
                 </div>
             </div>
@@ -106,8 +116,8 @@ ListEvent.propTypes = {
         PropTypes.shape({
             src: PropTypes.string.isRequired,
             alt: PropTypes.string.isRequired,
-            title: PropTypes.string, 
-            subtitle: PropTypes.string, 
+            title: PropTypes.string,
+            subtitle: PropTypes.string,
         })
     ),
     imageWidth: PropTypes.string,

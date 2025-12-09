@@ -17,12 +17,6 @@ function AboutEvent() {
     const [event, setEvent] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Hàm tách link ảnh 
-    const extractBannerUrl = (infoString) => {
-        if (!infoString) return null;
-        return infoString.trim();
-    };
-
     useEffect(() => {
         const fetchEventDetail = async () => {
             setLoading(true);
@@ -32,18 +26,17 @@ function AboutEvent() {
                 const evtData = response.data || response;
 
                 // Xử lý dữ liệu
-                // const bannerUrl = extractBannerUrl(evtData.event_banner_url);
-                const bannerUrl = evtData.event_banner_url;
-                const cleanDesc = evtData.information;
-
                 const processedEvent = {
                     id: evtData.id,
                     title: evtData.name,
-                    description: cleanDesc,
+                    description: evtData.information,
                     date: evtData.eventTime,
                     location: evtData.destination,
                     organizer: evtData.organizer || "BTC Sự Kiện",
-                    banner: bannerUrl || defaultImage,
+                    organizer_logo: evtData.organizer_logo || defaultImage,
+                    organizer_information: evtData.organizer_information || "Đối tác chính thức của TickeZ.",
+                    event_picture: evtData.event_picture_url || defaultImage,
+                    event_banner: evtData.event_banner_url|| defaultImage,
                     ticketTypes: evtData.ticketTypes || [] // Danh sách loại vé
                 };
 

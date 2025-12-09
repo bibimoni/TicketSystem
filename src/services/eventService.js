@@ -5,7 +5,7 @@ const eventService = {
     getAllEvents() {
         return axiosClient.get('/event/all/PUBLISHED');
     },
-
+ 
     async getEventById(id) {
         try {
             const allEvents = await axiosClient.get('/event/all/PUBLISHED');

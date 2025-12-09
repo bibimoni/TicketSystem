@@ -8,12 +8,6 @@ import defaultImage from "../assets/images/default_img.png";
 const MoreEvent = () => {
     const [events, setEvents] = useState([]);
     
-    const extractBannerUrl = (infoString) => {
-        if (!infoString) return null;
-        const match = infoString.match(/\[Banner\]:\s*([^\s\n]+)/);
-        return match ? match[1] : null;
-    };
-
     useEffect(() => {
         const fetchEvents = async () => {
             try {
@@ -23,7 +17,7 @@ const MoreEvent = () => {
                     const processedData = response.map(evt => ({
                         id: evt.id,
                         title: evt.name,
-                        image: extractBannerUrl(evt.information) || defaultImage
+                        image: evt.event_banner_url || defaultImage
                     }));
 
                     const randomEvents = processedData

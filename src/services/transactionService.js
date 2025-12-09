@@ -14,6 +14,9 @@ const transactionService = {
     getTransactionById(id) {
         return axiosClient.get(`/transaction/${id}`);
     },
+    getAllVouchers() {
+        return axiosClient.get('/voucher');
+    },
 
 };
 

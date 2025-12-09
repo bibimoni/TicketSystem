@@ -19,7 +19,7 @@ const Info = ({ eventData }) => {
 
     return (
         <>
-            <section className="px-[122px] py-8 flex gap-8">
+            <section className="px-[122px] py-4 flex gap-8">
                 {/* GIỚI THIỆU */}
                 <div className="flex-[2] translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:600ms]">
                     <div className="bg-white rounded-[10px] border-0">
@@ -57,14 +57,14 @@ const Info = ({ eventData }) => {
                                 <img
                                     className="w-[100px] h-[100px] object-cover rounded-full border-grey border-[2px]"
                                     alt="Organization Logo"
-                                    src={defaultAvatar}
+                                    src={eventData.organizer_logo}
                                 />
                                 <div>
                                     <h3 className="font-bold text-black text-base mb-2">
                                         {eventData.organizer}
                                     </h3>
                                     <p className="font-medium text-secondary text-sm">
-                                        Đối tác chính thức của TickeZ
+                                        {eventData.organizer_information}
                                     </p>
                                 </div>
                             </div>
@@ -98,12 +98,12 @@ const Info = ({ eventData }) => {
                                         <div key={ticket.id} className="border-0">
                                             {/* ITEM HEADER */}
                                             <div
-                                                onClick={() => ticket.hasDetails && toggle(ticket.id)}
+                                                onClick={() => ticket.benefit_info && toggle(ticket.id)}
                                                 className={`
                                                     px-6 py-4 cursor-pointer select-none relative
-                                                    ${index % 2 === 0 ? "bg-white" : "bg-[#f2f2f2]"}
+                                                    ${index % 2 === 0 ? "bg-white" : "bg-[#D9D9D9]"}
                                                     ${isFirst ? "rounded-t-[5px]" : ""}
-                                                    ${isLast && !ticket.hasDetails ? "rounded-b-[5px]" : ""}
+                                                    ${isLast && !ticket.benefit_info ? "rounded-b-[5px]" : ""}
                                                     flex items-center justify-between
                                                 `}
                                             >
@@ -142,11 +142,11 @@ const Info = ({ eventData }) => {
                                                 <div
                                                     className={`px-6 py-4 
                                                                 ${isLast ? "rounded-b-[5px]" : ""}
-                                                                ${index % 2 === 0 ? "bg-white" : "bg-[#f2f2f2]"}`}
+                                                                ${index % 2 === 0 ? "bg-white" : "bg-[#D9D9D9]"}`}
                                                 >
                                                     <div className="space-y-2">
-                                                        <p className="font-bold text-secondary text-base">
-                                                            Mô tả vé chưa cập nhật
+                                                        <p className="font-semibold text-secondary text-base px-10">
+                                                            {ticket.benefit_info}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -173,7 +173,7 @@ const Info = ({ eventData }) => {
                     <img
                         className="bg-white rounded-[10px] border-0 w-full object-cover"
                         alt="Event Banner"
-                        src={eventData.banner}
+                        src={eventData.event_picture}
                         onError={(e) => { e.target.src = { defaultAvatar } }}
                     />
                 </div>

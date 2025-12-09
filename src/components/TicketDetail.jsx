@@ -35,11 +35,7 @@ const TicketDetail = ({ pageType, eventData, onTimeout }) => {
     const rawDate = eventData.date || eventData.eventTime;
     const location = eventData.location || eventData.destination || "Địa điểm đang cập nhật";
 
-    let bannerSrc = eventData.banner || eventData.image || defaultImage;
-    if (!eventData.banner && !eventData.image && eventData.information) {
-        const match = eventData.information.match(/\[Banner\]:\s*([^\s\n]+)/);
-        if (match) bannerSrc = match[1];
-    }
+    let bannerSrc = eventData.event_banner_url || eventData.event_banner || defaultImage;
 
     const formattedDate = rawDate
         ? new Date(rawDate).toLocaleDateString("vi-VN", {
@@ -101,10 +97,10 @@ const TicketDetail = ({ pageType, eventData, onTimeout }) => {
 
     return (
         <section className="flex py-9 max-w-7xl mx-auto px-4 relative">
-            <div className="grid grid-cols-12 h-[300px] w-full relative">
+            <div className="grid grid-cols-12 h-[330px] w-full relative">
                 {/* Cột trái */}
-                <div className="relative col-span-5 h-[300px] rounded-l-3xl bg-white">
-                    <div className="p-6">
+                <div className="relative col-span-5 h-[330px] rounded-l-3xl bg-white">
+                    <div className="m-6">
                         <h1 className="font-bold text-black text-lg mb-4 uppercase line-clamp-2" title={title}>
                             {title}
                         </h1>
@@ -119,8 +115,9 @@ const TicketDetail = ({ pageType, eventData, onTimeout }) => {
                             <span className="font-medium text-secondary text-xs line-clamp-2">{location}</span>
                         </div>
                         <div className="h-0.5 bg-secondary opacity-40 my-4" />
-                        {renderAction()}
+                        <div>{renderAction()}</div>
                     </div>
+                    
                 </div>
 
                 {/* Bán nguyệt */}
@@ -130,7 +127,7 @@ const TicketDetail = ({ pageType, eventData, onTimeout }) => {
                 </div>
 
                 {/* Cột phải */}
-                <div className="relative col-span-7 h-[300px] overflow-hidden">
+                <div className="relative col-span-7 h-[330px] overflow-hidden">
                     <img
                         className="w-full h-full object-cover"
                         alt={title}

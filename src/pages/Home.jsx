@@ -32,7 +32,7 @@ function Home() {
         const response = await eventService.getAllEvents();
 
         const mappedEvents = Array.isArray(response) ? response.map(evt => {
-          // const bannerUrl = extractBannerUrl(evt.event_banner_url);
+
           const bannerUrl = evt.event_banner_url;
 
           return {
@@ -41,6 +41,7 @@ function Home() {
             src: bannerUrl || defaultImage,
             alt: evt.name,
             date: evt.eventTime,
+            picture: evt.event_picture_url,
             ...evt
           };
         }) : [];
@@ -76,8 +77,8 @@ function Home() {
       <ListEvent
         title={"SỰ KIỆN NỔI BẬT"}
         events={upcomingEvents.slice(0, 15)}
-        imageWidth={"225px"}
-        imageHeight={"290px"}
+        imageWidth={"250px"}
+        imageHeight={"320px"}
         gap={30}
       />
 

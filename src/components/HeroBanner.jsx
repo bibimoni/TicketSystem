@@ -11,13 +11,6 @@ const HeroBanner = () => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [loading, setLoading] = useState(true);
 
-    // Tách link ảnh
-    const extractBannerUrl = (infoString) => {
-        if (!infoString) return null;
-        const match = infoString.match(/\[Banner\]:\s*([^\s\n]+)/);
-        return match ? match[1] : null;
-    };
-
     useEffect(() => {
         const fetchAndProcessData = async () => {
             try {
@@ -25,7 +18,6 @@ const HeroBanner = () => {
                 const now = new Date();
 
                 let processedEvents = Array.isArray(response) ? response.map(evt => {
-                    const bannerUrl = extractBannerUrl(evt.information);
                     return {
                         id: evt.id,
                         title: evt.name,
@@ -33,7 +25,7 @@ const HeroBanner = () => {
                             weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
                         }).toUpperCase() + ` - ${evt.destination}`,
                         eventTime: evt.eventTime,
-                        image: bannerUrl || defaultImage,
+                        image: evt.event_banner_url || defaultImage,
                     };
                 }) : [];
 

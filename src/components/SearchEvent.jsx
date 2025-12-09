@@ -12,13 +12,6 @@ const SearchEvent = () => {
     const [loading, setLoading] = useState(true);
     const [visibleCount, setVisibleCount] = useState(8);
 
-    // Hàm tách link ảnh
-    const extractBannerUrl = (infoString) => {
-        if (!infoString) return null;
-        const match = infoString.match(/\[Banner\]:\s*([^\s\n]+)/);
-        return match ? match[1] : null;
-    };
-
     const getMinPrice = (ticketTypes) => {
         if (!ticketTypes || ticketTypes.length === 0) return 0;
         const prices = ticketTypes.map(t => t.price);
@@ -31,7 +24,6 @@ const SearchEvent = () => {
                 const response = await eventService.getAllEvents();
 
                 const processedEvents = Array.isArray(response) ? response.map(evt => {
-                    const bannerUrl = extractBannerUrl(evt.information);
                     const minPrice = getMinPrice(evt.ticketTypes);
                     const eventDate = new Date(evt.eventTime);
                     const isFinished = eventDate < new Date();
@@ -41,7 +33,7 @@ const SearchEvent = () => {
                         title: evt.name,
                         date: eventDate.toLocaleDateString("vi-VN", { day: 'numeric', month: 'long', year: 'numeric' }),
                         price: minPrice > 0 ? minPrice.toLocaleString("vi-VN") + " đ" : "Chưa cập nhật",
-                        image: bannerUrl || defaultImage,
+                        image: evt.event_banner_url || defaultImage,
                         finished: isFinished,
                         ticketTypes: evt.ticketTypes,
                         hot: false
@@ -143,7 +135,7 @@ const SearchEvent = () => {
                                             <p className="text-[15px] mt-2 flex gap-3 items-center">
                                                 <span className="text-gray-500 font-medium text-sm italic">Giá chỉ từ </span>
                                                 <span className="text-primary font-extrabold text-lg block leading-tight">
-                                                    {event.ticketTypes.price}
+                                                    {event.price}
                                                 </span>
                                             </p>
 

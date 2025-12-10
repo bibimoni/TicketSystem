@@ -353,7 +353,7 @@ function Profile() {
                                 disabled={updating}
                                 className="h-[60px] bg-primary rounded-[5px] font-extrabold text-white text-xl mt-4 hover:bg-red-600 disabled:opacity-50 transition-all"
                             >
-                                {updating ? "Đang cập nhật..." : "Cập nhật"}
+                                {updating ? "ĐANG CẬP NHẬT.." : "CẬP NHẬT"}
                             </button>
                         </form>
 

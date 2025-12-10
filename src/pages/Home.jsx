@@ -21,11 +21,6 @@ function Home() {
     if (token) setIsLoggedIn(true);
   }, []);
 
-  const extractBannerUrl = (infoString) => {
-    if (!infoString) return null;
-    return infoString.trim();
-  };
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -65,7 +60,11 @@ function Home() {
       .sort((a, b) => new Date(a.eventTime) - new Date(b.eventTime));
   }, [events]);
 
-  if (loading) return <div className="text-center py-10 font-bold text-primary">Đang tải dữ liệu...</div>;
+  if (loading) return (
+        <div className="min-h-screen flex items-center justify-center text-lg text-primary font-bold">
+            Đang tải dữ liệu...
+        </div>
+    );
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">

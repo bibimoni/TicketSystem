@@ -33,7 +33,7 @@ const ListEvent = ({
                     </h2>
                 </div>
 
-                <div className="relative">
+                <div className="relative ">
                     <div
                         ref={scrollRef}
                         className="scroll-container flex overflow-x-auto overflow-visible scrollbar-hide"
@@ -42,13 +42,13 @@ const ListEvent = ({
                         {events.map((event, index) => (
                             <div
                                 key={index}
-                                className="relative flex-shrink-0"
+                                className="relative flex-shrink-0 "
                                 style={{
                                     width: imageWidth,
                                     height: imageHeight,
                                 }}
                             >
-                                <div className="flex h-full relative overflow-hidden">
+                                <div className="flex h-full relative overflow-hidden ">
                                     {title === "SỰ KIỆN TRENDING" ? (
                                         <>
                                             {/* Số thứ tự */}
@@ -59,7 +59,7 @@ const ListEvent = ({
                                             {/* Hình ảnh */}
                                             <Link
                                                 to={`/about-event/${event.id}`}
-                                                className="block w-3/4 h-full ml-auto z-20"
+                                                className="block w-3/4 h-full ml-auto z-20 transition-transform duration-300 ease-out hover:scale-[1.1]"
                                             >
                                                 <img
                                                     className="w-full h-full object-cover rounded-lg"
@@ -74,7 +74,7 @@ const ListEvent = ({
                                             className="block w-full h-full"
                                         >
                                             <img
-                                                className="w-full h-full object-cover object-center rounded-lg"
+                                                className="w-full h-full object-cover object-center rounded-lg transition-transform duration-300 ease-out hover:scale-[1.1]"
                                                 alt={event.alt}
                                                 src={event.picture}
                                             />
@@ -83,10 +83,10 @@ const ListEvent = ({
                                         /* Các sự kiện khác */
                                         <Link
                                             to={`/about-event/${event.id}`}
-                                            className="block w-full h-full"
+                                            className="block w-full h-full "
                                         >
                                             <img
-                                                className="w-full h-full object-cover object-center rounded-lg"
+                                                className="w-full h-full object-cover object-center rounded-lg transition-transform duration-300 ease-out hover:scale-[1.1]"
                                                 alt={event.alt}
                                                 src={event.src}
                                             />

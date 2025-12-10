@@ -64,7 +64,11 @@ const SearchEvent = () => {
         setVisibleCount(prev => prev + 8);
     };
 
-    if (loading) return <div className="text-center py-20 text-lg font-bold text-primary">Đang tìm kiếm sự kiện...</div>;
+    if (loading) return (
+        <div className="min-h-screen flex items-center justify-center text-lg text-primary font-bold">
+            Đang tìm kiếm sự kiện...
+        </div>
+    );
 
     return (
         <>

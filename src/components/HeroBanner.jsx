@@ -73,7 +73,7 @@ const HeroBanner = () => {
     }, [events.length]);
 
 
-    if (loading) return <div className="py-8 text-center text-primary">Đang tải...</div>;
+    if (loading) return <div className="py-8 text-center text-primary font-semibold">Đang tải...</div>;
 
     const currentEvent = events[currentIndex];
 
@@ -102,7 +102,7 @@ const HeroBanner = () => {
                                         <h3 className="text-3xl font-bold mb-2 drop-shadow-lg uppercase">{currentEvent.title}</h3>
                                         <p className="text-sm font-semibold opacity-90 mb-4 inline-block px-2 py-1 rounded">
                                             {currentEvent.subtitle}
-                                        </p>
+                                        </p>   
                                     </div>
                                 </div>
                             </Link>

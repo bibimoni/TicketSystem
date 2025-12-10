@@ -117,14 +117,18 @@ const TicketDetail = ({ pageType, eventData, onTimeout }) => {
                         <div className="h-0.5 bg-secondary opacity-40 my-4" />
                         <div>{renderAction()}</div>
                     </div>
-                    
+
                 </div>
 
-                {/* Bán nguyệt */}
-                <div className="absolute left-[41.5%] top-0 h-full flex flex-col justify-between items-center z-10">
-                    <div className="w-[65px] h-[65px] -ml-8 -mt-7 rounded-full bg-gray-100" />
-                    <div className="w-[65px] h-[65px] -ml-8 -mb-7 rounded-full bg-gray-100" />
+                {/* Bán nguyệt + đường nét đứt */}
+                <div className="absolute left-[41.5%] top-0 h-full flex flex-col justify-between items-center z-20">
+                    <div className="w-[65px] h-[65px] -ml-8 -mt-8 rounded-full bg-gray-100  z-40" />
+                    <div className="absolute top-0 bottom-0 -ml-7">
+                        <div className="h-full border-l-8 border-dashed border-white" />
+                    </div>
+                    <div className="w-[65px] h-[65px] -ml-8 -mb-8 rounded-full bg-gray-100 z-40" />
                 </div>
+
 
                 {/* Cột phải */}
                 <div className="relative col-span-7 h-[330px] overflow-hidden">

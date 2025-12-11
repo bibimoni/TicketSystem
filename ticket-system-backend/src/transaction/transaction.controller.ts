@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Request, Param, UseGuards, NotFoundException, HttpCode, HttpStatus, Headers, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Request, Param, UseGuards, NotFoundException, HttpCode, HttpStatus, Headers, Req, ForbiddenException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiHeader, ApiBody } from '@nestjs/swagger';
 import type { Request as ExpressRequest } from 'express';
 
@@ -121,6 +121,30 @@ export class TransactionController {
     return await this.transactionService.getTotalRevenue();
   }
 
+  @Get('event_transactions')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Event organizer get all transactions for the event' })
+  @ApiHeader({
+    name: "Authorization",
+    description: "Bearer event organizer token for authorization",
+    required: true,
+    schema: {
+      type: 'string',
+      example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+    }
+  })
+  async getAllTransactions(@Request() req: any) {
+    const eventOrganizerId = req.user.id;
+    if (!eventOrganizerId) {
+      throw new ForbiddenException('Cannot find any user id');
+    }
+
+    console.log(eventOrganizerId);
+
+    return await this.transactionService.eventOrganizerGetTransactions(eventOrganizerId);
+  }
+
   @Get(':id')
   @UseGuards(AuthGuard)
   @ApiBearerAuth('JWT-auth')
@@ -148,4 +172,6 @@ export class TransactionController {
 
     return transaction;
   }
+
+
 }

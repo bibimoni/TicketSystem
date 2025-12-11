@@ -8,8 +8,6 @@ import { QrPayloadDto } from './dto/qr-payload.dto';
 export class TicketService {
   constructor(private prisma: PrismaService) { }
 
-
-
   async createTicketType(createTicketTypeDto: CreateTicketTypeDto, eventId: string) {
     const { name, amount } = createTicketTypeDto;
 

@@ -10,7 +10,7 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Controller('customer')
 export class CustomerController {
-  constructor(private readonly customerService: CustomerService, private readonly stripeService: StripeService) { }
+  constructor(private readonly customerService: CustomerService) { }
 
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'User create' })

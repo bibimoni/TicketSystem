@@ -5,6 +5,7 @@ import { CreateAdminDto } from './dto/create-admin.dto';
 import { genSalt, hash } from 'bcrypt-ts';
 import { PublicAdminResponseDto } from './dto/admin-response.dto';
 import { Admin } from 'generated/prisma';
+import { UpdateProfileDto } from 'src/customer/dto/update-profile.dto';
 
 @Injectable()
 export class AdminService {
@@ -44,10 +45,85 @@ export class AdminService {
     }
   }
 
-  async getProfile(admin_id: string) {
+  async findOne({ id, username, email }: { id?: string, username?: string | undefined, email?: string | undefined }): Promise<any | null> {
+    let user: any;
+    if (username) {
+      user = await this.userService.findOneByUsername(username);
+    } else if (email) {
+      user = await this.userService.findOneByEmail(email)
+    } else if (id) {
+      user = await this.prisma.user.findUnique({
+        where: { id }
+      })
+    }
+    if (!user) {
+      throw new ForbiddenException()
+    }
     const admin = await this.prisma.admin.findUnique({
-      where: { id: admin_id },
-      include: { user: true }
+      where: { user_id: user.id },
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true,
+            sex: true,
+            address: true,
+            birth_date: true,
+            information: true,
+            phone_number: true,
+            username: true,
+            avatar: true,
+            avatar_public_id: true
+          }
+        },
+      }
+    })
+    if (!admin) {
+      throw new ForbiddenException()
+    }
+    return admin
+  }
+
+  async updateProfile({ username, email }: { username?: string, email?: string }, dto: UpdateProfileDto): Promise<any> {
+    let user: any;
+    if (username) {
+      user = await this.userService.findOneByUsername(username);
+    } else if (email) {
+      user = await this.userService.findOneByEmail(email)
+    }
+    if (!user) {
+      throw new ForbiddenException()
+    }
+
+    const updatedCustomer = await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        ...dto
+      },
+    })
+
+    return await this.findOne({ id: updatedCustomer.id })
+  }
+
+  async getProfile(user_id: string) {
+    const admin = await this.prisma.admin.findUnique({
+      where: { user_id },
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true,
+            sex: true,
+            address: true,
+            birth_date: true,
+            information: true,
+            phone_number: true,
+            username: true,
+            avatar: true,
+            avatar_public_id: true
+          }
+        }
+      }
     });
 
     if (!admin) {

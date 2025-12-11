@@ -236,26 +236,51 @@ export class StripeService {
     if (!ticketTypeIds || ticketTypeIds.length === 0) {
       throw new ForbiddenException("No ticket types selected");
     }
+
+    const countMap: Record<string, number> = {};
+    for (const id of ticketTypeIds) {
+      if (!countMap[id]) {
+        countMap[id] = 1;
+      } else {
+        countMap[id] += 1;
+      }
+    }
+
+    const uniqueTicketTypeIds = Object.keys(countMap);
+
     const result = await this.prisma.$transaction(async (tx) => {
       const ticketTypes = await tx.ticketType.findMany({
-        where: { id: { in: ticketTypeIds } },
+        where: { id: { in: uniqueTicketTypeIds } },
       });
 
-      for (const type of ticketTypes) {
-        if (type.remaining <= 0) {
-          throw new ForbiddenException(`Ticket type ${type.name} is sold out`);
-        }
+      if (ticketTypes.length !== uniqueTicketTypeIds.length) {
+        throw new ForbiddenException('Some ticket types do not exist');
       }
 
-      await tx.ticketType.updateMany({
-        where: { id: { in: ticketTypeIds } },
-        data: { remaining: { decrement: 1 } }
-      });
+      for (const type of ticketTypes) {
+        const quantity = countMap[type.id];
+        if (type.remaining < quantity) {
+          throw new ForbiddenException(
+            `Ticket type ${type.name} does not have enough remaining (need ${quantity}, has ${type.remaining})`,
+          );
+        }
 
-      let priceBeforeVoucher = ticketTypes.reduce(
-        (sum, type) => sum + (type.price ?? 0),
-        0
-      );
+        await tx.ticketType.update({
+          where: { id: type.id },
+          data: {
+            remaining: {
+              decrement: quantity,
+            },
+          },
+        });
+      }
+
+      let priceBeforeVoucher = 0;
+      for (const type of ticketTypes) {
+        const quantity = countMap[type.id];
+        const unitPrice = type.price ?? 0;
+        priceBeforeVoucher += unitPrice * quantity;
+      }
 
       let totalPrice = priceBeforeVoucher;
       let voucherIds: string[] = [];
@@ -298,8 +323,11 @@ export class StripeService {
       const createdTickets: string[] = [];
 
       for (const type of ticketTypes) {
-        const ticket = await this.ticketService.createTicket(type.id);
-        createdTickets.push(ticket.id);
+        const quantity = countMap[type.id];
+        for (let i = 0; i < quantity; i++) {
+          const ticket = await this.ticketService.createTicket(type.id);
+          createdTickets.push(ticket.id);
+        }
       }
 
       return { trx, ticketTypes, createdTickets, totalPrice, voucherIds, priceBeforeVoucher };
@@ -539,7 +567,6 @@ export class StripeService {
     customerId: string,
     eventId: string,
   ) {
-    console.log('Creating subscription for customer ID:', customerId);
     const totalAmount = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
     const order = await this.getOrCreateTransactionInfo(
       totalAmount,

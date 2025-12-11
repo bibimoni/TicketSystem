@@ -8,8 +8,6 @@ import { QrPayloadDto } from './dto/qr-payload.dto';
 export class TicketService {
   constructor(private prisma: PrismaService) { }
 
-
-
   async createTicketType(createTicketTypeDto: CreateTicketTypeDto, eventId: string) {
     const { name, amount } = createTicketTypeDto;
 
@@ -170,4 +168,15 @@ export class TicketService {
 
     return { message: `Ticket ${qrData.code} marked as USED successfully.` };
   }
+
+    async addTicketRemaining(ticketTypeIds: string[]) {
+      await this.prisma.$transaction(async (tx) => {
+        await tx.ticketType.updateMany({
+          where: { id: { in: ticketTypeIds } },
+          data: { remaining: { increment: 1 } }
+        });
+      });
+  
+      return { message: "successful" }
+    }
 }

@@ -120,4 +120,23 @@ export class TicketController {
   async scanTicket(@Body() qrData: QrPayloadDto): Promise<{ message: string }> {
     return await this.ticketService.scanTicket(qrData)
   }
+
+  @Post('increment')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Increase ticket type remaining to 1' })
+  @ApiBody({
+    schema: {
+      type: 'array',
+      items: { type: 'string' },
+      example: [
+        '68ea665bdfe71b734e5907ad',
+        '68ea665bdfe71b734e5907ad',
+        '78ea665bdfe71b734e5907bc',
+      ],
+    },
+  })
+  @ApiOperation({ summary: 'Increase ticket type remaining to 1' })
+  async increaseTicketRemaining(@Body() ticketTypeIds: string[]): Promise<{ message: string }> {
+    return await this.ticketService.addTicketRemaining(ticketTypeIds)
+  }
 }

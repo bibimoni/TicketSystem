@@ -247,6 +247,11 @@ export class StripeService {
         }
       }
 
+      await tx.ticketType.updateMany({
+        where: { id: { in: ticketTypeIds } },
+        data: { remaining: { decrement: 1 } }
+      });
+
       let priceBeforeVoucher = ticketTypes.reduce(
         (sum, type) => sum + (type.price ?? 0),
         0
@@ -403,12 +408,10 @@ export class StripeService {
         throw new Error('No tickets to issue');
       }
 
-      const ticketTypeIds = fullTickets.map(t => t.ticket_type.id);
-
-      await tx.ticketType.updateMany({
-        where: { id: { in: ticketTypeIds } },
-        data: { remaining: { decrement: 1 } }
-      });
+      // await tx.ticketType.updateMany({
+      //   where: { id: { in: ticketTypeIds } },
+      //   data: { remaining: { decrement: 1 } }
+      // });
 
       await tx.ticket.updateMany({
         where: { id: { in: ticketIds }, status: 'AVAILABLE' },

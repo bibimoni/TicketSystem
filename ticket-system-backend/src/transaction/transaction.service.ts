@@ -3,6 +3,7 @@ import { PrismaService } from "src/prisma/prisma.service";
 import { StripeService } from "src/stripe/stripe.service";
 import { CheckoutIntentDto } from "./dto/create-transaction.dto";
 import { PublicTransactionResponseDto } from "./dto/public-transaction.dto";
+import { transaction_status } from "generated/prisma";
 
 @Injectable()
 export class TransactionService {
@@ -231,4 +232,130 @@ export class TransactionService {
 
     return pipe._sum.total_price ?? 0
   }
+
+  async eventOrganizerGetTransactions(
+    eventOrganizerId: string,
+  ): Promise<PublicTransactionResponseDto[]> {
+    const organizerCustomer = await this.prisma.customer.findUnique({
+      where: { user_id: eventOrganizerId },
+    });
+
+    if (!organizerCustomer) {
+      console.log(
+        `No Customer found for user_id=${eventOrganizerId} (organizer)`,
+      );
+      return [];
+    }
+
+    const transactions = await this.prisma.transaction.findMany({
+      where: {
+        tickets: {
+          some: {
+            ticket: {
+              ticket_type: {
+                event: {
+                  customer_id: organizerCustomer.id,
+                },
+              },
+            },
+          },
+        },
+        status: transaction_status.SUCCESS,
+      },
+      include: {
+        tickets: {
+          include: {
+            ticket: {
+              include: {
+                ticket_type: {
+                  include: {
+                    event: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        vouchers: {
+          include: {
+            voucher: true,
+          },
+        },
+        customer: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+                email: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { time_date: 'desc' },
+    });
+
+    return transactions.map((transaction) => ({
+      id: transaction.id,
+      time_date: transaction.time_date,
+      method: transaction.method as string,
+      status: transaction.status as string,
+      price_before_voucher: transaction.price_before_voucher,
+      total_price: transaction.total_price,
+      customer_id: transaction.customer_id,
+
+      tickets: transaction.tickets.map((th) => ({
+        id: th.id,
+        amount: th.amount,
+
+        ticket: {
+          id: th.ticket.id,
+          code: th.ticket.code,
+          status: th.ticket.status,
+
+          ticket_type: {
+            id: th.ticket.ticket_type.id,
+            name: th.ticket.ticket_type.name ?? '',
+
+            event: {
+              id: th.ticket.ticket_type.event.id,
+              name: th.ticket.ticket_type.event.name,
+              destination:
+                th.ticket.ticket_type.event.destination ?? undefined,
+              organizer:
+                th.ticket.ticket_type.event.organizer ?? undefined,
+              eventTime: th.ticket.ticket_type.event.eventTime,
+            },
+
+            price: th.ticket.ticket_type.price,
+            benefit_info: th.ticket.ticket_type.benefit_info ?? undefined,
+          },
+        },
+      })),
+
+      vouchers: transaction.vouchers?.map((tv) => ({
+        id: tv.id,
+        voucher: {
+          id: tv.voucher.id,
+          reduce_type: tv.voucher.reduce_type as string,
+          reduce_price: tv.voucher.reduce_price,
+        },
+      })),
+
+      customer: transaction.customer
+        ? {
+          id: transaction.customer.id,
+          user: {
+            id: transaction.customer.user.id,
+            username: transaction.customer.user.username,
+            email: transaction.customer.user.email,
+            name: transaction.customer.user.name ?? undefined,
+          },
+        }
+        : undefined,
+    }));
+  }
 }
+

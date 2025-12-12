@@ -138,6 +138,7 @@ export class EventService {
             id: true,
             name: true,
             amount: true,
+            remaining: true,
             price: true,
             benefit_info: true
           }
@@ -180,6 +181,7 @@ export class EventService {
             id: true,
             name: true,
             amount: true,
+            remaining: true,
             price: true,
             benefit_info: true
           }

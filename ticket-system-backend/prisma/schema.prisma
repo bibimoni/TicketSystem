@@ -21,7 +21,6 @@ model User {
   phone_number     String?
   hashed_password  String
   username         String        @unique
-  // account_id      String        @unique
   avatar           String?
   avatar_public_id String?
   created_at       DateTime?     @default(now())

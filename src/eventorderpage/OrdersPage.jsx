@@ -2,14 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import axios from 'axios';
-import { useAuth } from '../context/AuthContext';
+// import { useAuth } from '../context/AuthContext'; 
 
-// --- CẤU HÌNH API ---
 const API_BASE_URL = 'https://ticket-system-backend-pkuf.onrender.com';
 
-// --- CÁC HÀM HELPER GIỮ NGUYÊN ---
+// --- HELPER FUNCTIONS ---
 const maskPhone = (phone) => {
-  if (!phone) return '...';
+  if (!phone) return '...'; // JSON của bạn không có sđt, hàm này sẽ trả về ...
   if (phone.length < 5) return phone;
   return phone.substring(0, 2) + '********';
 };
@@ -23,10 +22,7 @@ const maskEmail = (email) => {
 
 const formatCurrency = (amount) => {
   if (amount == null) return '0 ₫';
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND'
-  }).format(amount);
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
 };
 
 const formatDate = (dateString) => {
@@ -48,7 +44,6 @@ export const OrdersPage = () => {
   const [loading, setLoading] = useState(true);
   const token = localStorage.getItem("token");
 
-  // --- HÀM GỌI API ĐÃ SỬA ---
   useEffect(() => {
     const fetchOrders = async () => {
       if (!token) return;
@@ -59,64 +54,91 @@ export const OrdersPage = () => {
           headers: { 'Authorization': `Bearer ${token}` },
           params: { eventId: eventId } 
         });
-        const transactions = Array.isArray(response.data) ? response.data : (response.data.data || []);
         
-        const allOrderRows = [];
+        // Dữ liệu trả về là mảng trực tiếp [cite: 1]
+        const transactions = Array.isArray(response.data) ? response.data : (response.data.data || []);
+        const groupedRows = [];
 
-        // 2. Duyệt qua từng Transaction
         transactions.forEach(transaction => {
             const customer = transaction.customer || {};
-            const user = customer.user || {}; 
+            const user = customer.user || {}; // JSON: user nằm trong customer [cite: 25]
 
             // Xử lý Voucher
             let voucherCode = 'N/A';
             if (transaction.vouchers && transaction.vouchers.length > 0) {
-                voucherCode = transaction.vouchers.map(v => v.code).join(', ');
+                // JSON: vouchers là mảng object chứa voucher con 
+                voucherCode = transaction.vouchers.map(v => v.voucher?.code || 'VOUCHER').join(', ');
             }
 
-            // 3. Duyệt qua mảng tickets bên trong Transaction [cite: 274]
-            const transactionTickets = transaction.tickets || [];
+            // --- LOGIC GỘP VÉ (GROUPING) ---
+            // Mục tiêu: Gộp các vé cùng loại trong 1 đơn hàng lại
+            const ticketGroups = {};
+            const transactionTickets = transaction.tickets || []; // 
             
             transactionTickets.forEach(tItem => {
-                // Theo Swagger Page 7[cite: 278]: item có trường "ticket"
+                // tItem chính là object chứa { id, amount, ticket: {...} } [cite: 14]
                 const ticketObj = tItem.ticket || {};
                 const ticketType = ticketObj.ticket_type || {};
                 const event = ticketType.event || {};
 
-                // 4. Lọc đúng Event hiện tại (Quan trọng)
-                // Kiểm tra ID của event trong ticket_type [cite: 285]
-                if (event.id === eventId || event._id === eventId || ticketType.eventId === eventId) {
+                // 1. Kiểm tra đúng Event ID (quan trọng vì API trả về tất cả)
+                const isCorrectEvent = 
+                    String(event.id) === String(eventId) || 
+                    String(ticketType.eventId) === String(eventId);
+
+                if (isCorrectEvent) {
+                    const typeId = ticketType.id; // Dùng ID loại vé để nhóm
                     
-                    allOrderRows.push({
-                        id: ticketObj.id || Math.random(), // Key unique cho Row
-                        
-                        // Transaction Info
-                        orderId: transaction.id ? transaction.id.substring(0, 8).toUpperCase() : 'N/A',
-                        purchaseDate: transaction.time_date || transaction.created_at, // [cite: 268]
-                        paymentMethod: transaction.method || "Unknown", // [cite: 269]
-                        totalAmount: transaction.total_price || 0, // [cite: 272]
-                        discountCode: voucherCode,
+                    if (!ticketGroups[typeId]) {
+                        // Khởi tạo nhóm vé này
+                        ticketGroups[typeId] = {
+                            id: ticketObj.id, // ID đại diện để làm key React
+                            
+                            // Transaction Info
+                            orderId: transaction.id ? transaction.id.substring(0, 8).toUpperCase() : 'N/A',
+                            purchaseDate: transaction.time_date || transaction.created_at, 
+                            paymentMethod: transaction.method || "Unknown", 
+                            
+                            // Customer Info
+                            customerName: user.name || "N/A", 
+                            phone: user.phone_number || "", 
+                            email: user.email || "", 
 
-                        // Customer Info
-                        customerName: user.name || "Khách vãng lai",
-                        phone: user.phone_number || "Không có SĐT",
-                        email: user.email || "Không có Email",
+                            // Ticket Info
+                            ticketType: ticketType.name || "Vé thường", 
+                            ticketPrice: ticketType.price || 0, 
+                            seat: ticketType.benefit_info || "GA", // Lấy benefit làm thông tin chỗ ngồi [cite: 23]
+                            discountCode: voucherCode,
 
-                        // Ticket Info
-                        // Theo Page 5[cite: 169], giá nằm trong ticketType, hoặc lấy từ transaction item
-                        ticketPrice: ticketType.price || 0, 
-                        ticketType: ticketType.name || "Vé thường", // [cite: 284]
-                        seat: ticketObj.seat_info || "GA", // API chưa hiện rõ field ghế, để default hoặc check lại
-                        
-                        // Check status
-                        checkIn: ticketObj.status === 'USED'
-                    });
+                            // Counter
+                            quantity: 0, // Sẽ cộng dồn
+                            usedCount: 0 
+                        };
+                    }
+
+                    // 2. CỘNG DỒN SỐ LƯỢNG (AMOUNT)
+                    const itemAmount = tItem.amount || 1;
+                    ticketGroups[typeId].quantity += itemAmount;
+
+                    // Kiểm tra check-in
+                    if (ticketObj.status === 'USED' || ticketObj.status === 'CHECKED_IN') {
+                        ticketGroups[typeId].usedCount += 1;
+                    }
                 }
+            });
+
+            // Đẩy các nhóm vé đã gộp vào mảng hiển thị
+            Object.values(ticketGroups).forEach(group => {
+                groupedRows.push({
+                    ...group,
+                    // Tính tổng tiền hiển thị = Giá vé * Số lượng
+                    totalAmount: group.ticketPrice * group.quantity 
+                });
             });
         });
 
         // Sắp xếp đơn hàng mới nhất lên đầu
-        const sortedOrders = allOrderRows.sort((a, b) => 
+        const sortedOrders = groupedRows.sort((a, b) => 
             new Date(b.purchaseDate) - new Date(a.purchaseDate)
         );
 
@@ -132,109 +154,86 @@ export const OrdersPage = () => {
     fetchOrders();
   }, [eventId, token]);
 
+  // --- Export Excel ---
   const handleExport = () => {
-    if(orders.length === 0) return alert("Không có dữ liệu để xuất!");
+    if(orders.length === 0) return alert("Không có dữ liệu!");
 
     const dataToExport = orders.map((order, index) => ({
       'No.': index + 1,
-      'Mã đơn hàng': order.orderId,
-      'Họ và tên': order.customerName,
-      'Sđt': order.phone,
+      'Mã đơn': order.orderId,
+      'Khách hàng': order.customerName,
       'Email': order.email,
-      'Hình thức giao dịch': order.paymentMethod,
-      'Vị trí': order.seat,
-      'Giá vé': order.ticketPrice,
       'Loại vé': order.ticketType,
-      'Mã giảm giá': order.discountCode,
-      'Tổng số tiền': order.totalAmount,
-      'Thời gian mua vé': formatDate(order.purchaseDate),
-      'Check in': order.checkIn ? 'Đã check-in' : 'Chưa',
+      'Số lượng': order.quantity, // <--- Cột Amount bạn cần
+      'Đơn giá': order.ticketPrice,
+      'Thành tiền': order.totalAmount,
+      'Ngày mua': formatDate(order.purchaseDate),
+      'Trạng thái': `${order.usedCount}/${order.quantity} Check-in`
     }));
 
     const ws = XLSX.utils.json_to_sheet(dataToExport);
-    const colWidths = [
-      { wch: 5 }, { wch: 15 }, { wch: 25 }, { wch: 15 }, { wch: 30 },
-      { wch: 20 }, { wch: 10 }, { wch: 15 }, { wch: 15 }, { wch: 15 },
-      { wch: 15 }, { wch: 20 }, { wch: 10 },
-    ];
-    ws['!cols'] = colWidths;
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'DanhSachDonHang');
-    XLSX.writeFile(wb, `BaoCaoDonHang_${eventId}.xlsx`);
+    XLSX.utils.book_append_sheet(wb, ws, 'Orders');
+    XLSX.writeFile(wb, `Orders_Event_${eventId}.xlsx`);
   };
 
   return (
     <div className="w-[1100px] bg-white shadow-md rounded-lg p-6 relative left-[-40px]">
-      
-      {/* Tiêu đề */}
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold text-red-500">
-          Danh sách đơn hàng
-        </h2>
-        <div className="flex gap-4 flex-shrink-0">
-          <button 
-            onClick={handleExport}
-            disabled={loading || orders.length === 0}
-            className="border border-red-500 bg-white text-red-500 px-6 py-2 rounded-full font-semibold hover:bg-red-50 transition-colors disabled:opacity-50"
-          >
-            Xuất báo cáo
-          </button>
-        </div>
+        <h2 className="text-xl font-bold text-red-500">Quản lý Đơn hàng</h2>
+        <button onClick={handleExport} disabled={loading || orders.length === 0}
+          className="border border-red-500 text-red-500 px-6 py-2 rounded-full font-semibold hover:bg-red-50 disabled:opacity-50">
+          Xuất Excel
+        </button>
       </div>
 
-      {/* === BẢNG DỮ LIỆU ĐƠN HÀNG === */}
       <div className="overflow-x-auto min-h-[400px]">
-        <table className="min-w-full left-[-10px] table-fixed text-sm">
+        <table className="min-w-full table-fixed text-sm">
           <thead className="bg-gray-50 border-b-2 border-gray-200">
             <tr className="text-left text-gray-600 font-semibold">
-              <th className="py-3 px-3 w-12">No.</th>
-              <th className="py-3 px-3 w-24">Mã đơn hàng</th>
-              <th className="py-3 px-3 w-40">Họ và tên</th>
-              <th className="py-3 px-3 w-32">Sđt</th>
-              <th className="py-3 px-3 w-48">Email</th>
-              <th className="py-3 px-3 w-36">Hình thức giao dịch</th>
-              <th className="py-3 px-3 w-16">Vị trí</th>
-              <th className="py-3 px-3 w-32">Giá vé</th>
-              <th className="py-3 px-3 w-24">Loại vé</th>
-              <th className="py-3 px-3 w-32">Mã giảm giá</th>
-              <th className="py-3 px-3 w-32">Tổng số tiền</th>
-              <th className="py-3 px-3 w-36">Thời gian mua vé</th>
-              <th className="py-3 px-3 w-20 text-center">Check in</th>
+              <th className="py-3 px-2 w-10">No.</th>
+              <th className="py-3 px-2 w-24">Mã đơn</th>
+              <th className="py-3 px-2 w-32">Khách hàng</th>
+              <th className="py-3 px-2 w-48">Email</th>
+              <th className="py-3 px-2 w-24">Loại vé</th>
+              
+              {/* CỘT SỐ LƯỢNG (AMOUNT) */}
+              <th className="py-3 px-2 w-16 text-center">SL</th>
+              
+              <th className="py-3 px-2 w-24">Đơn giá</th>
+              <th className="py-3 px-2 w-28 text-right">Thành tiền</th>
+              <th className="py-3 px-2 w-32">Ngày mua</th>
+              <th className="py-3 px-2 w-24 text-center">Check-in</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
             {loading ? (
-                <tr>
-                    <td colSpan="13" className="text-center py-10 text-gray-500">Đang tải dữ liệu đơn hàng...</td>
-                </tr>
+                <tr><td colSpan="10" className="text-center py-10">Đang tải...</td></tr>
             ) : orders.length === 0 ? (
-                <tr>
-                    <td colSpan="13" className="text-center py-10 text-gray-500">Chưa có đơn hàng nào cho sự kiện này.</td>
-                </tr>
+                <tr><td colSpan="10" className="text-center py-10 text-gray-500">Chưa có đơn hàng.</td></tr>
             ) : (
                 orders.map((order, index) => (
-                <tr key={order.id || index} className="hover:bg-gray-50">
-                    <td className="py-3 px-3">{index + 1}</td>
-                    <td className="py-3 px-3 font-mono text-xs" title={order.orderId}>{order.orderId}</td>
-                    <td className="py-3 px-3">{order.customerName}</td>
-                    <td className="py-3 px-3">{maskPhone(order.phone)}</td>
-                    <td className="py-3 px-3 break-words text-xs">{maskEmail(order.email)}</td>
-                    <td className="py-3 px-3">
-                        <span className={`px-2 py-1 rounded text-xs font-semibold 
-                            ${order.paymentMethod === 'CREDIT_CARD' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}>
-                            {order.paymentMethod}
+                <tr key={index} className="hover:bg-gray-50">
+                    <td className="py-3 px-2">{index + 1}</td>
+                    <td className="py-3 px-2 font-mono text-xs font-bold">{order.orderId}</td>
+                    <td className="py-3 px-2 truncate">{order.customerName}</td>
+                    <td className="py-3 px-2 text-xs truncate">{maskEmail(order.email)}</td>
+                    <td className="py-3 px-2">{order.ticketType}</td>
+                    
+                    {/* HIỂN THỊ SỐ LƯỢNG */}
+                    <td className="py-3 px-2 text-center font-bold bg-gray-50">
+                        {order.quantity}
+                    </td>
+
+                    <td className="py-3 px-2">{formatCurrency(order.ticketPrice)}</td>
+                    <td className="py-3 px-2 text-right font-semibold text-red-500">
+                        {formatCurrency(order.totalAmount)}
+                    </td>
+                    <td className="py-3 px-2 text-xs">{formatDate(order.purchaseDate)}</td>
+                    <td className="py-3 px-2 text-center">
+                        <span className={`px-2 py-1 rounded text-xs font-bold ${order.usedCount === order.quantity ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                            {order.usedCount}/{order.quantity}
                         </span>
-                    </td>
-                    <td className="py-3 px-3">{order.seat}</td>
-                    <td className="py-3 px-3">{formatCurrency(order.ticketPrice)}</td>
-                    <td className="py-3 px-3">{order.ticketType}</td>
-                    <td className="py-3 px-3 text-gray-400 italic">{order.discountCode}</td>
-                    <td className="py-3 px-3 font-semibold text-red-500">
-                    {formatCurrency(order.totalAmount)}
-                    </td>
-                    <td className="py-3 px-3 text-xs">{formatDate(order.purchaseDate)}</td>
-                    <td className="py-3 px-3 text-center text-green-600">
-                    {order.checkIn ? '✔️' : <span className="text-gray-300">-</span>}
                     </td>
                 </tr>
                 ))

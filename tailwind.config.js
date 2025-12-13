@@ -1,0 +1,23 @@
+// tailwind.config.js
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        primary: "#f94f2f",
+        secondary: "#5D5D5D",
+        myred: "#BE300A",
+      },
+      fontFamily: {
+        montserrat: ['"Montserrat"', "sans-serif"],
+        playwrite: ['"Playwrite US Trad"', "cursive"],
+        monoto: ['"Monoton"', 'Helvetica', 'sans-serif'], 
+      },
+    },
+  },
+  plugins: [require('tailwind-scrollbar-hide')],
+
+}

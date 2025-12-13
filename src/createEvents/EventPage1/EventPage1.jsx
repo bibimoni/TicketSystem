@@ -769,7 +769,7 @@ const readFileAsBase64 = (file) => {
               onChange={(e) => setEventData({ ...eventData, organizerName: e.target.value })}
               placeholder="Tên BTC"
               className={`
-                absolute left-[535px] w-[785px] h-[31px] rounded-md border border-gray-300 px-4 text-xs 
+                absolute left-[535px] w-[785px] h-[35px] rounded-md border border-gray-300 px-4 text-xs 
                 [font-family:'Montserrat-Light',Helvetica] text-black placeholder:text-[#6e6e6e] bg-white
                 ${eventData.eventType === 'OFFLINE' ? 'top-[1167px]' : 'top-[1037px]'}
                 transition-all duration-300 ease-in-out

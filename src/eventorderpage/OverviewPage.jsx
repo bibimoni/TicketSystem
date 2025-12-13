@@ -3,7 +3,6 @@ import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
-
 // --- CẤU HÌNH API ---
 const API_BASE_URL = 'https://ticket-system-backend-pkuf.onrender.com';
 
@@ -14,7 +13,8 @@ const formatCurrency = (amount) => {
 
 // Component Thanh tiến trình
 const ProgressBar = ({ sold, total }) => {
-  const percentage = total > 0 ? (sold / total) * 100 : 0;
+  const safeTotal = total > 0 ? total : 1; 
+  const percentage = Math.min((sold / safeTotal) * 100, 100); // Không cho quá 100%
   return (
     <div className="w-full bg-gray-200 rounded-full h-2.5">
       <div 
@@ -28,7 +28,6 @@ const ProgressBar = ({ sold, total }) => {
 // Component Biểu đồ tròn
 const DonutChart = ({ percentage, color }) => {
   const safePercentage = isNaN(percentage) ? 0 : percentage;
-
   let displayValue = '0';
   if (safePercentage > 0 && safePercentage < 1) {
     displayValue = safePercentage.toFixed(2); 
@@ -36,7 +35,6 @@ const DonutChart = ({ percentage, color }) => {
     displayValue = safePercentage.toFixed(0);
   }
   const visualValue = (safePercentage > 0 && safePercentage < 1) ? 1 : safePercentage;
-
   const data = [
     { name: 'Filled', value: visualValue },
     { name: 'Empty', value: 100 - visualValue },
@@ -48,26 +46,16 @@ const DonutChart = ({ percentage, color }) => {
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
-            data={data} 
-            dataKey="value" 
-            cx="50%" 
-            cy="50%"
-            innerRadius={30} 
-            outerRadius={40}
-            startAngle={90} 
-            endAngle={-270} 
-            stroke="none"
+            data={data} dataKey="value" cx="50%" cy="50%"
+            innerRadius={30} outerRadius={40}
+            startAngle={90} endAngle={-270} stroke="none"
           >
             {data.map((entry, index) => <Cell key={`cell-${index}`} fill={colors[index]} />)}
           </Pie>
         </PieChart>
       </ResponsiveContainer>
-      
-      {/* Hiển thị số % đã format ở giữa */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <span className="text-lg font-bold text-gray-700">
-          {displayValue}%
-        </span>
+        <span className="text-lg font-bold text-gray-700">{displayValue}%</span>
       </div>
     </div>
   );
@@ -96,25 +84,28 @@ export const OverviewPage = () => {
            })
         ]);
 
-        // Xử lý dữ liệu Sự kiện
+        // Xử lý dữ liệu
         const allEvents = Array.isArray(eventRes.data) ? eventRes.data : (eventRes.data.events || []);
-        const currentEvent = allEvents.find(e => (e.id === eventId || e._id === eventId));
-
-        // Xử lý dữ liệu Giao dịch
+        const currentEvent = allEvents.find(e => (String(e.id) === String(eventId) || String(e._id) === String(eventId)));
         const transactions = Array.isArray(transRes.data) ? transRes.data : (transRes.data.data || []);
 
         if (currentEvent) {
-            // --- A. TÍNH DOANH THU THỰC TẾ & BIỂU ĐỒ (Dựa trên Transaction) ---
+            // --- A. TÍNH TOÁN DỰA TRÊN GIAO DỊCH THỰC TẾ ---
             let realRevenue = 0;
             let realTicketsSold = 0;
             const statsMap = {};
+            
+            // Map để đếm số lượng vé bán ra theo từng loại (ID loại vé -> Số lượng)
+            const salesByType = {}; 
 
             transactions.forEach(trans => {
-                // 1. Xác định ngày giao dịch
-                const dateStr = trans.time_date || trans.created_at; // Swagger: time_date, Code cũ: created_at
+                // Chỉ xử lý đơn hàng thành công (nếu cần thiết)
+                // if (trans.status !== 'SUCCESS') return;
+
+                // 1. Ngày giao dịch
+                const dateStr = trans.time_date || trans.created_at; 
                 let dayLabel = "N/A";
                 let timestamp = 0;
-
                 if (dateStr) {
                     const date = new Date(dateStr);
                     const day = String(date.getDate()).padStart(2, '0');
@@ -122,56 +113,53 @@ export const OverviewPage = () => {
                     dayLabel = `${day}/${month}`;
                     timestamp = date.getTime();
                 }
-
-                // Khởi tạo map cho ngày này nếu chưa có
                 if (dayLabel !== "N/A" && !statsMap[dayLabel]) {
-                    statsMap[dayLabel] = { 
-                        day: dayLabel, 
-                        revenue: 0, 
-                        tickets: 0,
-                        timestamp: timestamp
-                    };
+                    statsMap[dayLabel] = { day: dayLabel, revenue: 0, tickets: 0, timestamp: timestamp };
                 }
 
-                // 2. Duyệt sâu vào mảng tickets để lọc đúng event và cộng tiền
-                // SỬA QUAN TRỌNG: Dùng `trans.tickets` thay vì `trans.TransactionHasTickets`
+                // 2. Duyệt từng vé trong đơn hàng
                 const ticketsList = trans.tickets || [];
-                
                 ticketsList.forEach(tItem => {
                     const ticket = tItem.ticket || {};
                     const type = ticket.ticket_type || {};
                     const event = type.event || {};
+                    const ticketTypeId = type.id;
 
-                    // Kiểm tra xem vé này có thuộc Event đang xem không
-                    if (event.id === eventId || event._id === eventId || type.eventId === eventId) {
-                        // Cộng doanh thu
+                    // Kiểm tra đúng Event ID
+                    if (String(event.id) === String(eventId) || String(type.eventId) === String(eventId)) {
+                        
+                        // Lấy giá và số lượng (mặc định 1)
                         const price = Number(type.price) || 0;
-                        realRevenue += price;
-                        realTicketsSold += 1;
+                        const amount = tItem.amount || 1; 
 
-                        // Cộng vào biểu đồ ngày
+                        // --- CỘNG DỒN TỔNG QUAN ---
+                        realRevenue += price; // Nếu tItem.amount > 1 thì phải là price * amount, nhưng API hiện tại tách từng vé
+                        realTicketsSold += amount;
+
+                        // --- CỘNG DỒN BIỂU ĐỒ NGÀY ---
                         if (dayLabel !== "N/A") {
                             statsMap[dayLabel].revenue += price;
-                            statsMap[dayLabel].tickets += 1;
+                            statsMap[dayLabel].tickets += amount;
                         }
+
+                        // --- CỘNG DỒN CHO BẢNG CHI TIẾT VÉ (LOGIC MỚI) ---
+                        if (!salesByType[ticketTypeId]) {
+                            salesByType[ticketTypeId] = 0;
+                        }
+                        salesByType[ticketTypeId] += amount;
                     }
                 });
             });
 
-            // Chuyển statsMap thành mảng và sort theo ngày
+            // Xử lý biểu đồ ngày
             let dailyStats = Object.values(statsMap);
             dailyStats.sort((a, b) => a.timestamp - b.timestamp);
-
-            // Fallback: Nếu chưa có dữ liệu ngày nào
             if (dailyStats.length === 0) {
                  const today = new Date();
-                 const d = String(today.getDate()).padStart(2, '0');
-                 const m = String(today.getMonth() + 1).padStart(2, '0');
-                 dailyStats.push({ day: `${d}/${m}`, revenue: 0, tickets: 0 });
+                 dailyStats.push({ day: `${today.getDate()}/${today.getMonth()+1}`, revenue: 0, tickets: 0 });
             }
 
-            // --- B. CHI TIẾT LOẠI VÉ (Dựa trên Event Info) ---
-            // Phần này lấy từ Event definition để biết tổng số vé phát hành
+            // --- B. TẠO BẢNG CHI TIẾT (KẾT HỢP INFO GỐC VÀ SỐ LIỆU THỰC) ---
             let totalTicketsAvailable = 0;
             let totalRevenueExpected = 0;
 
@@ -180,18 +168,14 @@ export const OverviewPage = () => {
             const ticketDetails = ticketTypes.map(type => {
                 const typeId = type.id;
                 const name = type.name || "Vé thường";
+                const totalAmount = Number(type.amount) || 0; // Tổng phát hành
                 
-                // Số lượng tổng
-                const totalAmount = Number(type.amount) || 0;
-                
-                // Số lượng còn lại (Lấy từ event info, có thể không realtime bằng transaction nhưng dùng tạm để hiện progress bar)
-                const remaining = Number(type.remaining); 
-                const soldCount = (totalAmount - (isNaN(remaining) ? totalAmount : remaining));
-
-                // Giá vé
+                // Lấy giá tiền
                 let price = Number(type.price) || 0;
-                if (price === 0 && type.ticketPrice?.price) price = Number(type.ticketPrice.price);
+                
+                const soldCount = salesByType[typeId] || 0; 
 
+                // Tính toán tổng
                 totalTicketsAvailable += totalAmount;
                 totalRevenueExpected += (totalAmount * price);
 
@@ -200,19 +184,19 @@ export const OverviewPage = () => {
                     name: name,
                     price: price,
                     total: totalAmount,
-                    sold: soldCount, // Số lượng bán theo Event info
-                    revenue: soldCount * price // Doanh thu ước tính theo số lượng bán
+                    sold: soldCount, // Số liệu thực tế từ transaction
+                    revenue: soldCount * price // Doanh thu thực tế của loại vé này
                 };
             });
 
             setData({
                 eventName: currentEvent.name,
                 revenueSummary: {
-                    currentRevenue: realRevenue, // Lấy từ Transaction thật
+                    currentRevenue: realRevenue,
                     totalExpectedRevenue: totalRevenueExpected 
                 },
                 ticketSummary: {
-                    ticketsSold: realTicketsSold, // Lấy từ Transaction thật
+                    ticketsSold: realTicketsSold,
                     totalTickets: totalTicketsAvailable
                 },
                 ticketDetails: ticketDetails,

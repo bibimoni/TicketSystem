@@ -4,12 +4,17 @@ import { compare, genSalt, hash } from 'bcrypt-ts';
 import { JwtService } from '@nestjs/jwt';
 import { CustomerService } from 'src/customer/customer.service';
 import { randomBytes } from 'crypto';
+import { UserService } from 'src/user/user.service';
+
 
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
-  constructor(private prisma: PrismaService, private jwtService: JwtService, private customerService: CustomerService) { }
+  constructor(private prisma: PrismaService,
+    private jwtService: JwtService,
+    private customerService: CustomerService,
+    private userService: UserService) { }
 
   async signInGoogle(user: any): Promise<any> {
     if (!user) {
@@ -26,7 +31,7 @@ export class AuthService {
     if (!userFound) {
       await this.customerService.create({
         password: AuthService.randomString(10),
-        username: AuthService.randomString(6),
+        username: `${user.name}-${AuthService.randomString(6)}`,
         email: user.email
       });
       userFound = await this.prisma.user.findUnique({
@@ -34,6 +39,7 @@ export class AuthService {
           email: user.email
         }
       })
+      this.userService.updateProfile({ email: user.email }, { avatar: user.picture })
     }
 
     if (!userFound) {
@@ -104,7 +110,10 @@ export class AuthService {
   }
 
   static randomString(length: number): string {
-    const buffer = randomBytes(length)
-    return buffer.reduce((acc, cur) => acc += String.fromCharCode(cur), "");
+    return Math.random()
+      .toString(36)
+      .replace('.', '')
+      .toUpperCase()
+      .substr(0, length);
   }
 }

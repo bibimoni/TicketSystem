@@ -626,10 +626,6 @@ const readFileAsBase64 = (file) => {
               </div>
             </div>
 
-            <div className="absolute top-[535px] left-[366px] w-[992px] h-[31px] bg-white rounded-[var(--shape-corner-small)]" />
-
-            <div className="absolute top-[644px] left-[872px] w-[481px] h-[31px] bg-white rounded-[var(--shape-corner-small)]" />
-
             <div className={`
               absolute left-[535px] w-[724px] h-[31px] bg-white rounded-[var(--shape-corner-small)]
               ${eventData.eventType === 'OFFLINE' ? 'top-[1169px]' : 'top-[1039px]'}
@@ -682,7 +678,7 @@ const readFileAsBase64 = (file) => {
                       Tỉnh / Thành
                     </div>
                   </div>
-                  <div className="ml-[22px] w-[435px] h-[31px] bg-white rounded-[var(--shape-corner-small)]" />
+                  {/* <div className="ml-[22px] w-[435px] h-[31px] bg-white rounded-[var(--shape-corner-small)]" /> */}
                 </div>
 
                 <div className="absolute top-[761px] left-[339px] w-[457px] h-[68px] flex flex-col gap-2">
@@ -692,7 +688,7 @@ const readFileAsBase64 = (file) => {
                       Phường / Xã
                     </div>
                   </div>
-                  <div className="ml-[22px] w-[435px] h-[31px] bg-white rounded-[var(--shape-corner-small)]" />
+                  {/* <div className="ml-[22px] w-[435px] h-[31px] bg-white rounded-[var(--shape-corner-small)]" /> */}
                 </div>
 
                 <div className="absolute top-[764px] left-[850px] w-[457px] h-[68px] flex flex-col gap-2">
@@ -702,7 +698,7 @@ const readFileAsBase64 = (file) => {
                       Số nhà, đường
                     </div>
                   </div>
-                  <div className="ml-[22px] w-[435px] h-[31px] bg-white rounded-[var(--shape-corner-small)]" />
+                  {/* <div className="ml-[22px] w-[435px] h-[31px] bg-white rounded-[var(--shape-corner-small)]" /> */}
                 </div>
 
                 <div className="absolute top-[682px] left-[850px] w-[457px] h-[68px] flex flex-col gap-2">
@@ -712,7 +708,7 @@ const readFileAsBase64 = (file) => {
                       Quận / Huyện
                     </div>
                   </div>
-                  <div className="ml-[22px] w-[435px] h-[31px] bg-white rounded-[var(--shape-corner-small)]" />
+                  {/* <div className="ml-[22px] w-[435px] h-[31px] bg-white rounded-[var(--shape-corner-small)]" /> */}
                 </div>
                 
                 <input
@@ -769,16 +765,12 @@ const readFileAsBase64 = (file) => {
               onChange={(e) => setEventData({ ...eventData, organizerName: e.target.value })}
               placeholder="Tên BTC"
               className={`
-                absolute left-[535px] w-[785px] h-[31px] rounded-md border border-gray-300 px-4 text-xs 
+                absolute left-[535px] w-[785px] h-[35px] rounded-md border border-gray-300 px-4 text-xs 
                 [font-family:'Montserrat-Light',Helvetica] text-black placeholder:text-[#6e6e6e] bg-white
                 ${eventData.eventType === 'OFFLINE' ? 'top-[1167px]' : 'top-[1037px]'}
                 transition-all duration-300 ease-in-out
               `}
             />
-
-            <div className="absolute top-[646px] left-[366px] w-5 h-5 bg-white rounded-[10px]" />
-
-            <div className="absolute top-[646px] left-[542px] w-5 h-5 bg-white rounded-[10px]" />
 
             <div 
                 className={`

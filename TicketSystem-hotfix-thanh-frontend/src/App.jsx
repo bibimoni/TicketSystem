@@ -73,8 +73,8 @@ function App() {
         <Route path="/tao-su-kien/buoc-4" element={<EventPage4 />} />
 
         <Route path="/su-kien-cua-toi" element={<MyEventsPage />} />
-        <Route path="/ve-cua-toi" element={<div>Vé của tôi</div>} />
-        <Route path="/tai-khoan-cua-toi" element={<div>Tài Khoản của tôi </div> } />
+        <Route path="/ve-cua-toi" element={<MyTicket />} />
+        <Route path="/tai-khoan-cua-toi" element={<MyProfile /> } />
 
         <Route path="/event-edit/:eventId/buoc-1" element={<EventPage1 />} />
         <Route path="/event-edit/:eventId/buoc-2" element={<EventPage2 />} />

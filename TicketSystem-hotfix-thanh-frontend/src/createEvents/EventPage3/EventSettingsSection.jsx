@@ -46,7 +46,7 @@ const EventSettingsSection = ({ isAdmin = false }) => {
 
     <div className="relative w-[1112px] mx-auto min-h-screen pb-40">
         <div className="absolute top-0 left-[-305px] w-full h-full">
-      <div className="absolute top-[156px] left-[305px] w-[1100px] bg-[#ffe8e2] rounded-md p-2">
+      <div className="absolute top-[156px] left-[305px] w-[1112px] bg-[#ffe8e2] rounded-md p-2">
         <h3 className="ml-5 text-lg font-semibold text-gray-800 mb-2">
           Link dẫn đến sự kiện
         </h3>
@@ -76,7 +76,7 @@ const EventSettingsSection = ({ isAdmin = false }) => {
       </div>
 
       {/* === KHỐI 2: TIN NHẮN XÁC NHẬN === */}
-      <div className="absolute top-[380px] left-[305px] w-[1070px] bg-[#ffe8e2] rounded-md p-6">
+      <div className="absolute top-[380px] left-[305px] w-[1112px] bg-[#ffe8e2] rounded-md p-6">
         <div className="flex items-center gap-2 mb-1 mt-[-8px]">
           <img
             src={mailIcon}

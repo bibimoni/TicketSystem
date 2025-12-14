@@ -61,21 +61,6 @@ export const EventPage3 = ({ isAdmin = false })  => {
           <img className="absolute top-[-841px] left-[1484px] w-[203px] h-[45px]" alt="Rectangle" src={rectangle7} />
           
 
-      {/* Nút Tiếp tục */}
-      {/* <div 
-                 className="absolute top-[85px] right-[50px] w-[102px] h-[45px] cursor-pointer z-50" onClick={handleContinueClick}
-                >
-                  <img
-                    className="absolute top-0 -left-1 w-[108px] h-[53px]"
-                    alt="Rectangle"
-                    src={rectangle212} 
-                  />
-                  <div className="absolute top-[15px] left-[25px] [font-family:'Montserrat-SemiBold',Helvetica] font-semibold text-[#ffffff] text-xs text-center tracking-[0] leading-[normal]">
-                    Tiếp tục
-                  </div>
-                  
-                </div > */}
-
       {/* Logo và Sidebar */}
       <div className="absolute top-2 left-[5px] w-[63px] h-[63px]">
         <img

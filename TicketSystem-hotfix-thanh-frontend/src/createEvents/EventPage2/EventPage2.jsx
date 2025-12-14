@@ -76,18 +76,6 @@ export const EventPage2 = ({ isAdmin = false }) => {
     }
   };
 
-  // const handleContinueClick = () => {
-  //   if (isAdmin) {
-  //       navigate(`/admin/duyet-su-kien/${eventId}/buoc-3`);
-  //   }
-  //   else {
-  //     if (eventId) {
-  //       navigate(`/event-edit/${eventId}/buoc-3`);
-  //     } else {
-  //       navigate('/tao-su-kien/buoc-3');
-  //     }
-  //   }
-  // };
   const [editingTicket, setEditingTicket] = useState(null);
   const handleDeleteTicket = (ticketId) => {
     const updatedTickets = eventData.tickets.filter(t => t.id !== ticketId);
@@ -108,29 +96,6 @@ export const EventPage2 = ({ isAdmin = false }) => {
       <div className="absolute top-0 left-0 w-[272px] h-[1511px] bg-[#f94f2f]" />
       <img className="absolute top-[-841px] left-[1484px] w-[203px] h-[45px]" alt="Rectangle" src={rectangle7} />
       
-      {/* Nút Lưu */}
-      {/* <div className="absolute top-[85px] left-[1206px] w-[102px] h-[45px]">
-        <img className="absolute top-0 -left-1 w-[108px] h-[53px]" alt="Rectangle" src={rectangle202} />
-        <img className="absolute top-0 -left-1 w-[108px] h-[53px]" alt="Rectangle" src={rectangle21} />
-        <div className="absolute top-[15px] left-[38px] [font-family:'Montserrat-SemiBold',Helvetica] font-semibold text-[#f94f2f] text-xs text-center tracking-[0] leading-[normal]">
-          Lưu
-        </div>
-      </div> */}
-
-      {/* Nút Tiếp tục */}
-      {/* <div 
-           className="absolute top-[85px] right-[50px] w-[102px] h-[45px] cursor-pointer z-50" onClick={handleContinueClick}
-          >
-            <img
-              className="absolute top-0 -left-1 w-[108px] h-[53px]"
-              alt="Rectangle"
-              src={rectangle212} 
-            />
-            <div className="absolute top-[15px] left-[25px] [font-family:'Montserrat-SemiBold',Helvetica] font-semibold text-[#ffffff] text-xs text-center tracking-[0] leading-[normal]">
-              Tiếp tục
-            </div>
-            
-          </div > */}
 
       {/* Logo và Sidebar */}
       <div className="absolute top-2 left-[5px] w-[63px] h-[63px]">
@@ -271,7 +236,7 @@ export const EventPage2 = ({ isAdmin = false }) => {
         }}
         className="absolute top-[216px] left-[871px] w-[513px] h-[31px] bg-white rounded border border-[#ccc] px-3 text-xs text-[#6e6e6e] font-light focus:outline-none focus:ring-1 focus:ring-[#6e6e6e]"
       />
-<div className="absolute top-[300px] left-[305px] w-[1064px] min-h-[100px] bg-[#ffe8e2] rounded-md p-6 flex flex-col">
+<div className="absolute top-[300px] left-[305px] w-[1112px] min-h-[100px] bg-[#ffe8e2] rounded-md p-6 flex flex-col">
 
   {/* 1. Label "Loại vé" - Đã bỏ `absolute` và thêm `mb-4` (margin-bottom) */}
   <div className="w-[173px] h-[29px] relative mb-4">

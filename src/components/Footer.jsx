@@ -48,7 +48,7 @@ const Footer = () => {
         },
     ];
     return (
-        <footer className="bg-secondary py-12 mt-8">
+        <footer className="bg-secondary py-12 mt-8 z-100">
             <div className="max-w-[1440px] mx-auto px-[122px]">
                 <div className="flex justify-between mb-8">
                     <div>

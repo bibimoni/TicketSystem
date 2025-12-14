@@ -15,12 +15,10 @@ function TicketItem({ ticket, mode }) {
         })
         : "Chưa xác định ngày";
 
-    // Giá tổng (Total Amount)
+    // Giá tổng 
     const priceStr = ticket.totalAmount
         ? Number(ticket.totalAmount).toLocaleString("vi-VN") + " đ"
         : "0 đ";
-
-    // XÓA đoạn const priceTic ở đây vì không thể lấy giá từ mảng items trực tiếp
 
     const getStatusText = (status) => {
         switch (status) {
@@ -51,13 +49,13 @@ function TicketItem({ ticket, mode }) {
     return (
         <div className="grid grid-cols-12 shadow-sm transition-all duration-300 p-0 rounded-2xl mybg relative overflow-hidden text-white group min-h-[180px]">
 
-            {/* --- LEFT SECTION (Thông tin chính) --- */}
+            {/* LEFT SECTION */}
             <div className="col-span-8 p-5 flex flex-col justify-between border-white/40 relative">
 
-                {/* Header: Tên sự kiện & Organizer */}
+                {/* Header */}
                 <div>
                     <div className="flex items-start gap-3">
-                        <div className="bg-white h-6 w-1.5 mt-1 rounded-full"></div>
+                        <div className="bg-white h-8 w-2 mt-1 rounded-full"></div>
                         <div className="flex-1 overflow-hidden">
                             <h3 className="font-extrabold text-xl uppercase leading-tight truncate pr-2" title={ticket.eventName}>
                                 {ticket.eventName}
@@ -72,22 +70,19 @@ function TicketItem({ ticket, mode }) {
                 {/* Divider */}
                 <div className="w-full h-[1.5px] bg-white my-2"></div>
 
-                {/* Body: Chi tiết vé & Thời gian */}
+                {/* Body */}
                 <div className="grid grid-cols-2 gap-4 text-sm">
-                    {/* Cột 1: Chi tiết vé */}
                     <div className="space-y-2">
                         <div className="text-xs text-white uppercase font-bold">Loại vé</div>
                         <div className="flex flex-col gap-1">
                             {ticket.items && ticket.items.length > 0 ? (
                                 ticket.items.map((item, i) => {
-                                    // XỬ LÝ GIÁ VÉ LẺ TẠI ĐÂY
                                     const itemPrice = item.ticketPrice
                                         ? Number(item.ticketPrice).toLocaleString("vi-VN") + " đ" 
                                         : "0 đ";
 
                                     return (
                                         <div key={i} className="text-sm font-semibold flex items-center justify-between pr-4">
-                                            {/* Tên loại vé */}
                                             <div className="flex flex-col truncate mr-2">
                                                 <span className="truncate text-yellow-200" title={item.ticketTypeName}>
                                                     {item.ticketTypeName}
@@ -97,7 +92,6 @@ function TicketItem({ ticket, mode }) {
                                                 </span>
                                             </div>
                                             
-                                            {/* Số lượng */}
                                             <span className="bg-white/20 px-2 py-0.5 rounded text-xs text-white whitespace-nowrap">
                                                 x{item.quantity}
                                             </span>
@@ -110,7 +104,6 @@ function TicketItem({ ticket, mode }) {
                         </div>
                     </div>
 
-                    {/* Cột 2: Thời gian & Địa điểm */}
                     <div className="space-y-2 text-right">
                         <div className="text-xs text-white uppercase font-bold">Thời gian & Địa điểm</div>
                         <div>
@@ -122,18 +115,9 @@ function TicketItem({ ticket, mode }) {
                     </div>
                 </div>
 
-                {/* Nút đánh giá
-                {(ticket.status === 'SUCCESS' || ticket.status === 'PAID') && isEventEnded && (
-                    <div className="absolute bottom-3 left-6">
-                        <button className="flex items-center gap-1.5 text-yellow-300 hover:text-white hover:bg-white/10 px-3 py-1 -ml-3 rounded-full transition-all text-xs font-bold">
-                            <MessageCircle size={14} />
-                            Viết đánh giá
-                        </button>
-                    </div>
-                )} */}
             </div>
 
-            {/* --- RIGHT SECTION (Giá & Trạng thái) --- */}
+            {/* --- RIGHT SECTION --- */}
             <div className="col-span-4 p-4 flex flex-col items-center justify-center gap-4 text-center ml-8">
 
                 <span className={`px-3 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wide ${getStatusColor(ticket.status)}`}>

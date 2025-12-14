@@ -1,6 +1,7 @@
 // src/components/HeroBanner.jsx
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import Loader from "./TicketLoader";
 
 import eventService from "../services/eventService";
 import defaultImage from "../assets/images/default_img.png";
@@ -73,7 +74,9 @@ const HeroBanner = () => {
     }, [events.length]);
 
 
-    if (loading) return <div className="py-8 text-center text-primary font-semibold">Đang tải...</div>;
+    if (loading) return(
+        <Loader text="Đang tải..." height="250px"/>
+    );
 
     const currentEvent = events[currentIndex];
 

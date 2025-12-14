@@ -7,9 +7,11 @@ import CatalogBar from "../components/CatalogBar";
 import HeroBanner from "../components/HeroBanner";
 import ListEvent from "../components/ListEvent";
 import AdvertisingBanner from "../components/AdvertisingBanner";
+import Loader from "../components/TicketLoader";
 
 import eventService from "../services/eventService";
 import defaultImage from "../assets/images/default_img.png";
+import bgImage from "/src/assets/images/bg.jpg"; 
 
 function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -61,64 +63,76 @@ function Home() {
   }, [events]);
 
   if (loading) return (
-        <div className="min-h-screen flex items-center justify-center text-lg text-primary font-bold">
-            Đang tải dữ liệu...
-        </div>
-    );
+    <Loader text="Đang tải sự kiện..." height="100vh"/>
+    
+  );
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-100">
-      <HeaderBar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
-      <CatalogBar />
-      <HeroBanner />
+    <div className="bg-home relative min-h-screen isolate">
+      <div 
+        className="fixed inset-0 -z-20 w-full h-full"
+        style={{
+            backgroundImage: `url(${bgImage})`,
+            backgroundSize: 'cover'
+        }}
+      ></div>
 
-      {/* SỰ KIỆN NỔI BẬT */}
-      <ListEvent
-        title={"SỰ KIỆN NỔI BẬT"}
-        events={upcomingEvents.slice(0, 15)}
-        imageWidth={"250px"}
-        imageHeight={"320px"}
-        gap={30}
-      />
+      <div className="absolute inset-0 bg-black/20 backdrop-blur-sm -z-10"></div>
 
-      {/* SỰ KIỆN TRENDING */}
-      <ListEvent
-        title={"SỰ KIỆN TRENDING"}
-        events={events.slice(0, 10)}
-        imageWidth={"380px"}
-        imageHeight={"160px"}
-        gap={30}
-      />
+      <div className="relative z-10 flex flex-col min-h-screen">
+        <HeaderBar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+        <CatalogBar />
 
-      {/* CONCERT GÌ NÀO ? */}
-      <ListEvent
-        title="CONCERT GÌ NÀO ?"
-        events={events}
-        imageWidth={"350px"}
-        imageHeight={"200px"}
-        gap={30}
-      />
-      <AdvertisingBanner banner="https://techcombank.com/content/dam/techcombank/public-site/articles/non-blog/Banner-cashback-ther-VISA-c6315ae326.jpg" height={500} />
+        <HeroBanner />
 
-      {/* NGHỆ THUẬT VÀ SÂN KHẤU */}
-      <ListEvent
-        title="NGHỆ THUẬT VÀ SÂN KHẤU"
-        events={events}
-        imageWidth={"350px"}
-        imageHeight={"200px"}
-        gap={30}
-      />
+        {/* SỰ KIỆN NỔI BẬT */}
+        <ListEvent
+          title={"SỰ KIỆN NỔI BẬT"}
+          events={upcomingEvents.slice(0, 15)}
+          imageWidth={"260px"}
+          imageHeight={"350px"}
+          gap={30}
+        />
 
-      {/* THỂ THAO */}
-      <ListEvent
-        title="THỂ THAO"
-        events={events}
-        imageWidth={"350px"}
-        imageHeight={"200px"}
-        gap={30}
-      />
+        {/* SỰ KIỆN TRENDING */}
+        <ListEvent
+          title={"SỰ KIỆN TRENDING"}
+          events={events.slice(0, 10)}
+          imageWidth={"380px"}
+          imageHeight={"160px"}
+          gap={30}
+        />
 
-      <Footer />
+        {/* CONCERT GÌ NÀO ? */}
+        <ListEvent
+          title="CONCERT GÌ NÀO ?"
+          events={events}
+          imageWidth={"350px"}
+          imageHeight={"200px"}
+          gap={30}
+        />
+        <AdvertisingBanner banner="https://techcombank.com/content/dam/techcombank/public-site/articles/non-blog/Banner-cashback-ther-VISA-c6315ae326.jpg" height={500} />
+
+        {/* NGHỆ THUẬT VÀ SÂN KHẤU */}
+        <ListEvent
+          title="NGHỆ THUẬT VÀ SÂN KHẤU"
+          events={events}
+          imageWidth={"350px"}
+          imageHeight={"200px"}
+          gap={30}
+        />
+
+        {/* THỂ THAO */}
+        <ListEvent
+          title="THỂ THAO"
+          events={events}
+          imageWidth={"350px"}
+          imageHeight={"200px"}
+          gap={30}
+        />
+
+        <Footer/>
+      </div> 
     </div>
   );
 }

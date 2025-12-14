@@ -8,6 +8,7 @@ import Paying from "../components/Paying";
 import TicketDetail from "../components/TicketDetail";
 
 import eventService from "../services/eventService";
+import ticketService from "../services/ticketService"; 
 import defaultImage from "../assets/images/default_img.png";
 
 function Pay() {
@@ -66,9 +67,25 @@ function Pay() {
         }
     }, [eventData, eventId, selectedTickets, navigate]);
 
-    const handleTimeout = () => {
-        alert("Đã hết thời gian giữ vé. Giao dịch đã bị hủy!");
-        navigate(`/about-event/${eventId}`);
+    const handleTimeout = async () => {
+        try {
+            const ticketIdsToRelease = selectedTickets.flatMap(t => 
+                Array(t.quantity).fill(t.id || t.ticketTypeId)
+            );
+
+            console.log("Hết giờ! Đang trả vé về kho:", ticketIdsToRelease);
+
+            await ticketService.incrementStock(ticketIdsToRelease);
+
+            alert("Đã hết thời gian thanh toán (20 phút). Vé đã được hủy.");
+        } catch (error) {
+            console.error("Lỗi khi trả vé:", error);
+            alert("Hết thời gian thanh toán. Giao dịch đã bị hủy.");
+        } finally {
+            localStorage.removeItem(`booking_deadline_${eventId}`);
+        
+            navigate(`/about-event/${eventId}`);
+        }
     };
 
     const token = localStorage.getItem("token");

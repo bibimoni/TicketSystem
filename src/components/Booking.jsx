@@ -5,6 +5,7 @@ import { BsTicketPerforatedFill } from "react-icons/bs";
 import { Minus, Plus, InfoIcon } from "lucide-react";
 
 import BackButton from "../components/BackButton";
+import Loader from "./TicketLoader";
 
 import eventService from "../services/eventService";
 
@@ -21,6 +22,7 @@ const Booking = () => {
     const fetchEvent = async () => {
       try {
         const response = await eventService.getEventById(eventId);
+        console.log("API return:", response);
         const data = response.data || response;
 
         if (data) {
@@ -41,7 +43,7 @@ const Booking = () => {
   const handleIncrement = (index) => {
     const newQuantities = [...quantities];
     const ticket = eventData.ticketTypes[index];
-    if (ticket.amount !== undefined && newQuantities[index] >= ticket.amount) {
+    if (ticket.remaining !== undefined && newQuantities[index] >= ticket.remaining) {
       return;
     }
     newQuantities[index] += 1;
@@ -73,7 +75,9 @@ const Booking = () => {
     navigate(`/question-form/${eventId}`, { state: { selectedTickets, eventData } });
   };
 
-  if (loading) return <div className="text-center py-10 font-bold text-primary">Đang tải thông tin vé...</div>;
+  if (loading) return (
+    <Loader text="Đang tải thông tin vé..." height="100vh" />
+  );
   if (!eventData) return <div className="text-center py-10 text-primary font-bold">Sự kiện không tồn tại</div>;
 
   const ticketTypes = eventData.ticketTypes || [];
@@ -103,7 +107,7 @@ const Booking = () => {
                 <div className="space-y-4">
                   {ticketTypes.map((ticket, index) => {
 
-                    const isSoldOut = ticket.amount <= 0;
+                    const isSoldOut = ticket.remaining <= 0;
 
                     return (
                       <div
@@ -119,7 +123,7 @@ const Booking = () => {
                               {formatPrice(ticket.price)}
                             </p>
                             <p className="text-xs italic text-gray-500 mt-1">
-                              Còn lại: {ticket.amount} vé
+                              Còn lại: {ticket.remaining} vé
                             </p>
                           </div>
 

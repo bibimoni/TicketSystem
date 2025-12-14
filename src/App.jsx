@@ -12,6 +12,8 @@ import Pay from "./pages/Pay";
 import MyProfile from "./pages/MyProfile";
 import MyTicket from "./pages/MyTicket";
 import GoogleCallback from "./pages/GoogleCallback";
+import PayingSuccess from "./pages/PayingSuccess";
+import PayingCancel from "./pages/PayingCancel";
 
 import EventPage1 from './createEvents/EventPage1/EventPage1.jsx'; 
 import EventPage2 from './createEvents/EventPage2/EventPage2.jsx';
@@ -61,6 +63,8 @@ function App() {
       <Route path="/pay/:eventId" element={<Pay />} />
       <Route path="/my-profile" element={<MyProfile />} />
       <Route path="/my-ticket" element={<MyTicket />} />
+      <Route path="/checkout/success" element={<PayingSuccess/>} />
+      <Route path="/checkout/cancel" element={<PayingCancel/>} />
 
       {/* === ROUTE CỦA USER=== */}
         <Route path="/tao-su-kien/buoc-1" element={<EventPage1 />} />

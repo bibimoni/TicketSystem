@@ -3,7 +3,7 @@ import axiosClient from './axiosClient';
 
 const transactionService = {
     // Tạo phiên thanh toán
-    checkout(data) {
+     checkout(data) {
         return axiosClient.post('/transaction/checkout', data);
     },
 

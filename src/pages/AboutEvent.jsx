@@ -8,12 +8,13 @@ import Footer from "../components/Footer";
 import TicketDetail from "../components/TicketDetail";
 import Info from "../components/Info";
 import MoreEvent from "../components/MoreEvent";
+import Loader from "../components/TicketLoader";
 
 import eventService from "../services/eventService";
 import defaultImage from "../assets/images/default_img.png";
 
 function AboutEvent() {
-    const { eventId } = useParams(); // Lấy eventID
+    const { eventId } = useParams();
     const [event, setEvent] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -25,7 +26,6 @@ function AboutEvent() {
 
                 const evtData = response.data || response;
 
-                // Xử lý dữ liệu
                 const processedEvent = {
                     id: evtData.id,
                     title: evtData.name,
@@ -37,7 +37,7 @@ function AboutEvent() {
                     organizer_information: evtData.organizer_information || "Đối tác chính thức của TickeZ.",
                     event_picture: evtData.event_picture_url || defaultImage,
                     event_banner: evtData.event_banner_url|| defaultImage,
-                    ticketTypes: evtData.ticketTypes || [] // Danh sách loại vé
+                    ticketTypes: evtData.ticketTypes || [] 
                 };
 
                 setEvent(processedEvent);
@@ -53,7 +53,9 @@ function AboutEvent() {
         }
     }, [eventId]);
 
-    if (loading) return <div className="min-h-screen flex items-center justify-center text-xl font-bold text-primary">Đang tải thông tin...</div>;
+    if (loading) return(
+        <Loader text="Đang tải sự kiện..." height="100vh"/>
+    );
     if (!event) return <div className="min-h-screen flex items-center justify-center text-xl text-primary">Không tìm thấy sự kiện!</div>;
 
     return (

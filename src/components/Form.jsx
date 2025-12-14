@@ -31,55 +31,58 @@ const Form = ({ eventData, selectedTickets }) => {
                 <section className="relative col-span-8 translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:200ms] mr-4">
                     <div className="bg-secondary rounded-[10px] border-none shadow-md">
                         <div className="p-0">
-                            <div className="bg-[#d9d9d9] rounded-t-[5px] p-6">
-                                <h2 className="font-extrabold text-primary text-xl text-center mb-6">
-                                    VUI LÒNG ĐIỀN THÔNG TIN
-                                </h2>
+                            <div className="bg-secondary p-6">
+                                <div className="p-8">
+                                    <h2 className="font-extrabold text-white text-xl text-center mb-8">VUI LÒNG ĐIỀN THÔNG TIN</h2>
+                                    <div className="">
+                                        <div className="bg-gray-200 rounded-t-[5px] p-6">
+                                            <div className="flex items-start gap-3 ">
+                                                <div className="flex flex-col gap-2">
+                                                    <p className="font-bold text-secondary text-base">
+                                                        Bạn đã đọc và hoàn toàn đồng ý "Điều khoản và điều kiện" của chương trình?
+                                                    </p>
 
-                                <div className="space-y-4">
-                                    <div className="flex items-start gap-3">
-                                        <div className="flex flex-col gap-2">
-                                            <p className="font-bold text-secondary text-base">
-                                                Bạn đã đọc và hoàn toàn đồng ý "Điều khoản và điều kiện" của chương trình?
-                                            </p>
+                                                    <label htmlFor="terms" className="flex items-center gap-2 cursor-pointer">
+                                                        <input
+                                                            type="checkbox"
+                                                            id="terms"
+                                                            className="w-4 h-4 mt-0.5 accent-primary"
+                                                            onChange={() => setTermsChecked(!termsChecked)}
+                                                        />
+                                                        <p className="font-semibold text-secondary text-base">
+                                                            Tôi đã đọc và đồng ý / Have you read & agree
+                                                        </p>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
 
-                                            <label htmlFor="terms" className="flex items-center gap-2 cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    id="terms"
-                                                    className="w-4 h-4 mt-0.5 accent-primary"
-                                                    onChange={() => setTermsChecked(!termsChecked)}
-                                                />
-                                                <p className="font-semibold text-secondary text-base">
-                                                    Tôi đã đọc và đồng ý / Have you read & agree
-                                                </p>
-                                            </label>
+                                        <div className="bg-white rounded-b-[5px] p-6">
+                                            <div className="flex items-start gap-3">
+                                                <div className="flex flex-col gap-2">
+                                                    <p className="font-bold text-secondary text-base">
+                                                        Tôi đồng ý TickeZ. & BTC sử dụng thông tin đặt vé nhằm mục đích vận hành sự kiện.
+                                                    </p>
+
+                                                    <label htmlFor="consent" className="flex items-center gap-2 cursor-pointer">
+                                                        <input
+                                                            type="checkbox"
+                                                            id="consent"
+                                                            className="w-4 h-4 mt-0.5 accent-primary"
+                                                            onChange={() => setConsentChecked(!consentChecked)}
+                                                        />
+                                                        <p className="font-semibold text-secondary text-base">
+                                                            Có/Yes
+                                                        </p>
+                                                    </label>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="bg-white rounded-b-[5px] p-6">
-                                <div className="flex items-start gap-3">
-                                    <div className="flex flex-col gap-2">
-                                        <p className="font-bold text-secondary text-base">
-                                            Tôi đồng ý TickeZ. & BTC sử dụng thông tin đặt vé nhằm mục đích vận hành sự kiện.
-                                        </p>
 
-                                        <label htmlFor="consent" className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                id="consent"
-                                                className="w-4 h-4 mt-0.5 accent-primary"
-                                                onChange={() => setConsentChecked(!consentChecked)}
-                                            />
-                                            <p className="font-semibold text-secondary text-base">
-                                                Có/Yes
-                                            </p>
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </section>

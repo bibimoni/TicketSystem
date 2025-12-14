@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 import defaultImage from "../assets/images/default_img.png";
 
 const TicketDetail = ({ pageType, eventData, onTimeout }) => {
-    const [remainingTime, setRemainingTime] = useState(20 * 60);
+    const [remainingTime, setRemainingTime] = useState(20* 60);
 
     useEffect(() => {
         if (pageType !== "confirmation") return;
@@ -120,7 +120,7 @@ const TicketDetail = ({ pageType, eventData, onTimeout }) => {
 
                 </div>
 
-                {/* Bán nguyệt + đường nét đứt */}
+                {/* Bán nguyệt */}
                 <div className="absolute left-[41.5%] top-0 h-full flex flex-col justify-between items-center z-20">
                     <div className="w-[65px] h-[65px] -ml-8 -mt-8 rounded-full bg-gray-100  z-40" />
                     <div className="absolute top-0 bottom-0 -ml-7">

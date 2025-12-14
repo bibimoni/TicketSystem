@@ -92,7 +92,7 @@ const Info = ({ eventData }) => {
                                     const isFirst = index === 0;
                                     const isLast = index === eventData.ticketTypes.length - 1;
                                     const isOpen = openItem === ticket.id;
-                                    const isSoldOut = ticket.amount <= 0;
+                                    const isSoldOut = ticket.remaining <= 0;
 
                                     return (
                                         <div key={ticket.id} className="border-0">

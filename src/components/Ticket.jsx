@@ -70,29 +70,25 @@ function Ticket() {
         fetchData();
     }, []);
 
-    // SỬA: Cập nhật key status khớp với API (SUCCESS thay vì PAID)
     const statusTabs = [
         { key: "all", label: "Tất cả" },
         { key: "SUCCESS", label: "Thành công" },
-        { key: "PENDING", label: "Chờ xử lý" }, // Giả định API trả về PENDING nếu chưa xong
-        { key: "CANCELLED", label: "Đã hủy" },  // Giả định API trả về CANCELLED hoặc FAILED
+        { key: "PENDING", label: "Chờ xử lý" }, 
+        { key: "CANCELLED", label: "Đã hủy" }, 
     ];
 
     const filteredTickets = tickets.filter((t) => {
         // Lọc theo Status
         const matchStatus = statusTab === "all" ? true : t.status === statusTab;
 
-        // Lọc theo Thời gian (Sắp diễn ra / Đã kết thúc)
+        // Lọc theo Thời gian
         let matchTime = true;
         if (t.eventTime) {
             const eventDate = new Date(t.eventTime);
             const now = new Date();
-            // Nếu eventDate > now => Sắp diễn ra
-            // Nếu eventDate < now => Đã kết thúc
             if (timeTab === "coming") matchTime = eventDate >= now;
             if (timeTab === "ended") matchTime = eventDate < now;
         } else {
-            // Nếu không có ngày giờ, mặc định hiện ở tab Sắp diễn ra
             matchTime = (timeTab === "coming");
         }
 
@@ -136,7 +132,7 @@ function Ticket() {
             <section className="flex-1 mr-10">
                 <h1 className="font-bold text-primary text-[32px] mb-4">VÉ CỦA TÔI</h1>
 
-                {/* OUTER TAB: Status */}
+                {/* OUTER TAB */}
                 <div className="flex w-full bg-white p-1 rounded-full mb-4 shadow-sm border border-gray-200">
                     {statusTabs.map((t) => (
                         <button
@@ -152,7 +148,7 @@ function Ticket() {
                 </div>
 
                 <div className="w-full bg-white p-4 rounded-xl shadow-sm mb-6 min-h-[500px]">
-                    {/* INNER TAB: Time */}
+                    {/* INNER TAB */}
                     <div className="flex w-full mb-6 border-b border-gray-100">
                         <button
                             onClick={() => setTimeTab("coming")}
@@ -176,7 +172,7 @@ function Ticket() {
                     {/* TICKET LIST */}
                     <div className="flex flex-col gap-6 mx-2">
                         {loading ? (
-                            <div className="text-center py-10 text-gray-500">Đang tải dữ liệu...</div>
+                            <div className="text-center py-10 text-primary">Đang tải dữ liệu...</div>
                         ) : filteredTickets.length > 0 ? (
                             filteredTickets.map((ticket, idx) => (
                                 <TicketItem key={ticket.id || idx} ticket={ticket} mode={timeTab} />
@@ -184,7 +180,7 @@ function Ticket() {
                         ) : (
                             <div className="relative flex flex-col items-center justify-center gap-3 py-10">
                                 <img
-                                    className="w-[200px] h-[100px] object-contain opacity-50 grayscale"
+                                    className="w-[300px] h-[180px] object-cover opacity-50 rounded-full"
                                     src={logo}
                                     alt="empty"
                                 />
@@ -195,7 +191,7 @@ function Ticket() {
                                 </div>
                                 <button 
                                     onClick={() => navigate('/')}
-                                    className="mt-4 bg-primary text-white text-sm font-bold py-3 px-8 rounded-full transition hover:bg-opacity-90 shadow-md"
+                                    className="bg-primary text-white text-lg border-[3px] border-primary hover:bg-white hover:text-primary font-bold py-3 px-10 rounded-full transition-all duration-300"
                                 >
                                     MUA VÉ NGAY
                                 </button>

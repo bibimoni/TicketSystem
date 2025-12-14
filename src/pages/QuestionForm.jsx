@@ -83,7 +83,7 @@ function QuestionForm() {
             <HeaderBar />
 
             <TicketDetail
-                pageType="confirmation"
+                pageType="event"
                 eventData={eventData}
                 onTimeout={handleTimeout}
             />

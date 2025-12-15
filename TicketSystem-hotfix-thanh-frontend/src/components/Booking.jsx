@@ -23,7 +23,7 @@ const Booking = () => {
     const fetchEvent = async () => {
       try {
         const response = await eventService.getEventById(eventId);
-        console.log("API return:", response);
+        // console.log("API return:", response);
         const data = response.data || response;
 
         if (data) {

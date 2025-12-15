@@ -11,7 +11,7 @@ import Loader from "../components/TicketLoader";
 
 import eventService from "../services/eventService";
 import defaultImage from "../assets/images/default_img.png";
-import bgImage from "/src/assets/images/bg.jpg"; 
+import bgImage from "/src/assets/images/bg.jpg";
 
 function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -63,21 +63,22 @@ function Home() {
   }, [events]);
 
   if (loading) return (
-    <Loader text="Đang tải sự kiện..." height="100vh"/>
-    
+    <Loader text="Đang tải sự kiện..." height="100vh" />
+
   );
 
   return (
     <div className="bg-home relative min-h-screen isolate">
-      <div 
+      <div
         className="fixed inset-0 -z-20 w-full h-full"
         style={{
-            backgroundImage: `url(${bgImage})`,
-            backgroundSize: 'cover'
+          backgroundImage: `url(${bgImage})`,
+          backgroundSize: 'cover',
+          filter: "blur(2px)",
         }}
       ></div>
 
-      <div className="absolute inset-0 bg-black/20 backdrop-blur-sm -z-10"></div>
+      <div className="absolute inset-0 bg-black/10 -z-10"></div>
 
       <div className="relative z-10 flex flex-col min-h-screen">
         <HeaderBar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
@@ -131,8 +132,8 @@ function Home() {
           gap={30}
         />
 
-        <Footer/>
-      </div> 
+        <Footer />
+      </div>
     </div>
   );
 }

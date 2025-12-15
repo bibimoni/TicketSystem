@@ -42,7 +42,7 @@ function AboutEvent() {
 
                 setEvent(processedEvent);
             } catch (error) {
-                console.error("Lỗi tải chi tiết sự kiện:", error);
+                // console.error("Lỗi tải chi tiết sự kiện:", error);
             } finally {
                 setLoading(false);
             }

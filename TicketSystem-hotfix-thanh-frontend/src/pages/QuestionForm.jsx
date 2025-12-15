@@ -1,6 +1,7 @@
 // src/pages/QuestionForm.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 import HeaderBar from "../components/HeaderBar";
 import Footer from "../components/Footer";
@@ -29,7 +30,7 @@ function QuestionForm() {
         const token = localStorage.getItem("token");
         if (!token) {
             if (!hasCheckedAuth.current) {
-                alert("Vui lòng đăng nhập để tiếp tục!");
+                toast.warn("Vui lòng đăng nhập để tiếp tục!");
                 hasCheckedAuth.current = true;
             }
             navigate("/");
@@ -37,7 +38,7 @@ function QuestionForm() {
         }
 
         if (selectedTickets.length === 0) {
-            alert("Không tìm thấy thông tin vé đã chọn. Vui lòng chọn vé lại.");
+            toast.error("Không tìm thấy thông tin vé đã chọn. Vui lòng chọn vé lại.");
             navigate(`/booking/${eventId}`);
             return;
         }
@@ -69,7 +70,7 @@ function QuestionForm() {
     }, [eventData, eventId, selectedTickets, navigate]);
 
     const handleTimeout = () => {
-        alert("Hết thời gian thao tác. Vui lòng chọn vé lại.");
+        toast.error("Hết thời gian thao tác. Vui lòng chọn vé lại.");
         navigate(`/booking/${eventId}`);
     };
 

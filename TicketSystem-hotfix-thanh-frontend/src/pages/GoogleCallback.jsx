@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axiosClient from '../services/axiosClient';
+import { toast } from "react-toastify";
 
 function GoogleCallback() {
     const location = useLocation();
@@ -12,7 +13,7 @@ function GoogleCallback() {
             const code = params.get('code');
 
             if (!code) {
-                alert("Không tìm thấy mã xác thực Google!");
+                toast.error("Không tìm thấy mã xác thực Google!");
                 navigate('/');
                 return;
             }

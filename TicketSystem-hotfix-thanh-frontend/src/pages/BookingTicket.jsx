@@ -1,6 +1,7 @@
 // src/pages/BookingTicket.js
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 import HeaderBar from "../components/HeaderBar";
 import Footer from "../components/Footer";
@@ -13,7 +14,7 @@ function BookingTicket() {
         const token = localStorage.getItem("token");
 
         if (!token) {
-            alert("Vui lòng đăng nhập để mua vé!");
+            toast.error("Vui lòng đăng nhập để mua vé!");
             navigate("/");
         }
     }, [navigate]);

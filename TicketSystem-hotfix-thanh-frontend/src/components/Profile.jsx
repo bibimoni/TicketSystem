@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { CameraIcon, User, Ticket, Calendar } from "lucide-react";
+import { toast } from "react-toastify";
 
 import userService from "../services/userService";
 
@@ -71,7 +72,7 @@ function Profile() {
         } catch (err) {
             // console.error(err);
             if (err.response && err.response.status === 401) {
-                alert("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
+                toast.error("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
                 localStorage.removeItem("token");
                 navigate("/");
             } else {
@@ -113,15 +114,17 @@ function Profile() {
 
             await userService.updateProfile(body);
             await fetchProfile(); 
-            alert("Cập nhật thành công!");
+            toast.success("Cập nhật thành công!");
         } catch (err) {
             // console.error(err);
             if (err.response && err.response.status === 401) {
-                alert("Phiên đăng nhập hết hạn.");
+                toast.error("Phiên đăng nhập hết hạn.");
                 localStorage.removeItem("token");
                 navigate("/");
             } else {
-                setError(err.response?.data?.message || "Cập nhật thất bại");
+                const errorMsg = err.response?.data?.message || "Cập nhật thất bại";
+                setError(errorMsg);
+                toast.error(errorMsg);
             }
         } finally {
             setUpdating(false);
@@ -150,11 +153,11 @@ function Profile() {
         } catch (err) {
             // console.error("Lỗi upload ảnh:", err);
             if (err.response && err.response.status === 401) {
-                alert("Phiên đăng nhập hết hạn.");
+                toast.error("Phiên đăng nhập hết hạn.");
                 localStorage.removeItem("token");
                 navigate("/");
             } else {
-                alert("Upload ảnh thất bại!");
+                toast.error("Upload ảnh thất bại!");
             }
         } finally {
             setIsUploadingAvatar(false);

@@ -1,6 +1,7 @@
 // src/pages/Pay.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 import HeaderBar from "../components/HeaderBar";
 import Footer from "../components/Footer";
@@ -30,7 +31,7 @@ function Pay() {
         const token = localStorage.getItem("token");
         if (!token) {
 
-            alert("Vui lòng đăng nhập để thực hiện thanh toán!");
+            toast.error("Vui lòng đăng nhập để thực hiện thanh toán!");
 
             navigate("/");
             return;
@@ -73,14 +74,14 @@ function Pay() {
                 Array(t.quantity).fill(t.id || t.ticketTypeId)
             );
 
-            console.log("Hết giờ! Đang trả vé về kho:", ticketIdsToRelease);
+            // console.log("Hết giờ! Đang trả vé về kho:", ticketIdsToRelease);
 
             await ticketService.incrementStock(ticketIdsToRelease);
 
-            alert("Đã hết thời gian thanh toán (20 phút). Vé đã được hủy.");
+            toast.warn("Đã hết thời gian thanh toán (20 phút). Vé đã được hủy.");
         } catch (error) {
             console.error("Lỗi khi trả vé:", error);
-            alert("Hết thời gian thanh toán. Giao dịch đã bị hủy.");
+            toast.error("Hết thời gian thanh toán. Giao dịch đã bị hủy.");
         } finally {
             localStorage.removeItem(`booking_deadline_${eventId}`);
         

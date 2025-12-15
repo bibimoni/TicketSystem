@@ -46,3 +46,19 @@ body,
 .mybg {
   @apply bg-gradient-to-r from-primary to-myred;
 }
+:root {
+  --toastify-color-success: #33bc8e; 
+  --toastify-color-warning: #e4a73e; 
+  --toastify-color-error: #BE300A;   
+  --toastify-color-info: #0e5ddc;    
+  
+  --toastify-toast-width: 300px;
+ 
+  --toastify-color-progress-success: #10b981;
+  --toastify-color-progress-error: #ef4444;
+}
+.Toastify__toast {
+  font-family: "Montserrat", system-ui, sans-serif;
+  font-size: 13px;
+  border-radius: 13px;
+}

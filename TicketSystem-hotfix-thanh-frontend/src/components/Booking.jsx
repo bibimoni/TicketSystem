@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { BsTicketPerforatedFill } from "react-icons/bs";
 import { Minus, Plus, InfoIcon } from "lucide-react";
+import { toast } from "react-toastify";
 
 import BackButton from "../components/BackButton";
 import Loader from "./TicketLoader";
@@ -31,6 +32,7 @@ const Booking = () => {
           setQuantities(new Array(types.length).fill(0));
         }
       } catch (error) {
+        toast.error("Không thể tải thông tin sự kiện. Vui lòng thử lại sau!");
         // console.error("Lỗi tải thông tin sự kiện:", error);
       } finally {
         setLoading(false);
@@ -44,6 +46,7 @@ const Booking = () => {
     const newQuantities = [...quantities];
     const ticket = eventData.ticketTypes[index];
     if (ticket.remaining !== undefined && newQuantities[index] >= ticket.remaining) {
+      toast.info(`Chỉ còn lại ${ticket.remaining} vé cho hạng này!`);
       return;
     }
     newQuantities[index] += 1;
@@ -59,7 +62,8 @@ const Booking = () => {
   const handleContinue = () => {
     const totalTickets = quantities.reduce((sum, qty) => sum + qty, 0);
     if (totalTickets === 0) {
-      alert("Vui lòng chọn ít nhất 1 vé!");
+      // alert("Vui lòng chọn ít nhất 1 vé!");
+      toast.warn("Bạn chưa chọn vé nào. Vui lòng chọn ít nhất 1 vé!");
       return;
     }
 

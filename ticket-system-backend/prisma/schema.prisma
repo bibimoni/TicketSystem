@@ -140,6 +140,8 @@ model Transaction {
   status               transaction_status        @default(PENDING)
   price_before_voucher Float
   total_price          Float
+  event_id             String                    @db.ObjectId
+  ticket_count         Int                       @default(0)
   customer_id          String                    @db.ObjectId
   customer             Customer                  @relation(fields: [customer_id], references: [id])
   tickets              TransactionHasTicket[]

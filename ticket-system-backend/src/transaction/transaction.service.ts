@@ -4,6 +4,7 @@ import { StripeService } from "src/stripe/stripe.service";
 import { CheckoutIntentDto } from "./dto/create-transaction.dto";
 import { PublicTransactionResponseDto } from "./dto/public-transaction.dto";
 import { transaction_status } from "generated/prisma";
+import { CancelPendingTransactionDto } from "./dto/cancel-pending.dto";
 
 @Injectable()
 export class TransactionService {
@@ -356,6 +357,64 @@ export class TransactionService {
         }
         : undefined,
     }));
+  }
+
+  async cancelPendingByCustomer(customerId: string, dto: CancelPendingTransactionDto) {
+    const { transactionId, ticketTypeIds } = dto;
+
+    const countMap: Record<string, number> = {};
+    if (ticketTypeIds?.length) {
+      for (const id of ticketTypeIds) countMap[id] = (countMap[id] ?? 0) + 1;
+    }
+    const uniqueTypeIds = Object.keys(countMap);
+
+    return this.prisma.$transaction(async (tx) => {
+      const whereTrx: any = {
+        customer_id: customerId,
+        status: 'PENDING',
+      };
+      if (transactionId) whereTrx.id = transactionId;
+
+      const pending = await tx.transaction.findMany({
+        where: whereTrx,
+        select: { id: true },
+      });
+
+      if (pending.length === 0) {
+        return { deletedTransactions: 0, restoredRemaining: 0 };
+      }
+
+      const trxIds = pending.map(t => t.id);
+
+      await tx.transactionApplyVoucher.deleteMany({
+        where: { transaction_id: { in: trxIds } },
+      });
+
+      await tx.transactionHasTicket.deleteMany({
+        where: { transaction_id: { in: trxIds } },
+      });
+
+      let restoredRemaining = 0;
+      if (uniqueTypeIds.length > 0) {
+        for (const typeId of uniqueTypeIds) {
+          const qty = countMap[typeId];
+          await tx.ticketType.update({
+            where: { id: typeId },
+            data: { remaining: { increment: qty } },
+          });
+          restoredRemaining += qty;
+        }
+      }
+
+      const del = await tx.transaction.deleteMany({
+        where: { id: { in: trxIds } },
+      });
+
+      return {
+        deletedTransactions: del.count,
+        restoredRemaining,
+      };
+    });
   }
 }
 

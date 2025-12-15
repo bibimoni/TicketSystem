@@ -169,14 +169,25 @@ export class TicketService {
     return { message: `Ticket ${qrData.code} marked as USED successfully.` };
   }
 
-    async addTicketRemaining(ticketTypeIds: string[]) {
-      await this.prisma.$transaction(async (tx) => {
-        await tx.ticketType.updateMany({
-          where: { id: { in: ticketTypeIds } },
-          data: { remaining: { increment: 1 } }
-        });
+  async addTicketRemaining(ticketTypeIds: string[]) {
+    await this.prisma.$transaction(async (tx) => {
+      await tx.ticketType.updateMany({
+        where: { id: { in: ticketTypeIds } },
+        data: { remaining: { increment: 1 } }
       });
-  
-      return { message: "successful" }
-    }
+    });
+
+    return { message: "successful" }
+  }
+
+  async subtractTicketRemaining(ticketTypeIds: string[]) {
+    await this.prisma.$transaction(async (tx) => {
+      await tx.ticketType.updateMany({
+        where: { id: { in: ticketTypeIds } },
+        data: { remaining: { decrement: 1 } }
+      });
+    });
+
+    return { message: "successful" }
+  }
 }

@@ -3,9 +3,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { compare, genSalt, hash } from 'bcrypt-ts';
 import { JwtService } from '@nestjs/jwt';
 import { CustomerService } from 'src/customer/customer.service';
-import { randomBytes } from 'crypto';
 import { UserService } from 'src/user/user.service';
-
 
 @Injectable()
 export class AuthService {

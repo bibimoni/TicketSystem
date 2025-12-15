@@ -7,6 +7,7 @@ import { AuthGuard, GoogleAuthGuard, GoogleStrategy } from './auth.guard';
 import { AdminGuard } from './admin.guard';
 import { CustomerModule } from 'src/customer/customer.module';
 import { PassportModule } from '@nestjs/passport';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { PassportModule } from '@nestjs/passport';
     }),
     PassportModule.register({ defaultStrategy: 'google' }),
     CustomerModule,
+    UserModule
   ],
   controllers: [AuthController],
   providers: [AuthService, AuthGuard, AdminGuard, GoogleStrategy, GoogleAuthGuard],

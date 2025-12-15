@@ -163,6 +163,7 @@ const basePayload = {
     id: eventId, 
     name: eventData.eventName || "Sự kiện mới",
     event_picture_url: finalPoster, 
+    event_banner_url: finalBanner, 
     organizer_logo: logoUrl,
     information: combinedInformation, 
     organizer: eventData.organizerName || "BTC",

@@ -73,7 +73,7 @@ const OrganizerHeader = () => {
   return (
     <div className="absolute top-0 left-[272px] right-0 h-20 flex gap-[11px] bg-white shadow-[0px_4px_4px_#00000040]">
         {/* NÚT TẠO SỰ KIỆN */}
-        <div className="mt-[17px] w-[102px] h-[45px] relative ml-auto mr-8">
+        <div className="mt-[17px] w-[102px] h-[45px] relative ml-auto mr-8 z-50">
             <button
                 onClick={() => navigate('/tao-su-kien/buoc-1')} 
                 className="flex items-center justify-center w-[108px] h-[45px] rounded-full bg-[#FF5331] text-white text-xs font-semibold shadow-md border-none outline-none hover:bg-[#e04020] transition-colors cursor-pointer"
@@ -83,7 +83,7 @@ const OrganizerHeader = () => {
         </div>
 
         {/* THÔNG TIN USER */}
-        <div className="relative flex items-center h-full ml-4"> 
+        <div className="relative flex items-center h-full ml-4 z-50"> 
              <div className="text-right hidden md:block mr-3">
                 <p className="text-sm font-bold text-gray-800 leading-none mb-0.5">
                     {userInfo.fullName}

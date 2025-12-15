@@ -72,7 +72,7 @@ export const EventDetailLayout = ({ isAdmin = false }) => {
     <div className="bg-[#d9d9d9] overflow-hidden border border-solid border-[#d9d9d9] w-full min-w-[1440px] min-h-[1905px] relative">
       <div className="absolute top-[72px] left-[267px] right-0 h-[1439px] bg-[#fff8f7]" />
       {/* Tiêu đề sự kiện - Đã lấy từ API */}
-      <div className="absolute top-[29px] left-[306px] w-auto min-w-[203px] [font-family:font-poppins font-extrabold,Helvetica] font-black italic text-[#f94f2f] text-xl text-center tracking-[0] leading-[normal] z-[10]">
+      <div className="absolute top-[29px] left-[306px] w-auto max-w-[600px] whitespace-normal break-words [font-family:font-poppins font-extrabold,Helvetica] font-black italic text-[#f94f2f] text-xl text-left tracking-[0] leading-tight z-[10]">
         {event ? event.eventName : 'Đang tải...'}
       </div>
       
@@ -98,17 +98,6 @@ export const EventDetailLayout = ({ isAdmin = false }) => {
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; center
       </div>
 
-      {/* Header */}
-      {!isAdmin && (
-          <div className="mt-[17px] w-[102px] h-[45px] relative ml-[989px]">
-          <button
-              onClick={() => navigate('/')} 
-              className="flex items-center justify-center w-[108px] h-[45px] rounded-full bg-[#FF5331] text-white text-xs font-semibold [font-family:'Montserrat-SemiBold',Helvetica] shadow-[0_4px_8px_rgba(0,0,0,0.25)] border-none outline-none"
-          >
-              Tạo sự kiện
-          </button>
-          </div>
-      )}
 
       {isAdmin ? <AdminHeader /> : <OrganizerHeader />}
 

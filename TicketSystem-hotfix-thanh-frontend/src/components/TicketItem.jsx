@@ -39,12 +39,30 @@ function TicketItem({ ticket, mode }) {
             case "PENDING":
                 return "border-yellow-500 text-yellow-500 bg-white";
             case "CANCELLED":
+                return "border-red-500 text-red-500 bg-white";
             case "FAILED":
                 return "border-red-500 text-red-500 bg-white";
             default:
                 return "border-gray-200 text-white";
         }
     };
+
+    const groupedItems = React.useMemo(() => {
+        if (!ticket.items) return [];
+        
+        const groupedMap = ticket.items.reduce((acc, item) => {
+            const key = item.ticketTypeName;
+            
+            if (acc[key]) {
+                acc[key].quantity += item.quantity;
+            } else {
+                acc[key] = { ...item };
+            }
+            return acc;
+        }, {});
+
+        return Object.values(groupedMap);
+    }, [ticket.items]);
 
     return (
         <div className="grid grid-cols-12 shadow-sm transition-all duration-300 p-0 rounded-2xl mybg relative overflow-hidden text-white group min-h-[180px]">
@@ -75,8 +93,8 @@ function TicketItem({ ticket, mode }) {
                     <div className="space-y-2">
                         <div className="text-xs text-white uppercase font-bold">Loại vé</div>
                         <div className="flex flex-col gap-1">
-                            {ticket.items && ticket.items.length > 0 ? (
-                                ticket.items.map((item, i) => {
+                            {groupedItems && groupedItems.length > 0 ? (
+                                groupedItems.map((item, i) => {
                                     const itemPrice = item.ticketPrice
                                         ? Number(item.ticketPrice).toLocaleString("vi-VN") + " đ" 
                                         : "0 đ";

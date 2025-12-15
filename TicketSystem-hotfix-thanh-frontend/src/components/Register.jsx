@@ -36,7 +36,7 @@ export default function RegisterModal({ isOpen, onClose, setIsLoggedIn, openLogi
         try {
             await authService.register({
                 email,
-                username,
+                username,   
                 password
             });
 

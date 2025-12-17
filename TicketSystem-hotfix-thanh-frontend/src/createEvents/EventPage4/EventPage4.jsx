@@ -18,7 +18,7 @@ import rectangle53 from "../../Elements/rectangle-53.svg";
 import rectangle56 from "../../Elements/rectangle-56.svg";
 import rectangle57 from "../../Elements/rectangle-57.svg";
 import rectangle58 from "../../Elements/rectangle-58.svg";
-import { useAuth } from '../../context/AuthContext';
+
 
 // --- CẤU HÌNH API ---
 const API_BASE_URL = 'https://ticket-system-backend-pkuf.onrender.com';

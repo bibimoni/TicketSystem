@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { IoChevronBackOutline } from 'react-icons/io5';
 import axios from 'axios';
-import { useAuth } from '../context/AuthContext';
 
 // --- CẤU HÌNH API ---
 const API_BASE_URL = 'https://ticket-system-backend-pkuf.onrender.com';

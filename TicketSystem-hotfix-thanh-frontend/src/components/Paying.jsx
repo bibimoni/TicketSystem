@@ -14,34 +14,8 @@ const Paying = ({ eventData, selectedTickets, onStartPayment }) => {
   const [showVoucherModal, setShowVoucherModal] = useState(false);
   const [availableVouchers, setAvailableVouchers] = useState([]);
   const [appliedVoucher, setAppliedVoucher] = useState(null);
-  const [loadingVouchers, setLoadingVouchers] = useState(false);
   const [voucherCode, setVoucherCode] = useState("");
   const [voucherError, setVoucherError] = useState("");
-
-  const fetchVouchers = async () => {
-    if (!eventData?.id) return;
-    setLoadingVouchers(true);
-    try {
-      const allVouchers = await transactionService.getAllVouchers();
-      const now = new Date();
-      const validList = allVouchers.filter((v) => {
-        const startDate = new Date(v.start_date);
-        const endDate = new Date(v.end_date);
-        const isMatchEvent = v.event_id === eventData.id;
-        const isValidDate = now >= startDate && now <= endDate;
-        return isMatchEvent && isValidDate;
-      });
-      setAvailableVouchers(validList);
-    } catch (error) {
-      console.error("Lỗi tải voucher:", error);
-    } finally {
-      setLoadingVouchers(false);
-    }
-  };
-
-  // useEffect(() => {
-  //   fetchVouchers();
-  // }, [eventData]);
 
   const subTotal = selectedTickets.reduce((sum, ticket) => {
     let priceNumber = ticket.price;
@@ -50,6 +24,42 @@ const Paying = ({ eventData, selectedTickets, onStartPayment }) => {
     }
     return sum + priceNumber * ticket.quantity;
   }, 0);
+
+ 
+  const fetchVouchers = () => {
+    const sourceVouchers = eventData?.vouchers || [];
+    
+    if (sourceVouchers.length === 0) {
+      setAvailableVouchers([]);
+      return;
+    }
+
+    const now = new Date();
+    
+    const validList = sourceVouchers.filter((v) => {
+      const startDate = new Date(v.start_date);
+      const endDate = new Date(v.end_date);
+      const isValidDate = now >= startDate && now <= endDate;
+      // v.price trong JSON đóng vai trò là số tiền tối thiểu để áp dụng voucher
+      const minOrderPrice = v.price || 0; 
+      const isMinPriceMet = subTotal >= minOrderPrice;
+
+      return isValidDate && isMinPriceMet;
+    });
+
+    setAvailableVouchers(validList);
+  };
+
+  useEffect(() => {
+    fetchVouchers();
+    if (appliedVoucher) {
+        const minPrice = appliedVoucher.price || 0;
+        if (subTotal < minPrice) {
+            setAppliedVoucher(null);
+            toast.warning(`Voucher ${appliedVoucher.code} đã bị gỡ do không đủ điều kiện đơn hàng tối thiểu.`);
+        }
+    }
+  }, [eventData, subTotal, showVoucherModal]);
 
   let discountAmount = 0;
   if (appliedVoucher) {
@@ -65,10 +75,7 @@ const Paying = ({ eventData, selectedTickets, onStartPayment }) => {
 
   const handleOpenVoucherModal = () => {
     setShowVoucherModal(true);
-
-    if (availableVouchers.length === 0) {
-      fetchVouchers();
-    }
+    fetchVouchers(); 
   };
 
   const handleSelectVoucher = (voucher) => {
@@ -82,8 +89,7 @@ const Paying = ({ eventData, selectedTickets, onStartPayment }) => {
     setVoucherCode("");
   };
 
-const handlePayment = async () => {
-
+  const handlePayment = async () => {
     if (onStartPayment) {
         onStartPayment();
     }
@@ -118,10 +124,7 @@ const handlePayment = async () => {
       if (transactionId) {
           sessionStorage.setItem("pendingTransactionId", transactionId);
           sessionStorage.setItem("pendingTicketIds", JSON.stringify(ticketTypeIds));
-      } else {
-          console.warn("Backend không trả về transactionId trong response!");
       }
-      // ---------------------------------------------
 
       const redirectUrl = response.url || response?.data?.url || response?.result?.url;
 
@@ -145,15 +148,31 @@ const handlePayment = async () => {
       setVoucherError("Vui lòng nhập mã voucher!");
       return;
     }
-    const match = availableVouchers.find((v) =>
+    const allEventVouchers = eventData?.vouchers || [];
+    const match = allEventVouchers.find((v) =>
       v.code.trim().toUpperCase() === voucherCode.trim().toUpperCase()
     );
 
     if (!match) {
-      setVoucherError("Mã voucher không hợp lệ.");
+      setVoucherError("Mã voucher không tồn tại.");
       setAppliedVoucher(null);
       return;
     }
+
+    const now = new Date();
+    const startDate = new Date(match.start_date);
+    const endDate = new Date(match.end_date);
+    if (now < startDate || now > endDate) {
+        setVoucherError("Voucher chưa bắt đầu hoặc đã hết hạn.");
+        return;
+    }
+
+    const minPrice = match.price || 0;
+    if (subTotal < minPrice) {
+        setVoucherError(`Đơn hàng phải từ ${formatPrice(minPrice)} để sử dụng voucher này.`);
+        return;
+    }
+
     setAppliedVoucher(match);
     setShowVoucherModal(false);
     setVoucherCode("");
@@ -194,7 +213,6 @@ const handlePayment = async () => {
 
                 {!appliedVoucher ? (
                   <div className="space-y-3">
-                    {/* Nút mở danh sách voucher */}
                     <button
                       onClick={handleOpenVoucherModal}
                       className="h-10 rounded-[20px] px-4 border-2 border-secondary bg-white hover:bg-gray-50 flex items-center gap-2 transition-colors w-full md:w-auto"
@@ -206,7 +224,6 @@ const handlePayment = async () => {
                     </button>
                   </div>
                 ) : (
-                  // Thẻ Voucher đã chọn
                   <div className="flex items-center justify-between bg-green-50 border border-green-200 p-4 rounded-lg shadow-sm">
                     <div className="flex items-center gap-4">
                       <div className="bg-green-100 p-2 rounded-full">
@@ -218,9 +235,7 @@ const handlePayment = async () => {
                         </p>
                         <p className="text-sm text-green-600 font-medium">
                           {appliedVoucher.reduce_type === "FIXED"
-                            ? `Giảm trực tiếp ${formatPrice(
-                              appliedVoucher.reduce_price
-                            )}`
+                            ? `Giảm trực tiếp ${formatPrice(appliedVoucher.reduce_price)}`
                             : `Giảm ${appliedVoucher.reduce_price}% giá trị đơn hàng`}
                         </p>
                       </div>
@@ -329,8 +344,7 @@ const handlePayment = async () => {
             >
               {loading ? (
                 <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" /> ĐANG XỬ
-                  LÝ...
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" /> ĐANG XỬ LÝ...
                 </>
               ) : (
                 "THANH TOÁN"
@@ -343,15 +357,12 @@ const handlePayment = async () => {
       {/* MODAL DANH SÁCH VOUCHER */}
       {showVoucherModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-[2px]"
             onClick={() => setShowVoucherModal(false)}
           ></div>
 
-          {/* Modal Content */}
           <div className="relative bg-white rounded-2xl w-full max-w-xl shadow-2xl flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95">
-            {/* Header */}
             <div className="bg-primary px-5 py-4 flex justify-between items-center text-white rounded-t-2xl">
               <h3 className="font-bold text-xl flex items-center gap-3">
                 <Tag /> Thêm voucher
@@ -364,12 +375,11 @@ const handlePayment = async () => {
               </button>
             </div>
 
-            {/* Nhập mã voucher */}
             <div className="px-6 py-4">
               <div className="flex gap-3">
                 <input
                   type="text"
-                  placeholder="Nhập mã voucher của bạn..."
+                  placeholder="Nhập mã voucher..."
                   value={voucherCode}
                   onChange={(e) => setVoucherCode(e.target.value)}
                   className="border border-gray-300 px-4 py-2.5 rounded-lg w-3/4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
@@ -390,19 +400,12 @@ const handlePayment = async () => {
               <div className="border-t-2 border-dashed border-gray-300 mt-5"></div>
             </div>
 
-            {/* Danh sách voucher */}
-            <div className="px-6 font-semibold text-gray-700">
-              Danh sách voucher khả dụng:
+            <div className="px-6 font-semibold text-gray-700 flex justify-between items-center">
+              <span>Voucher khả dụng cho đơn {formatPrice(subTotal)}:</span>
             </div>
 
             <div className="p-4 overflow-y-auto flex-1 bg-gray-50 rounded-b-2xl">
-              {/* Loading */}
-              {loadingVouchers ? (
-                <div className="flex flex-col items-center justify-center py-10 text-gray-500">
-                  <Loader2 className="w-8 h-8 animate-spin mb-2 text-primary" />
-                  <span>Đang tải voucher...</span>
-                </div>
-              ) : availableVouchers.length > 0 ? (
+               {availableVouchers.length > 0 ? (
                 <div className="space-y-3">
                   {availableVouchers.map((voucher) => (
                     <div
@@ -410,9 +413,7 @@ const handlePayment = async () => {
                       className="relative bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md duration-150 cursor-pointer flex justify-between items-center group"
                       onClick={() => handleSelectVoucher(voucher)}
                     >
-                      {/* Decoration left border */}
                       <div className="absolute left-0 top-0 bottom-0 w-2 bg-primary rounded-l-xl"></div>
-
                       <div className="ml-4">
                         <p className="font-extrabold text-lg text-gray-800">
                           {voucher.code}
@@ -423,13 +424,9 @@ const handlePayment = async () => {
                             : `Giảm ${voucher.reduce_price}%`}
                         </p>
                         <p className="text-xs text-gray-400 mt-2">
-                          HSD:{" "}
-                          {new Date(voucher.end_date).toLocaleDateString(
-                            "vi-VN"
-                          )}
+                          Đơn tối thiểu: {formatPrice(voucher.price)}
                         </p>
                       </div>
-
                       <button className="bg-green-100 text-green-700 px-3 py-1.5 rounded-lg text-xs font-bold group-hover:bg-green-600 group-hover:text-white transition">
                         Dùng ngay
                       </button>
@@ -439,7 +436,7 @@ const handlePayment = async () => {
               ) : (
                 <div className="text-center py-10 text-gray-500">
                   <Tag className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                  <p>Không có voucher nào phù hợp cho sự kiện này.</p>
+                  <p>Không có voucher phù hợp với giá trị đơn hàng hiện tại.</p>
                 </div>
               )}
             </div>

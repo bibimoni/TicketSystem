@@ -1,41 +1,36 @@
+// src/components/Paying.jsx
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, X, Tag, TicketPercent, Loader2 } from "lucide-react";
 import transactionService from "../services/transactionService";
+import { toast } from "react-toastify";
 
-const Paying = ({ eventData, selectedTickets }) => {
+const Paying = ({ eventData, selectedTickets, onStartPayment }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState("stripe");
 
   // VOUCHER STATE
   const [showVoucherModal, setShowVoucherModal] = useState(false);
-  const [availableVouchers, setAvailableVouchers] = useState([]); // List voucher hợp lệ
-  const [appliedVoucher, setAppliedVoucher] = useState(null); // Voucher đang chọn
+  const [availableVouchers, setAvailableVouchers] = useState([]);
+  const [appliedVoucher, setAppliedVoucher] = useState(null);
   const [loadingVouchers, setLoadingVouchers] = useState(false);
   const [voucherCode, setVoucherCode] = useState("");
   const [voucherError, setVoucherError] = useState("");
 
-  // 1. Tách hàm fetchVouchers ra ngoài để dùng chung
   const fetchVouchers = async () => {
     if (!eventData?.id) return;
-    
     setLoadingVouchers(true);
     try {
       const allVouchers = await transactionService.getAllVouchers();
       const now = new Date();
-
-      // Lọc voucher hợp lệ
       const validList = allVouchers.filter((v) => {
         const startDate = new Date(v.start_date);
         const endDate = new Date(v.end_date);
-
         const isMatchEvent = v.event_id === eventData.id;
         const isValidDate = now >= startDate && now <= endDate;
-
         return isMatchEvent && isValidDate;
       });
-
       setAvailableVouchers(validList);
     } catch (error) {
       console.error("Lỗi tải voucher:", error);
@@ -44,12 +39,10 @@ const Paying = ({ eventData, selectedTickets }) => {
     }
   };
 
-  // 2. Gọi fetchVouchers khi component mount hoặc eventData thay đổi
-  useEffect(() => {
-    fetchVouchers();
-  }, [eventData]);
+  // useEffect(() => {
+  //   fetchVouchers();
+  // }, [eventData]);
 
-  // Tính tiền gốc
   const subTotal = selectedTickets.reduce((sum, ticket) => {
     let priceNumber = ticket.price;
     if (typeof priceNumber === "string") {
@@ -58,7 +51,6 @@ const Paying = ({ eventData, selectedTickets }) => {
     return sum + priceNumber * ticket.quantity;
   }, 0);
 
-  // Tính giảm giá
   let discountAmount = 0;
   if (appliedVoucher) {
     if (appliedVoucher.reduce_type === "FIXED") {
@@ -69,107 +61,102 @@ const Paying = ({ eventData, selectedTickets }) => {
   }
 
   const finalTotal = Math.max(0, subTotal - discountAmount);
-
-  // Format tiền
   const formatPrice = (val) => val.toLocaleString("vi-VN") + " đ";
 
-  // Modal voucher
   const handleOpenVoucherModal = () => {
     setShowVoucherModal(true);
-    // Nếu danh sách trống thì thử tải lại (phòng trường hợp lỗi mạng lúc đầu)
+
     if (availableVouchers.length === 0) {
       fetchVouchers();
     }
   };
 
-  // Chọn voucher từ danh sách
   const handleSelectVoucher = (voucher) => {
     setAppliedVoucher(voucher);
     setShowVoucherModal(false);
-    setVoucherError(""); // Reset lỗi nếu có
+    setVoucherError("");
   };
 
-  // Hủy voucher
   const handleRemoveVoucher = () => {
     setAppliedVoucher(null);
     setVoucherCode("");
   };
 
-  // Thanh toán
-  const handlePayment = async () => {
+const handlePayment = async () => {
+
+    if (onStartPayment) {
+        onStartPayment();
+    }
+
     setLoading(true);
     try {
       const ticketTypeIds = selectedTickets.flatMap((ticket) => {
-        // Fallback ID cho an toàn
         const validId = ticket.ticketTypeId || ticket.id || ticket._id;
-
-        if (!validId) {
-          throw new Error(`Vé "${ticket.name}" bị lỗi dữ liệu: Không tìm thấy ID.`);
-        }
+        if (!validId) throw new Error(`Vé "${ticket.name}" bị lỗi dữ liệu.`);
         return Array(ticket.quantity).fill(validId);
       });
 
       let vouchersPayload = [];
       if (appliedVoucher) {
         const vId = appliedVoucher._id || appliedVoucher.id || appliedVoucher.voucher_id;
-        if (vId) {
-          vouchersPayload = [{ voucher_id: vId }];
-        }
+        if (vId) vouchersPayload = [{ voucher_id: vId }];
       }
 
       const payload = {
         ticketTypeIds: ticketTypeIds,
+        ...(vouchersPayload.length > 0 && { vouchers: vouchersPayload })
       };
-
-      if (vouchersPayload.length > 0) {
-        payload.vouchers = vouchersPayload;
-      }
-
-      console.log("Payload gửi đi:", JSON.stringify(payload, null, 2));
 
       const response = await transactionService.checkout(payload);
 
-      // Handle cấu trúc response linh hoạt hơn
+      const transactionId = response.transactionId 
+                         || response._id 
+                         || response.id 
+                         || response.result?._id 
+                         || response.data?._id;
+
+      if (transactionId) {
+          sessionStorage.setItem("pendingTransactionId", transactionId);
+          sessionStorage.setItem("pendingTicketIds", JSON.stringify(ticketTypeIds));
+      } else {
+          console.warn("Backend không trả về transactionId trong response!");
+      }
+      // ---------------------------------------------
+
       const redirectUrl = response.url || response?.data?.url || response?.result?.url;
 
       if (redirectUrl) {
         window.location.href = redirectUrl;
       } else {
-        console.error("Response API:", response);
-        alert("Thành công nhưng không tìm thấy link thanh toán (URL).");
+        toast.error("Không tìm thấy link thanh toán.");
+        setLoading(false);
       }
     } catch (error) {
       console.error("Lỗi thanh toán:", error);
       const msg = error.response?.data?.message || error.message || "Lỗi khi tạo giao dịch.";
-      alert(msg);
-    } finally {
+      toast.error(msg);
       setLoading(false);
     }
   };
 
   const handleApplyVoucherCode = () => {
     setVoucherError("");
-
     if (!voucherCode.trim()) {
       setVoucherError("Vui lòng nhập mã voucher!");
       return;
     }
-
-    // Vì đã fetch ở useEffect nên availableVouchers đã có dữ liệu để check
-    const match = availableVouchers.find((v) => 
+    const match = availableVouchers.find((v) =>
       v.code.trim().toUpperCase() === voucherCode.trim().toUpperCase()
     );
 
     if (!match) {
-      setVoucherError("Mã voucher không hợp lệ hoặc không áp dụng cho sự kiện này.");
+      setVoucherError("Mã voucher không hợp lệ.");
       setAppliedVoucher(null);
       return;
     }
-
     setAppliedVoucher(match);
     setShowVoucherModal(false);
     setVoucherCode("");
-    setVoucherError("");
   };
 
   const paymentMethods = [
@@ -232,8 +219,8 @@ const Paying = ({ eventData, selectedTickets }) => {
                         <p className="text-sm text-green-600 font-medium">
                           {appliedVoucher.reduce_type === "FIXED"
                             ? `Giảm trực tiếp ${formatPrice(
-                                appliedVoucher.reduce_price
-                              )}`
+                              appliedVoucher.reduce_price
+                            )}`
                             : `Giảm ${appliedVoucher.reduce_price}% giá trị đơn hàng`}
                         </p>
                       </div>
@@ -281,7 +268,7 @@ const Paying = ({ eventData, selectedTickets }) => {
           </div>
         </section>
 
-        {/* CỘT PHẢI - BILL */}
+        {/* CỘT PHẢI*/}
         <aside className="relative col-span-4 animate-fade-in opacity-0 [--animation-delay:400ms] ">
           <div className="bg-white rounded-lg  p-6 sticky top-24">
             <h2 className="font-bold text-black text-xl mb-4">

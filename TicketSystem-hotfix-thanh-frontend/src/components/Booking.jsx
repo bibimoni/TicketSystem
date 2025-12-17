@@ -43,12 +43,20 @@ const Booking = () => {
   }, [eventId]);
 
   const handleIncrement = (index) => {
+    const currentTotal = quantities.reduce((sum, qty) => sum + qty, 0);
+    if (currentTotal >= 3) {
+      toast.warn("Bạn chỉ được đặt tối đa 3 vé cho mỗi sự kiện!");
+      return;
+    }
+
     const newQuantities = [...quantities];
     const ticket = eventData.ticketTypes[index];
+
     if (ticket.remaining !== undefined && newQuantities[index] >= ticket.remaining) {
       toast.info(`Chỉ còn lại ${ticket.remaining} vé cho hạng này!`);
       return;
     }
+
     newQuantities[index] += 1;
     setQuantities(newQuantities);
   };

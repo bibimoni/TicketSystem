@@ -17,6 +17,11 @@ const transactionService = {
     getAllVouchers() {
         return axiosClient.get('/voucher');
     },
+    cancelPending(payload) {
+        return axiosClient.delete('/transaction/cancel-pending', {
+            data: payload 
+        });
+    }
 
 };
 

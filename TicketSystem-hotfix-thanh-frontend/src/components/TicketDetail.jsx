@@ -5,14 +5,20 @@ import { Link } from "react-router-dom";
 
 import defaultImage from "../assets/images/default_img.png";
 
-const TicketDetail = ({ pageType, eventData, onTimeout }) => {
-    const [remainingTime, setRemainingTime] = useState(20* 60);
+const TicketDetail = ({ pageType, eventData, onTimeout, initialTime }) => {
+    const [remainingTime, setRemainingTime] = useState(initialTime || 20 * 60);
+
+    useEffect(() => {
+        if (initialTime !== undefined) {
+            setRemainingTime(initialTime);
+        }
+    }, [initialTime]);
 
     useEffect(() => {
         if (pageType !== "confirmation") return;
 
-        if (remainingTime === 0) {
-            if (onTimeout) onTimeout();
+        if (remainingTime <= 0) {
+            if (onTimeout) onTimeout(); 
             return;
         }
 
@@ -20,6 +26,7 @@ const TicketDetail = ({ pageType, eventData, onTimeout }) => {
             setRemainingTime((prev) => {
                 if (prev <= 1) {
                     clearInterval(timer);
+                    if (onTimeout) onTimeout(); 
                     return 0;
                 }
                 return prev - 1;

@@ -117,7 +117,7 @@ function TicketItem({ ticket, mode }) {
                                     );
                                 })
                             ) : (
-                                <span className="italic opacity-70">Chi tiết vé ẩn</span>
+                                <span className="italic opacity-70">Vé đã ẩn</span>
                             )}
                         </div>
                     </div>

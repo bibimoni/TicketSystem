@@ -3,6 +3,7 @@ import { useSearchParams, Link } from "react-router-dom";
 import { Filter, Calendar, X, Check } from "lucide-react";
 import eventService from "../services/eventService";
 import defaultImage from "../assets/images/default_img.png";
+import Loader from "./TicketLoader";
 
 const SearchEvent = () => {
     const [searchParams] = useSearchParams();
@@ -54,12 +55,12 @@ const SearchEvent = () => {
     useEffect(() => {
         const fetchEvents = async () => {
             try {
-                const response = await eventService.getAllEvents();
+                const response = await eventService.getEvents();
 
                 const processedEvents = Array.isArray(response) ? response.map(evt => {
                     const minPrice = getMinPrice(evt.ticketTypes);
                     const eventDate = new Date(evt.eventTime);
-                    const isFinished = eventDate < new Date();
+                    const isFinished = eventDate < new Date() || evt.status === 'COMPLETED';
                     const city = extractCity(evt.destination); 
 
                     return {
@@ -144,9 +145,7 @@ const SearchEvent = () => {
     };
 
     if (loading) return (
-        <div className="min-h-screen flex items-center justify-center text-lg text-primary font-bold">
-            Đang tìm kiếm sự kiện...
-        </div>
+        <Loader text="Đang tìm kiếm sự kiện..." height="100vh" />
     );
 
     return (

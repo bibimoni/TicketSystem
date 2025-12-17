@@ -14,7 +14,9 @@ function BookingTicket() {
         const token = localStorage.getItem("token");
 
         if (!token) {
-            toast.error("Vui lòng đăng nhập để mua vé!");
+            toast.error("Vui lòng đăng nhập để mua vé!", {
+                toastId: 'login-required'
+            });
             navigate("/");
         }
     }, [navigate]);

@@ -4,6 +4,7 @@ import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { EventFormProvider } from './context/EventContext';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import PrivateRoute from "./components/PrivateRoute.jsx";
 
 import Home from "./pages/Home";
 import Search from "./pages/Search";
@@ -80,55 +81,57 @@ function App() {
         <Route path="/checkout/success" element={<PayingSuccess />} />
         <Route path="/checkout/cancel" element={<PayingCancel />} />
 
-        {/* === ROUTE CỦA USER=== */}
-        <Route path="/tao-su-kien/buoc-1" element={<EventPage1 />} />
-        <Route path="/tao-su-kien/buoc-2" element={<EventPage2 />} />
-        <Route path="/tao-su-kien/buoc-3" element={<EventPage3 />} />
-        <Route path="/tao-su-kien/buoc-4" element={<EventPage4 />} />
+        <Route element={<PrivateRoute />}>
+          {/* === ROUTE CỦA USER=== */}
+          <Route path="/tao-su-kien/buoc-1" element={<EventPage1 />} />
+          <Route path="/tao-su-kien/buoc-2" element={<EventPage2 />} />
+          <Route path="/tao-su-kien/buoc-3" element={<EventPage3 />} />
+          <Route path="/tao-su-kien/buoc-4" element={<EventPage4 />} />
 
-        <Route path="/su-kien-cua-toi" element={<MyEventsPage />} />
-        <Route path="/ve-cua-toi" element={<MyTicket />} />
-        <Route path="/tai-khoan-cua-toi" element={<MyProfile />} />
+          <Route path="/su-kien-cua-toi" element={<MyEventsPage />} />
+          <Route path="/ve-cua-toi" element={<MyTicket />} />
+          <Route path="/tai-khoan-cua-toi" element={<MyProfile />} />
 
-        <Route path="/event-edit/:eventId/buoc-1" element={<EventPage1 />} />
-        <Route path="/event-edit/:eventId/buoc-2" element={<EventPage2 />} />
-        <Route path="/event-edit/:eventId/buoc-3" element={<EventPage3 />} />
-        <Route path="/event-edit/:eventId/buoc-4" element={<EventPage4 />} />
+          <Route path="/event-edit/:eventId/buoc-1" element={<EventPage1 />} />
+          <Route path="/event-edit/:eventId/buoc-2" element={<EventPage2 />} />
+          <Route path="/event-edit/:eventId/buoc-3" element={<EventPage3 />} />
+          <Route path="/event-edit/:eventId/buoc-4" element={<EventPage4 />} />
 
-        <Route path="/event/:eventId" element={<EventDetailLayout />}>
-          {/* Mặc định vào Overview */}
-          <Route index element={<OverviewPage />} />
-          <Route path="overview" element={<OverviewPage />} />
-          <Route path="orders" element={<OrdersPage />} />
+          <Route path="/event/:eventId" element={<EventDetailLayout />}>
+            {/* Mặc định vào Overview */}
+            <Route index element={<OverviewPage />} />
+            <Route path="overview" element={<OverviewPage />} />
+            <Route path="orders" element={<OrdersPage />} />
 
-          {/* Danh sách Voucher: /event/:id/voucher */}
-          <Route path="voucher" element={<VoucherPage />} />
+            {/* Danh sách Voucher: /event/:id/voucher */}
+            <Route path="voucher" element={<VoucherPage />} />
 
-          {/* Tạo mới: /event/:id/voucher/new */}
-          <Route path="voucher/new" element={<CreateVoucherPage />} />
+            {/* Tạo mới: /event/:id/voucher/new */}
+            <Route path="voucher/new" element={<CreateVoucherPage />} />
 
-          {/* Chỉnh sửa: /event/:id/voucher/edit/:vid */}
-          <Route path="voucher/edit/:voucherId" element={<CreateVoucherPage />} />
+            {/* Chỉnh sửa: /event/:id/voucher/edit/:vid */}
+            <Route path="voucher/edit/:voucherId" element={<CreateVoucherPage />} />
+          </Route>
+
+          <Route element={<OrganizerLayout />}>
+            <Route path="/dieu-khoan-BTC" element={<BtcTermsPage />} />
+          </Route>
+
+          {/* === ROUTE CỦA ADMIN === */}
+          <Route path="/admin/danh-sach-su-kien" element={<MyEventsPage isAdmin={true} />} />
+          <Route path="/admin/duyet-su-kien/:eventId/buoc-1" element={<EventPage1 isAdmin={true} />} />
+          <Route path="/admin/duyet-su-kien/:eventId/buoc-2" element={<EventPage2 isAdmin={true} />} />
+          <Route path="/admin/duyet-su-kien/:eventId/buoc-3" element={<EventPage3 isAdmin={true} />} />
+          <Route path="/admin/duyet-su-kien/:eventId/buoc-4" element={<EventPage4 isAdmin={true} />} />
+
+          <Route path="/admin/event-detail/:eventId" element={<EventDetailLayout isAdmin={true} />}>
+            <Route path="overview" element={<OverviewPage />} />
+            <Route path="orders" element={<OrdersPageAdmin />} />
+          </Route>
+
+          <Route path="/admin/dashboard" element={<DashBoard />} />
+          <Route path="/admin/tai-khoan-cua-toi" element={<AdminProfilePage />} />
         </Route>
-
-        <Route element={<OrganizerLayout />}>
-          <Route path="/dieu-khoan-BTC" element={<BtcTermsPage />} />
-        </Route>
-
-        {/* === ROUTE CỦA ADMIN === */}
-        <Route path="/admin/danh-sach-su-kien" element={<MyEventsPage isAdmin={true} />} />
-        <Route path="/admin/duyet-su-kien/:eventId/buoc-1" element={<EventPage1 isAdmin={true} />} />
-        <Route path="/admin/duyet-su-kien/:eventId/buoc-2" element={<EventPage2 isAdmin={true} />} />
-        <Route path="/admin/duyet-su-kien/:eventId/buoc-3" element={<EventPage3 isAdmin={true} />} />
-        <Route path="/admin/duyet-su-kien/:eventId/buoc-4" element={<EventPage4 isAdmin={true} />} />
-
-        <Route path="/admin/event-detail/:eventId" element={<EventDetailLayout isAdmin={true} />}>
-          <Route path="overview" element={<OverviewPage />} />
-          <Route path="orders" element={<OrdersPageAdmin />} />
-        </Route>
-
-        <Route path="/admin/dashboard" element={<DashBoard />} />
-        <Route path="/admin/tai-khoan-cua-toi" element={<AdminProfilePage />} />
       </Routes>
     </EventFormProvider>
 

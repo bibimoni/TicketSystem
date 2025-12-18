@@ -1,0 +1,450 @@
+// src/components/Paying.jsx
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Plus, X, Tag, TicketPercent, Loader2 } from "lucide-react";
+import transactionService from "../services/transactionService";
+import { toast } from "react-toastify";
+
+const Paying = ({ eventData, selectedTickets, onStartPayment }) => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [selectedMethod, setSelectedMethod] = useState("stripe");
+
+  // VOUCHER STATE
+  const [showVoucherModal, setShowVoucherModal] = useState(false);
+  const [availableVouchers, setAvailableVouchers] = useState([]);
+  const [appliedVoucher, setAppliedVoucher] = useState(null);
+  const [voucherCode, setVoucherCode] = useState("");
+  const [voucherError, setVoucherError] = useState("");
+
+  const subTotal = selectedTickets.reduce((sum, ticket) => {
+    let priceNumber = ticket.price;
+    if (typeof priceNumber === "string") {
+      priceNumber = Number(priceNumber.replace(/\D/g, ""));
+    }
+    return sum + priceNumber * ticket.quantity;
+  }, 0);
+
+ 
+  const fetchVouchers = () => {
+    const sourceVouchers = eventData?.vouchers || [];
+    
+    if (sourceVouchers.length === 0) {
+      setAvailableVouchers([]);
+      return;
+    }
+
+    const now = new Date();
+    
+    const validList = sourceVouchers.filter((v) => {
+      const startDate = new Date(v.start_date);
+      const endDate = new Date(v.end_date);
+      const isValidDate = now >= startDate && now <= endDate;
+      // v.price trong JSON đóng vai trò là số tiền tối thiểu để áp dụng voucher
+      const minOrderPrice = v.price || 0; 
+      const isMinPriceMet = subTotal >= minOrderPrice;
+
+      return isValidDate && isMinPriceMet;
+    });
+
+    setAvailableVouchers(validList);
+  };
+
+  useEffect(() => {
+    fetchVouchers();
+    if (appliedVoucher) {
+        const minPrice = appliedVoucher.price || 0;
+        if (subTotal < minPrice) {
+            setAppliedVoucher(null);
+            toast.warning(`Voucher ${appliedVoucher.code} đã bị gỡ do không đủ điều kiện đơn hàng tối thiểu.`);
+        }
+    }
+  }, [eventData, subTotal, showVoucherModal]);
+
+  let discountAmount = 0;
+  if (appliedVoucher) {
+    if (appliedVoucher.reduce_type === "FIXED") {
+      discountAmount = appliedVoucher.reduce_price;
+    } else if (appliedVoucher.reduce_type === "PERCENTAGE") {
+      discountAmount = (subTotal * appliedVoucher.reduce_price) / 100;
+    }
+  }
+
+  const finalTotal = Math.max(0, subTotal - discountAmount);
+  const formatPrice = (val) => val.toLocaleString("vi-VN") + " đ";
+
+  const handleOpenVoucherModal = () => {
+    setShowVoucherModal(true);
+    fetchVouchers(); 
+  };
+
+  const handleSelectVoucher = (voucher) => {
+    setAppliedVoucher(voucher);
+    setShowVoucherModal(false);
+    setVoucherError("");
+  };
+
+  const handleRemoveVoucher = () => {
+    setAppliedVoucher(null);
+    setVoucherCode("");
+  };
+
+  const handlePayment = async () => {
+    if (onStartPayment) {
+        onStartPayment();
+    }
+
+    setLoading(true);
+    try {
+      const ticketTypeIds = selectedTickets.flatMap((ticket) => {
+        const validId = ticket.ticketTypeId || ticket.id || ticket._id;
+        if (!validId) throw new Error(`Vé "${ticket.name}" bị lỗi dữ liệu.`);
+        return Array(ticket.quantity).fill(validId);
+      });
+
+      let vouchersPayload = [];
+      if (appliedVoucher) {
+        const vId = appliedVoucher._id || appliedVoucher.id || appliedVoucher.voucher_id;
+        if (vId) vouchersPayload = [{ voucher_id: vId }];
+      }
+
+      const payload = {
+        ticketTypeIds: ticketTypeIds,
+        ...(vouchersPayload.length > 0 && { vouchers: vouchersPayload })
+      };
+
+      const response = await transactionService.checkout(payload);
+
+      const transactionId = response.transactionId 
+                         || response._id 
+                         || response.id 
+                         || response.result?._id 
+                         || response.data?._id;
+
+      if (transactionId) {
+          sessionStorage.setItem("pendingTransactionId", transactionId);
+          sessionStorage.setItem("pendingTicketIds", JSON.stringify(ticketTypeIds));
+      }
+
+      const redirectUrl = response.url || response?.data?.url || response?.result?.url;
+
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
+      } else {
+        toast.error("Không tìm thấy link thanh toán.");
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error("Lỗi thanh toán:", error);
+      const msg = error.response?.data?.message || error.message || "Lỗi khi tạo giao dịch.";
+      toast.error(msg);
+      setLoading(false);
+    }
+  };
+
+  const handleApplyVoucherCode = () => {
+    setVoucherError("");
+    if (!voucherCode.trim()) {
+      setVoucherError("Vui lòng nhập mã voucher!");
+      return;
+    }
+    const allEventVouchers = eventData?.vouchers || [];
+    const match = allEventVouchers.find((v) =>
+      v.code.trim().toUpperCase() === voucherCode.trim().toUpperCase()
+    );
+
+    if (!match) {
+      setVoucherError("Mã voucher không tồn tại.");
+      setAppliedVoucher(null);
+      return;
+    }
+
+    const now = new Date();
+    const startDate = new Date(match.start_date);
+    const endDate = new Date(match.end_date);
+    if (now < startDate || now > endDate) {
+        setVoucherError("Voucher chưa bắt đầu hoặc đã hết hạn.");
+        return;
+    }
+
+    const minPrice = match.price || 0;
+    if (subTotal < minPrice) {
+        setVoucherError(`Đơn hàng phải từ ${formatPrice(minPrice)} để sử dụng voucher này.`);
+        return;
+    }
+
+    setAppliedVoucher(match);
+    setShowVoucherModal(false);
+    setVoucherCode("");
+  };
+
+  const paymentMethods = [
+    { id: "stripe", label: "Thẻ quốc tế" },
+    { id: "vietqr", label: "VietQR" },
+    { id: "momo", label: "Ví điện tử MOMO" },
+  ];
+
+  return (
+    <main className="flex py-9 max-w-7xl mx-auto px-4 relative">
+      <div className="grid grid-cols-12 w-full relative">
+        <section className="relative col-span-8 translate-y-[-1rem] animate-fade-in opacity-0 [--animation-delay:200ms] mr-4 bg-secondary rounded-[10px]">
+          <div className="p-8">
+            <h2 className="font-extrabold text-white text-xl text-center mb-8">
+              THANH TOÁN
+            </h2>
+
+            <div className="space-y-4">
+              {/* Thông tin nhận vé */}
+              <div className="bg-white rounded-[5px] p-6">
+                <h3 className="font-bold text-primary text-lg mb-2">
+                  Thông tin nhận vé
+                </h3>
+                <p className="font-bold text-secondary text-sm">
+                  Vé điện tử sẽ được hiển thị trong mục "VÉ CỦA TÔI" và gửi qua
+                  Email.
+                </p>
+              </div>
+
+              {/* MÃ KHUYẾN MÃI */}
+              <div className="bg-white rounded-[5px] p-6">
+                <h3 className="font-bold text-primary text-lg mb-4">
+                  Mã khuyến mãi
+                </h3>
+
+                {!appliedVoucher ? (
+                  <div className="space-y-3">
+                    <button
+                      onClick={handleOpenVoucherModal}
+                      className="h-10 rounded-[20px] px-4 border-2 border-secondary bg-white hover:bg-gray-50 flex items-center gap-2 transition-colors w-full md:w-auto"
+                    >
+                      <Plus className="w-5 h-5 text-secondary" />
+                      <span className="font-bold text-secondary text-sm">
+                        Thêm voucher
+                      </span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between bg-green-50 border border-green-200 p-4 rounded-lg shadow-sm">
+                    <div className="flex items-center gap-4">
+                      <div className="bg-green-100 p-2 rounded-full">
+                        <TicketPercent className="text-green-600 w-6 h-6" />
+                      </div>
+                      <div>
+                        <p className="font-bold text-green-700 text-lg">
+                          {appliedVoucher.code}
+                        </p>
+                        <p className="text-sm text-green-600 font-medium">
+                          {appliedVoucher.reduce_type === "FIXED"
+                            ? `Giảm trực tiếp ${formatPrice(appliedVoucher.reduce_price)}`
+                            : `Giảm ${appliedVoucher.reduce_price}% giá trị đơn hàng`}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleRemoveVoucher}
+                      className="text-gray-400 hover:text-red-500 p-2 hover:bg-red-50 rounded-full transition-colors"
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Phương thức thanh toán */}
+              <div className="bg-white rounded-[5px] p-6">
+                <h3 className="font-bold text-primary text-lg mb-4">
+                  Phương thức thanh toán
+                </h3>
+                <div className="space-y-4">
+                  {paymentMethods.map((method) => (
+                    <label
+                      key={method.id}
+                      htmlFor={method.id}
+                      className="flex items-center gap-3 cursor-pointer select-none p-2 hover:bg-gray-50 rounded-lg transition-colors"
+                    >
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        id={method.id}
+                        value={method.id}
+                        className="peer hidden"
+                        checked={selectedMethod === method.id}
+                        onChange={() => setSelectedMethod(method.id)}
+                      />
+                      <div className="w-5 h-5 rounded-full border-2 border-secondary peer-checked:border-[6px] peer-checked:border-primary transition-all flex-shrink-0" />
+                      <span className="font-bold text-secondary text-sm">
+                        {method.label}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* CỘT PHẢI*/}
+        <aside className="relative col-span-4 animate-fade-in opacity-0 [--animation-delay:400ms] ">
+          <div className="bg-white rounded-lg  p-6 sticky top-24">
+            <h2 className="font-bold text-black text-xl mb-4">
+              Thông tin thanh toán
+            </h2>
+            <div className="space-y-4 mb-4 max-h-[300px] overflow-y-auto pr-2">
+              {selectedTickets.map((ticket, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between text-sm"
+                >
+                  <div className="flex-1 mr-2">
+                    <p className="font-bold text-secondary">{ticket.name}</p>
+                    <p className="font-medium italic text-gray-500">
+                      {formatPrice(ticket.price)}
+                    </p>
+                  </div>
+                  <span className="font-bold text-primary text-base whitespace-nowrap">
+                    x {ticket.quantity}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <div className="h-px bg-gray-200 my-4" />
+
+            <div className="space-y-3 mb-6">
+              <div className="flex items-center justify-between text-base">
+                <span className="text-gray-600 font-medium">Tổng tiền vé</span>
+                <span className="font-bold text-black">
+                  {formatPrice(subTotal)}
+                </span>
+              </div>
+
+              {appliedVoucher && (
+                <div className="flex items-center justify-between text-green-600 text-base animate-in fade-in slide-in-from-top-2">
+                  <span className="font-medium flex items-center gap-1">
+                    <Tag size={14} /> Voucher ({appliedVoucher.code})
+                  </span>
+                  <span className="font-bold">
+                    -{formatPrice(discountAmount)}
+                  </span>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between pt-4 border-t-2 border-dashed border-gray-300">
+                <span className="font-bold text-black text-lg">Thanh toán</span>
+                <span className="font-extrabold text-primary text-2xl">
+                  {formatPrice(finalTotal)}
+                </span>
+              </div>
+            </div>
+
+            <button
+              onClick={handlePayment}
+              disabled={loading || !selectedMethod}
+              className="w-full h-[50px] bg-primary hover:bg-red-600 rounded-[10px] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg flex items-center justify-center text-white font-extrabold text-xl"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" /> ĐANG XỬ LÝ...
+                </>
+              ) : (
+                "THANH TOÁN"
+              )}
+            </button>
+          </div>
+        </aside>
+      </div>
+
+      {/* MODAL DANH SÁCH VOUCHER */}
+      {showVoucherModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-[2px]"
+            onClick={() => setShowVoucherModal(false)}
+          ></div>
+
+          <div className="relative bg-white rounded-2xl w-full max-w-xl shadow-2xl flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95">
+            <div className="bg-primary px-5 py-4 flex justify-between items-center text-white rounded-t-2xl">
+              <h3 className="font-bold text-xl flex items-center gap-3">
+                <Tag /> Thêm voucher
+              </h3>
+              <button
+                onClick={() => setShowVoucherModal(false)}
+                className="hover:bg-white/20 p-2 rounded-full transition"
+              >
+                <X size={22} />
+              </button>
+            </div>
+
+            <div className="px-6 py-4">
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  placeholder="Nhập mã voucher..."
+                  value={voucherCode}
+                  onChange={(e) => setVoucherCode(e.target.value)}
+                  className="border border-gray-300 px-4 py-2.5 rounded-lg w-3/4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                />
+                <button
+                  onClick={handleApplyVoucherCode}
+                  className="px-4 py-2.5 bg-primary text-white rounded-lg w-1/4 font-semibold hover:bg-red-600 transition"
+                >
+                  Áp dụng
+                </button>
+              </div>
+
+              {voucherError && (
+                <p className="text-sm text-red-500 mt-2 font-medium">
+                  {voucherError}
+                </p>
+              )}
+              <div className="border-t-2 border-dashed border-gray-300 mt-5"></div>
+            </div>
+
+            <div className="px-6 font-semibold text-gray-700 flex justify-between items-center">
+              <span>Voucher khả dụng cho đơn {formatPrice(subTotal)}:</span>
+            </div>
+
+            <div className="p-4 overflow-y-auto flex-1 bg-gray-50 rounded-b-2xl">
+               {availableVouchers.length > 0 ? (
+                <div className="space-y-3">
+                  {availableVouchers.map((voucher) => (
+                    <div
+                      key={voucher.id}
+                      className="relative bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md duration-150 cursor-pointer flex justify-between items-center group"
+                      onClick={() => handleSelectVoucher(voucher)}
+                    >
+                      <div className="absolute left-0 top-0 bottom-0 w-2 bg-primary rounded-l-xl"></div>
+                      <div className="ml-4">
+                        <p className="font-extrabold text-lg text-gray-800">
+                          {voucher.code}
+                        </p>
+                        <p className="text-sm text-gray-600 mt-1">
+                          {voucher.reduce_type === "FIXED"
+                            ? `Giảm ${formatPrice(voucher.reduce_price)}`
+                            : `Giảm ${voucher.reduce_price}%`}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-2">
+                          Đơn tối thiểu: {formatPrice(voucher.price)}
+                        </p>
+                      </div>
+                      <button className="bg-green-100 text-green-700 px-3 py-1.5 rounded-lg text-xs font-bold group-hover:bg-green-600 group-hover:text-white transition">
+                        Dùng ngay
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-10 text-gray-500">
+                  <Tag className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                  <p>Không có voucher phù hợp với giá trị đơn hàng hiện tại.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </main>
+  );
+};
+
+export default Paying;

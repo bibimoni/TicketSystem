@@ -17,8 +17,8 @@ The project focuses on event browsing, ticket booking, user authentication, and 
 ---
 
 ## Project Structure
-```arduino
-tickez-frontend/
+```
+ticket-system-frontend/
 ├── public/ # Static assets
 │ ├── logo.png
 │ └── dieu-khoan.pdf

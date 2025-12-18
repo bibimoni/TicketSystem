@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Request, Param, UseGuards, NotFoundException, HttpCode, HttpStatus, Headers, Req, ForbiddenException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Request, Param, UseGuards, NotFoundException, HttpCode, HttpStatus, Headers, Req, ForbiddenException, Delete } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiHeader, ApiBody } from '@nestjs/swagger';
 import type { Request as ExpressRequest } from 'express';
 
@@ -9,6 +9,7 @@ import { CheckoutIntentDto, ConfirmPaymentDto } from './dto/create-transaction.d
 import { PrismaService } from 'src/prisma/prisma.service';
 import { StripeService } from 'src/stripe/stripe.service';
 import { AdminGuard } from 'src/auth/admin.guard';
+import { CancelPendingTransactionDto } from './dto/cancel-pending.dto';
 
 @ApiTags('transaction')
 @Controller('transaction')
@@ -173,5 +174,32 @@ export class TransactionController {
     return transaction;
   }
 
+  @Delete('cancel-pending')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiHeader({
+    name: "Authorization",
+    description: "Bearer customer token for authorization",
+    required: true,
+    schema: {
+      type: 'string',
+      example: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+    }
+  })
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Cancel pending transaction and decrease each ticket type remaining' })
+  @ApiBody({
+    type: CancelPendingTransactionDto
+  })
+  async cancelPending(@Request() req: any, @Body() dto: CancelPendingTransactionDto) {
+    const customer = await this.prisma.customer.findUnique({
+      where: { user_id: req.user.id }
+    });
 
+    if (!customer) {
+      throw new NotFoundException('Customer not found');
+    }
+
+    return this.transactionService.cancelPendingByCustomer(customer.id, dto);
+  }
 }

@@ -232,6 +232,8 @@ export class StripeService {
 
   async checkout(checkoutDto: CheckoutIntentDto, customerId: string) {
     const { ticketTypeIds, vouchers } = checkoutDto;
+    const MAX_PER_ACCOUNT = 3;
+    const HOLD_MINUTES = 20;
 
     if (!ticketTypeIds || ticketTypeIds.length === 0) {
       throw new ForbiddenException("No ticket types selected");
@@ -247,10 +249,14 @@ export class StripeService {
     }
 
     const uniqueTicketTypeIds = Object.keys(countMap);
+    let eventId = '';
+    const ticketCount = ticketTypeIds.length;
+    console.log(ticketCount);
 
     const result = await this.prisma.$transaction(async (tx) => {
       const ticketTypes = await tx.ticketType.findMany({
         where: { id: { in: uniqueTicketTypeIds } },
+        select: { id: true, name: true, remaining: true, price: true, event_id: true },
       });
 
       if (ticketTypes.length !== uniqueTicketTypeIds.length) {
@@ -265,14 +271,38 @@ export class StripeService {
           );
         }
 
-        await tx.ticketType.update({
-          where: { id: type.id },
-          data: {
-            remaining: {
-              decrement: quantity,
-            },
+        // await tx.ticketType.update({
+        //   where: { id: type.id },
+        //   data: {
+        //     remaining: {
+        //       decrement: quantity,
+        //     },
+        //   },
+        // });
+        // (2) Đếm số vé customer đã mua/đang giữ chỗ cho event này
+        eventId = ticketTypes[0]?.event_id;
+        // 2) tính đã mua/đang giữ chỗ (SUCCESS + PENDING còn hạn)
+        const cutoff = new Date(Date.now() - HOLD_MINUTES * 60 * 1000);
+
+        const agg = await tx.transaction.aggregate({
+          where: {
+            customer_id: customerId,
+            event_id: eventId,
+            OR: [
+              { status: "SUCCESS" },
+              { status: "PENDING", created_at: { gt: cutoff } },
+            ],
           },
+          _sum: { ticket_count: true },
         });
+
+        const already = agg._sum.ticket_count ?? 0;
+
+        if (already + ticketCount > MAX_PER_ACCOUNT) {
+          throw new ForbiddenException(
+            `You can only buy ${MAX_PER_ACCOUNT} tickets per account for this event (already ${already}).`,
+          );
+        }
       }
 
       let priceBeforeVoucher = 0;
@@ -317,6 +347,8 @@ export class StripeService {
           customer: { connect: { id: customerId } },
           price_before_voucher: priceBeforeVoucher,
           total_price: totalPrice,
+          event_id: eventId,
+          ticket_count: ticketCount
         },
       });
 

@@ -6,7 +6,7 @@ services:
     container_name: nest-api
     env_file: .env
     ports:
-      - "${APP_PORT:-3000}:3000"
+      - "${APP_PORT:-3001}:3001"
     environment:
       - MONGO_URI=${MONGO_URI}
     volumes:

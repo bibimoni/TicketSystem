@@ -106,7 +106,10 @@ To receive Stripe webhook events when running locally, you need Stripe CLI.
 ### Install Stripe CLI
 - Follow the official guide:
 https://stripe.com/docs/stripe-cli
-
+- Recommended: The Stripe CLI is also available as a **Docker** image. To install the latest version, run:
+```bash
+docker run --rm -it stripe/stripe-cli:latest
+```  
 - After installation, log in:
 ```bash
 stripe login

@@ -1,4 +1,3 @@
-// src/services/ticketService.js
 import axiosClient from "./axiosClient";
 
 const ticketService = {

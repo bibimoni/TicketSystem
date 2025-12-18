@@ -5,7 +5,7 @@ import axios from 'axios';
 // Import icons
 import { FiClock, FiMapPin, FiPieChart, FiFileText, FiEdit, FiImage, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 
-const API_BASE_URL = 'https://ticket-system-backend-pkuf.onrender.com';
+const API_BASE_URL = process.env.BACKEND_URL;
 
 const EventImage = ({ src, alt }) => {
   const [hasError, setHasError] = useState(false);
@@ -59,47 +59,47 @@ const ActionButton = ({ icon: Icon, label, onClick, isDanger }) => {
 };
 
 const extractImageFromInfo = (info) => {
-    if (!info) return null;
-    const match = info.match(/\[Banner\]:\s*([^\s\n]+)/);
+  if (!info) return null;
+  const match = info.match(/\[Banner\]:\s*([^\s\n]+)/);
 
-    if (match) {
-        let imageUrl = match[1];
-        if (imageUrl.includes("Không") || imageUrl.includes("có") || imageUrl === "undefined" || imageUrl === "null") {
-            return null;
-        }
-        if (!imageUrl.startsWith('http')) {
-            const cleanPath = imageUrl.startsWith('/') ? imageUrl.substring(1) : imageUrl;
-            imageUrl = `${API_BASE_URL}/${cleanPath}`;
-        }
-        return imageUrl;
+  if (match) {
+    let imageUrl = match[1];
+    if (imageUrl.includes("Không") || imageUrl.includes("có") || imageUrl === "undefined" || imageUrl === "null") {
+      return null;
     }
-    return null;
+    if (!imageUrl.startsWith('http')) {
+      const cleanPath = imageUrl.startsWith('/') ? imageUrl.substring(1) : imageUrl;
+      imageUrl = `${API_BASE_URL}/${cleanPath}`;
+    }
+    return imageUrl;
+  }
+  return null;
 };
 
 const EventCard = ({ event, isAdmin }) => {
   const navigate = useNavigate();
   const eventId = event._id || event.id;
 
-  const imageUrl = 
-      event.event_banner_url || 
-      event.eventBannerUrl || 
-      event.event_picture_url || 
-      event.eventPictureUrl || 
-      event.background || 
-      extractImageFromInfo(event.information);
+  const imageUrl =
+    event.event_banner_url ||
+    event.eventBannerUrl ||
+    event.event_picture_url ||
+    event.eventPictureUrl ||
+    event.background ||
+    extractImageFromInfo(event.information);
   const title = event.name || "Sự kiện chưa đặt tên";
   const time = event.eventTime ? new Date(event.eventTime).toLocaleString('vi-VN') : "Chưa có ngày";
   const locationName = event.destination || "Chưa có địa điểm";
 
   const getStatusLabel = (status) => {
-      const s = status ? status.toUpperCase() : 'DRAFT';
-      switch (s) {
-          case 'DRAFT': return <span className="text-yellow-600 bg-yellow-100 px-2 py-0.5 rounded text-xs ml-2 whitespace-nowrap">Chờ duyệt</span>;
-          case 'PUBLISHED': return <span className="text-green-600 bg-green-100 px-2 py-0.5 rounded text-xs ml-2 whitespace-nowrap">Sắp tới</span>;
-          case 'COMPLETED': return <span className="text-gray-600 bg-gray-200 px-2 py-0.5 rounded text-xs ml-2 whitespace-nowrap">Đã qua</span>;
-          case 'CANCELLED': return <span className="text-red-600 bg-red-100 px-2 py-0.5 rounded text-xs ml-2 whitespace-nowrap">Bị hủy</span>;
-          default: return <span className="text-gray-600 bg-gray-100 px-2 py-0.5 rounded text-xs ml-2 whitespace-nowrap">{s}</span>;
-      }
+    const s = status ? status.toUpperCase() : 'DRAFT';
+    switch (s) {
+      case 'DRAFT': return <span className="text-yellow-600 bg-yellow-100 px-2 py-0.5 rounded text-xs ml-2 whitespace-nowrap">Chờ duyệt</span>;
+      case 'PUBLISHED': return <span className="text-green-600 bg-green-100 px-2 py-0.5 rounded text-xs ml-2 whitespace-nowrap">Sắp tới</span>;
+      case 'COMPLETED': return <span className="text-gray-600 bg-gray-200 px-2 py-0.5 rounded text-xs ml-2 whitespace-nowrap">Đã qua</span>;
+      case 'CANCELLED': return <span className="text-red-600 bg-red-100 px-2 py-0.5 rounded text-xs ml-2 whitespace-nowrap">Bị hủy</span>;
+      default: return <span className="text-gray-600 bg-gray-100 px-2 py-0.5 rounded text-xs ml-2 whitespace-nowrap">{s}</span>;
+    }
   };
 
   const handleOverviewClick = () => {
@@ -122,19 +122,19 @@ const EventCard = ({ event, isAdmin }) => {
     // 2. Thêm 'min-h-[250px]': Đảm bảo thẻ không bao giờ bị quá ngắn
     // 3. XÓA 'overflow-hidden': Để phần chân màu cam không bị che mất
     <div className="bg-[#FFE8E2] rounded-lg shadow-lg border border-[#fdebe7] w-[96%] mb-6 flex flex-col hover:shadow-xl transition-all h-auto relative">
-      
+
       {/* Phần THÂN (Thông tin) */}
       <div className="p-6 flex flex-row gap-6 items-center">
         <EventImage src={imageUrl} alt={title} />
 
         <div className="flex flex-col flex-1 min-w-0">
           <div className="flex items-center flex-wrap">
-             <h2 className="text-xl font-bold text-gray-800 break-words line-clamp-2 mr-2">{title}</h2>
-             {getStatusLabel(event.status)}
+            <h2 className="text-xl font-bold text-gray-800 break-words line-clamp-2 mr-2">{title}</h2>
+            {getStatusLabel(event.status)}
           </div>
 
           <div className="flex items-center gap-2 mt-3 text-red-600">
-            <FiClock size={16} className="flex-shrink-0"/>
+            <FiClock size={16} className="flex-shrink-0" />
             <span className="text-sm font-semibold">{time}</span>
           </div>
           <div className="flex items-start gap-2 mt-2 text-gray-600">
@@ -158,11 +158,11 @@ const EventCard = ({ event, isAdmin }) => {
           onClick={handleOrdersClick}
         />
         {!isAdmin && (
-            <ActionButton
-              icon={FiEdit}
-              label="Chỉnh sửa"
-              onClick={handleEditClick}
-            />
+          <ActionButton
+            icon={FiEdit}
+            label="Chỉnh sửa"
+            onClick={handleEditClick}
+          />
         )}
       </div>
     </div>
@@ -180,32 +180,32 @@ const EventsPage = ({ isAdmin = false }) => {
 
   useEffect(() => {
     const fetchEvents = async () => {
-        setLoading(true);
-        try {
-          if (!token) return;
-          const endpoint = isAdmin
-            ? `${API_BASE_URL}/event/all_events`
-            : `${API_BASE_URL}/event/customer_events`;
+      setLoading(true);
+      try {
+        if (!token) return;
+        const endpoint = isAdmin
+          ? `${API_BASE_URL}/event/all_events`
+          : `${API_BASE_URL}/event/customer_events`;
 
-          const response = await axios.get(
-            endpoint,
-            { headers: { 'Authorization': `Bearer ${token}` } }
-          );
+        const response = await axios.get(
+          endpoint,
+          { headers: { 'Authorization': `Bearer ${token}` } }
+        );
 
-          let eventsFromServer = [];
-          if (Array.isArray(response.data)) {
-              eventsFromServer = response.data;
-          } else if (response.data.events && Array.isArray(response.data.events)) {
-              eventsFromServer = response.data.events;
-          } else if (response.data.data && Array.isArray(response.data.data)) {
-              eventsFromServer = response.data.data;
-          }
-          setAllEvents(eventsFromServer);
-        } catch (error) {
-          console.error("❌ Lỗi tải sự kiện:", error);
-        } finally {
-          setLoading(false);
+        let eventsFromServer = [];
+        if (Array.isArray(response.data)) {
+          eventsFromServer = response.data;
+        } else if (response.data.events && Array.isArray(response.data.events)) {
+          eventsFromServer = response.data.events;
+        } else if (response.data.data && Array.isArray(response.data.data)) {
+          eventsFromServer = response.data.data;
         }
+        setAllEvents(eventsFromServer);
+      } catch (error) {
+        console.error("❌ Lỗi tải sự kiện:", error);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchEvents();
   }, [token, isAdmin]);
@@ -215,17 +215,17 @@ const EventsPage = ({ isAdmin = false }) => {
   }, [activeTab, searchTerm]);
 
   const filteredEvents = allEvents.filter(event => {
-      if (searchTerm) {
-          const normalizedSearch = searchTerm.toLowerCase().trim();
-          const eventName = (event.name || "").toLowerCase();
-          if (!eventName.includes(normalizedSearch)) return false;
-      }
-      const status = event.status ? event.status.toUpperCase() : 'DRAFT';
-      if (activeTab === 'Chờ duyệt') return status === 'DRAFT';
-      if (activeTab === 'Sắp tới') return status === 'PUBLISHED';
-      if (activeTab === 'Đã qua') return status === 'COMPLETED';
-      if (activeTab === 'Bị hủy') return status === 'CANCELLED';
-      return false;
+    if (searchTerm) {
+      const normalizedSearch = searchTerm.toLowerCase().trim();
+      const eventName = (event.name || "").toLowerCase();
+      if (!eventName.includes(normalizedSearch)) return false;
+    }
+    const status = event.status ? event.status.toUpperCase() : 'DRAFT';
+    if (activeTab === 'Chờ duyệt') return status === 'DRAFT';
+    if (activeTab === 'Sắp tới') return status === 'PUBLISHED';
+    if (activeTab === 'Đã qua') return status === 'COMPLETED';
+    if (activeTab === 'Bị hủy') return status === 'CANCELLED';
+    return false;
   });
 
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -262,7 +262,7 @@ const EventsPage = ({ isAdmin = false }) => {
 
       <div className="flex flex-col items-center pb-20 w-full pb-10">
         {loading ? (
-            <p className="text-[#f94f2f] font-semibold mt-10">Đang tải danh sách sự kiện...</p>
+          <p className="text-[#f94f2f] font-semibold mt-10">Đang tải danh sách sự kiện...</p>
         ) : currentEvents.length > 0 ? (
           <>
             {currentEvents.map(event => (
@@ -299,8 +299,8 @@ const EventsPage = ({ isAdmin = false }) => {
           </>
         ) : (
           <div className="text-center mt-10 text-gray-500">
-             <FiFileText size={48} className="mx-auto mb-2 text-gray-300" />
-             <p>Không tìm thấy sự kiện nào.</p>
+            <FiFileText size={48} className="mx-auto mb-2 text-gray-300" />
+            <p>Không tìm thấy sự kiện nào.</p>
           </div>
         )}
       </div>

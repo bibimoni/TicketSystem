@@ -4,7 +4,7 @@ import axios from 'axios';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 // --- CẤU HÌNH API ---
-const API_BASE_URL = 'https://ticket-system-backend-pkuf.onrender.com';
+const API_BASE_URL = process.env.BACKEND_URL;
 
 const formatCurrency = (amount) => {
   if (amount == null || isNaN(amount)) return '0 ₫';
@@ -13,12 +13,12 @@ const formatCurrency = (amount) => {
 
 // Component Thanh tiến trình
 const ProgressBar = ({ sold, total }) => {
-  const safeTotal = total > 0 ? total : 1; 
+  const safeTotal = total > 0 ? total : 1;
   const percentage = Math.min((sold / safeTotal) * 100, 100); // Không cho quá 100%
   return (
     <div className="w-full bg-gray-200 rounded-full h-2.5">
-      <div 
-        className="bg-red-500 h-2.5 rounded-full transition-all duration-500 ease-out" 
+      <div
+        className="bg-red-500 h-2.5 rounded-full transition-all duration-500 ease-out"
         style={{ width: `${percentage}%` }}
       ></div>
     </div>
@@ -30,7 +30,7 @@ const DonutChart = ({ percentage, color }) => {
   const safePercentage = isNaN(percentage) ? 0 : percentage;
   let displayValue = '0';
   if (safePercentage > 0 && safePercentage < 1) {
-    displayValue = safePercentage.toFixed(2); 
+    displayValue = safePercentage.toFixed(2);
   } else {
     displayValue = safePercentage.toFixed(0);
   }
@@ -75,13 +75,13 @@ export const OverviewPage = () => {
 
         // --- 1. GỌI API ---
         const [eventRes, transRes] = await Promise.all([
-           axios.get(`${API_BASE_URL}/event/customer_events`, { 
-               headers: { 'Authorization': `Bearer ${token}` } 
-           }),
-           axios.get(`${API_BASE_URL}/transaction/event_transactions`, { 
-               headers: { 'Authorization': `Bearer ${token}` },
-               params: { eventId: eventId }
-           })
+          axios.get(`${API_BASE_URL}/event/customer_events`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          }),
+          axios.get(`${API_BASE_URL}/transaction/event_transactions`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+            params: { eventId: eventId }
+          })
         ]);
 
         // Xử lý dữ liệu
@@ -90,118 +90,118 @@ export const OverviewPage = () => {
         const transactions = Array.isArray(transRes.data) ? transRes.data : (transRes.data.data || []);
 
         if (currentEvent) {
-            // --- A. TÍNH TOÁN DỰA TRÊN GIAO DỊCH THỰC TẾ ---
-            let realRevenue = 0;
-            let realTicketsSold = 0;
-            const statsMap = {};
-            
-            // Map để đếm số lượng vé bán ra theo từng loại (ID loại vé -> Số lượng)
-            const salesByType = {}; 
+          // --- A. TÍNH TOÁN DỰA TRÊN GIAO DỊCH THỰC TẾ ---
+          let realRevenue = 0;
+          let realTicketsSold = 0;
+          const statsMap = {};
 
-            transactions.forEach(trans => {
-                // Chỉ xử lý đơn hàng thành công (nếu cần thiết)
-                // if (trans.status !== 'SUCCESS') return;
+          // Map để đếm số lượng vé bán ra theo từng loại (ID loại vé -> Số lượng)
+          const salesByType = {};
 
-                // 1. Ngày giao dịch
-                const dateStr = trans.time_date || trans.created_at; 
-                let dayLabel = "N/A";
-                let timestamp = 0;
-                if (dateStr) {
-                    const date = new Date(dateStr);
-                    const day = String(date.getDate()).padStart(2, '0');
-                    const month = String(date.getMonth() + 1).padStart(2, '0');
-                    dayLabel = `${day}/${month}`;
-                    timestamp = date.getTime();
-                }
-                if (dayLabel !== "N/A" && !statsMap[dayLabel]) {
-                    statsMap[dayLabel] = { day: dayLabel, revenue: 0, tickets: 0, timestamp: timestamp };
-                }
+          transactions.forEach(trans => {
+            // Chỉ xử lý đơn hàng thành công (nếu cần thiết)
+            // if (trans.status !== 'SUCCESS') return;
 
-                // 2. Duyệt từng vé trong đơn hàng
-                const ticketsList = trans.tickets || [];
-                ticketsList.forEach(tItem => {
-                    const ticket = tItem.ticket || {};
-                    const type = ticket.ticket_type || {};
-                    const event = type.event || {};
-                    const ticketTypeId = type.id;
-
-                    // Kiểm tra đúng Event ID
-                    if (String(event.id) === String(eventId) || String(type.eventId) === String(eventId)) {
-                        
-                        // Lấy giá và số lượng (mặc định 1)
-                        const price = Number(type.price) || 0;
-                        const amount = tItem.amount || 1; 
-
-                        // --- CỘNG DỒN TỔNG QUAN ---
-                        realRevenue += price; // Nếu tItem.amount > 1 thì phải là price * amount, nhưng API hiện tại tách từng vé
-                        realTicketsSold += amount;
-
-                        // --- CỘNG DỒN BIỂU ĐỒ NGÀY ---
-                        if (dayLabel !== "N/A") {
-                            statsMap[dayLabel].revenue += price;
-                            statsMap[dayLabel].tickets += amount;
-                        }
-
-                        // --- CỘNG DỒN CHO BẢNG CHI TIẾT VÉ (LOGIC MỚI) ---
-                        if (!salesByType[ticketTypeId]) {
-                            salesByType[ticketTypeId] = 0;
-                        }
-                        salesByType[ticketTypeId] += amount;
-                    }
-                });
-            });
-
-            // Xử lý biểu đồ ngày
-            let dailyStats = Object.values(statsMap);
-            dailyStats.sort((a, b) => a.timestamp - b.timestamp);
-            if (dailyStats.length === 0) {
-                 const today = new Date();
-                 dailyStats.push({ day: `${today.getDate()}/${today.getMonth()+1}`, revenue: 0, tickets: 0 });
+            // 1. Ngày giao dịch
+            const dateStr = trans.time_date || trans.created_at;
+            let dayLabel = "N/A";
+            let timestamp = 0;
+            if (dateStr) {
+              const date = new Date(dateStr);
+              const day = String(date.getDate()).padStart(2, '0');
+              const month = String(date.getMonth() + 1).padStart(2, '0');
+              dayLabel = `${day}/${month}`;
+              timestamp = date.getTime();
+            }
+            if (dayLabel !== "N/A" && !statsMap[dayLabel]) {
+              statsMap[dayLabel] = { day: dayLabel, revenue: 0, tickets: 0, timestamp: timestamp };
             }
 
-            // --- B. TẠO BẢNG CHI TIẾT (KẾT HỢP INFO GỐC VÀ SỐ LIỆU THỰC) ---
-            let totalTicketsAvailable = 0;
-            let totalRevenueExpected = 0;
+            // 2. Duyệt từng vé trong đơn hàng
+            const ticketsList = trans.tickets || [];
+            ticketsList.forEach(tItem => {
+              const ticket = tItem.ticket || {};
+              const type = ticket.ticket_type || {};
+              const event = type.event || {};
+              const ticketTypeId = type.id;
 
-            const ticketTypes = currentEvent.ticketTypes || [];
-            
-            const ticketDetails = ticketTypes.map(type => {
-                const typeId = type.id;
-                const name = type.name || "Vé thường";
-                const totalAmount = Number(type.amount) || 0; // Tổng phát hành
-                
-                // Lấy giá tiền
-                let price = Number(type.price) || 0;
-                
-                const soldCount = salesByType[typeId] || 0; 
+              // Kiểm tra đúng Event ID
+              if (String(event.id) === String(eventId) || String(type.eventId) === String(eventId)) {
 
-                // Tính toán tổng
-                totalTicketsAvailable += totalAmount;
-                totalRevenueExpected += (totalAmount * price);
+                // Lấy giá và số lượng (mặc định 1)
+                const price = Number(type.price) || 0;
+                const amount = tItem.amount || 1;
 
-                return {
-                    id: typeId,
-                    name: name,
-                    price: price,
-                    total: totalAmount,
-                    sold: soldCount, // Số liệu thực tế từ transaction
-                    revenue: soldCount * price // Doanh thu thực tế của loại vé này
-                };
+                // --- CỘNG DỒN TỔNG QUAN ---
+                realRevenue += price; // Nếu tItem.amount > 1 thì phải là price * amount, nhưng API hiện tại tách từng vé
+                realTicketsSold += amount;
+
+                // --- CỘNG DỒN BIỂU ĐỒ NGÀY ---
+                if (dayLabel !== "N/A") {
+                  statsMap[dayLabel].revenue += price;
+                  statsMap[dayLabel].tickets += amount;
+                }
+
+                // --- CỘNG DỒN CHO BẢNG CHI TIẾT VÉ (LOGIC MỚI) ---
+                if (!salesByType[ticketTypeId]) {
+                  salesByType[ticketTypeId] = 0;
+                }
+                salesByType[ticketTypeId] += amount;
+              }
             });
+          });
 
-            setData({
-                eventName: currentEvent.name,
-                revenueSummary: {
-                    currentRevenue: realRevenue,
-                    totalExpectedRevenue: totalRevenueExpected 
-                },
-                ticketSummary: {
-                    ticketsSold: realTicketsSold,
-                    totalTickets: totalTicketsAvailable
-                },
-                ticketDetails: ticketDetails,
-                dailyStats: dailyStats
-            });
+          // Xử lý biểu đồ ngày
+          let dailyStats = Object.values(statsMap);
+          dailyStats.sort((a, b) => a.timestamp - b.timestamp);
+          if (dailyStats.length === 0) {
+            const today = new Date();
+            dailyStats.push({ day: `${today.getDate()}/${today.getMonth() + 1}`, revenue: 0, tickets: 0 });
+          }
+
+          // --- B. TẠO BẢNG CHI TIẾT (KẾT HỢP INFO GỐC VÀ SỐ LIỆU THỰC) ---
+          let totalTicketsAvailable = 0;
+          let totalRevenueExpected = 0;
+
+          const ticketTypes = currentEvent.ticketTypes || [];
+
+          const ticketDetails = ticketTypes.map(type => {
+            const typeId = type.id;
+            const name = type.name || "Vé thường";
+            const totalAmount = Number(type.amount) || 0; // Tổng phát hành
+
+            // Lấy giá tiền
+            let price = Number(type.price) || 0;
+
+            const soldCount = salesByType[typeId] || 0;
+
+            // Tính toán tổng
+            totalTicketsAvailable += totalAmount;
+            totalRevenueExpected += (totalAmount * price);
+
+            return {
+              id: typeId,
+              name: name,
+              price: price,
+              total: totalAmount,
+              sold: soldCount, // Số liệu thực tế từ transaction
+              revenue: soldCount * price // Doanh thu thực tế của loại vé này
+            };
+          });
+
+          setData({
+            eventName: currentEvent.name,
+            revenueSummary: {
+              currentRevenue: realRevenue,
+              totalExpectedRevenue: totalRevenueExpected
+            },
+            ticketSummary: {
+              ticketsSold: realTicketsSold,
+              totalTickets: totalTicketsAvailable
+            },
+            ticketDetails: ticketDetails,
+            dailyStats: dailyStats
+          });
         }
       } catch (error) {
         console.error("Lỗi tải tổng quan:", error);
@@ -215,16 +215,16 @@ export const OverviewPage = () => {
   if (loading) return <div className="p-8 text-center text-gray-500">Đang tải dữ liệu...</div>;
   if (!data) return <div className="p-8 text-center text-red-500">Không tìm thấy dữ liệu sự kiện.</div>;
 
-  const revenuePercent = data.revenueSummary.totalExpectedRevenue > 0 
-    ? (data.revenueSummary.currentRevenue / data.revenueSummary.totalExpectedRevenue) * 100 
+  const revenuePercent = data.revenueSummary.totalExpectedRevenue > 0
+    ? (data.revenueSummary.currentRevenue / data.revenueSummary.totalExpectedRevenue) * 100
     : 0;
-  const ticketPercent = data.ticketSummary.totalTickets > 0 
-    ? (data.ticketSummary.ticketsSold / data.ticketSummary.totalTickets) * 100 
+  const ticketPercent = data.ticketSummary.totalTickets > 0
+    ? (data.ticketSummary.ticketsSold / data.ticketSummary.totalTickets) * 100
     : 0;
 
   return (
     <div className="w-[1100px] relative left-[-40px] flex flex-col gap-8 pb-10">
-      
+
       <h2 className="text-2xl font-bold text-gray-800 border-l-4 border-[#F94F2F] pl-3">
         Tổng quan: <span className="text-[#F94F2F]">{data.eventName}</span>
       </h2>
@@ -264,14 +264,14 @@ export const OverviewPage = () => {
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data.dailyStats}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eee" />
-            <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{fill: '#888'}} />
-            <YAxis axisLine={false} tickLine={false} tick={{fill: '#888'}} />
-            <Tooltip 
-                formatter={(value, name) => [
-                    name === 'revenue' ? formatCurrency(value) : value, 
-                    name === 'revenue' ? 'Doanh thu' : 'Số vé'
-                ]} 
-                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+            <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: '#888' }} />
+            <YAxis axisLine={false} tickLine={false} tick={{ fill: '#888' }} />
+            <Tooltip
+              formatter={(value, name) => [
+                name === 'revenue' ? formatCurrency(value) : value,
+                name === 'revenue' ? 'Doanh thu' : 'Số vé'
+              ]}
+              contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
             />
             <Legend />
             <Bar dataKey="revenue" fill="#F94F2F" name="Doanh thu" radius={[4, 4, 0, 0]} barSize={40} />
@@ -284,37 +284,37 @@ export const OverviewPage = () => {
       <div>
         <h3 className="text-xl font-bold text-gray-800 mb-4">Chi tiết vé bán ra</h3>
         <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-            <table className="min-w-full">
+          <table className="min-w-full">
             <thead className="bg-gray-50 border-b border-gray-100">
-                <tr className="text-left text-gray-500 font-semibold text-sm">
+              <tr className="text-left text-gray-500 font-semibold text-sm">
                 <th className="py-4 px-6">Loại vé</th>
                 <th className="py-4 px-6">Giá niêm yết</th>
                 <th className="py-4 px-6">Tiến độ bán</th>
                 <th className="py-4 px-6 text-right">Doanh thu (Ước tính)</th>
-                </tr>
+              </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-                {data.ticketDetails.map((ticket) => (
+              {data.ticketDetails.map((ticket) => (
                 <tr key={ticket.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="py-4 px-6 font-semibold text-gray-800">{ticket.name}</td>
-                    <td className="py-4 px-6 text-gray-600">{formatCurrency(ticket.price)}</td>
-                    <td className="py-4 px-6 w-1/3">
+                  <td className="py-4 px-6 font-semibold text-gray-800">{ticket.name}</td>
+                  <td className="py-4 px-6 text-gray-600">{formatCurrency(ticket.price)}</td>
+                  <td className="py-4 px-6 w-1/3">
                     <div className="flex items-center gap-3">
-                        <div className="flex-1">
-                            <ProgressBar sold={ticket.sold} total={ticket.total} />
-                        </div>
-                        <span className="text-xs font-medium text-gray-500 w-16 text-right">
-                            {ticket.sold} / {ticket.total}
-                        </span>
+                      <div className="flex-1">
+                        <ProgressBar sold={ticket.sold} total={ticket.total} />
+                      </div>
+                      <span className="text-xs font-medium text-gray-500 w-16 text-right">
+                        {ticket.sold} / {ticket.total}
+                      </span>
                     </div>
-                    </td>
-                    <td className="py-4 px-6 text-right font-bold text-[#F94F2F]">
-                        {formatCurrency(ticket.revenue)}
-                    </td>
+                  </td>
+                  <td className="py-4 px-6 text-right font-bold text-[#F94F2F]">
+                    {formatCurrency(ticket.revenue)}
+                  </td>
                 </tr>
-                ))}
+              ))}
             </tbody>
-            </table>
+          </table>
         </div>
       </div>
     </div>

@@ -1,9 +1,7 @@
-// src/services/transactionService.js
 import axiosClient from './axiosClient';
 
 const transactionService = {
-    // Tạo phiên thanh toán
-     checkout(data) {
+    checkout(data) {
         return axiosClient.post('/transaction/checkout', data);
     },
 
@@ -19,7 +17,7 @@ const transactionService = {
     },
     cancelPending(payload) {
         return axiosClient.delete('/transaction/cancel-pending', {
-            data: payload 
+            data: payload
         });
     }
 

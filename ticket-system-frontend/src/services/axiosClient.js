@@ -1,8 +1,7 @@
-// Cấu hình chung
 import axios from 'axios';
 
 const axiosClient = axios.create({
-    baseURL: 'https://ticket-system-backend-pkuf.onrender.com', 
+    baseURL: process.env.BACKEND_URL,
     headers: {
         'Content-Type': 'application/json',
     },

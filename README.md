@@ -124,8 +124,8 @@ To get a local copy up and running, please refer to the detailed instructions pr
 
 The application is divided into two main components:
 
-1.  **Backend API**: Runs on port 3000 (default). It handles all business logic, database interactions, and authentication.
-2.  **Frontend Client**: Runs on port 5173 (default). It provides the user interface for Customers, Organizers, and Admins.
+1.  **Backend API**: Runs on port 3001 (default). It handles all business logic, database interactions, and authentication.
+2.  **Frontend Client**: Runs on port 3000 (default). It provides the user interface for Customers, Organizers, and Admins.
 
 Once both services are running, you can access the application via your browser.
 
@@ -192,15 +192,15 @@ Project Link: [https://github.com/bibimoni/TicketSystem](https://github.com/bibi
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [contributors-shield]: https://img.shields.io/github/contributors/othneildrew/Best-README-Template.svg?style=for-the-badge
-[contributors-url]: https://github.com/othneildrew/Best-README-Template/graphs/contributors
+[contributors-url]: https://github.com/bibimoni/TicketSystem/graphs/contributors
 [forks-shield]: https://img.shields.io/github/forks/othneildrew/Best-README-Template.svg?style=for-the-badge
-[forks-url]: https://github.com/othneildrew/Best-README-Template/network/members
+[forks-url]: https://github.com/bibimoni/TicketSystem/network/members
 [stars-shield]: https://img.shields.io/github/stars/othneildrew/Best-README-Template.svg?style=for-the-badge
-[stars-url]: https://github.com/othneildrew/Best-README-Template/stargazers
+[stars-url]: https://github.com/bibimoni/TicketSystem/stargazers
 [issues-shield]: https://img.shields.io/github/issues/othneildrew/Best-README-Template.svg?style=for-the-badge
-[issues-url]: https://github.com/othneildrew/Best-README-Template/issues
+[issues-url]: https://github.com/bibimoni/TicketSystem/issues
 [license-shield]: https://img.shields.io/github/license/othneildrew/Best-README-Template.svg?style=for-the-badge
-[license-url]: https://github.com/othneildrew/Best-README-Template/blob/master/LICENSE.txt
+[license-url]: https://github.com/bibimoni/TicketSystem/blob/master/LICENSE.txt
 [NestJS]: https://img.shields.io/badge/nestjs-%23E0234E.svg?style=for-the-badge&logo=nestjs&logoColor=white
 [NestJS-url]: https://nestjs.com/
 [React.js]: https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB

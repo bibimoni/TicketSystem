@@ -20,7 +20,7 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <h2 align="center">TickeZ</h2>
+  <h3 align="center">TickeZ</h3>
 
   <p align="center">
     A comprehensive full-stack event management and ticketing platform.

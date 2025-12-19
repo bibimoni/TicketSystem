@@ -37,7 +37,7 @@ export class AuthService {
           email: user.email
         }
       })
-      this.userService.updateProfile({ email: user.email }, { avatar: user.picture })
+      this.userService.updateProfile({ email: user.email }, { avatar: user.picture, name: user.name })
     }
 
     if (!userFound) {

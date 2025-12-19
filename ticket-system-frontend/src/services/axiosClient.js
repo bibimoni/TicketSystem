@@ -1,3 +1,4 @@
+// Cấu hình chung
 import axios from 'axios';
 
 const axiosClient = axios.create({

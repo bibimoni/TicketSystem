@@ -1,3 +1,4 @@
+// src/App.jsx
 import { useEffect } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { EventFormProvider } from './context/EventContext';
@@ -43,6 +44,7 @@ function App() {
     const token = params.get("access_token");
 
     if (token) {
+      // console.log("Google Login Success, Token:", token);
 
       localStorage.setItem("token", token);
 

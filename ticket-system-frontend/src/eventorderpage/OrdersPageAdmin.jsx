@@ -3,10 +3,9 @@ import { useParams } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import axios from 'axios';
 // import { useAuth } from '../context/AuthContext'; 
-import axiosClient from '../services/axiosClient';
 
 // --- CẤU HÌNH API ---
-const API_BASE_URL = axiosClient.defaults.baseURL;
+const API_BASE_URL = process.env.BACKEND_URL;
 
 // --- HELPER FUNCTIONS ---
 const maskPhone = (phone) => {

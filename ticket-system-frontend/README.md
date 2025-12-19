@@ -1,63 +1,86 @@
-# Customer - Frontend
-## Cấu trúc thư mục
+# TickeZ Frontend
+
+This is the **frontend application** for the TickeZ system, built with **React**, **Vite**, and **Tailwind CSS**.  
+
+The project focuses on event browsing, ticket booking, user authentication, and organizer management features.
+
+---
+
+## Tech Stack
+
+- React (JavaScript)
+- Vite
+- Tailwind CSS
+- Axios
+- ESLint
+
+---
+
+## Project Structure
 ```
-tickez-frontend/
-├── public/
+ticket-system-frontend/
+├── public/ # Static assets
 │ ├── logo.png
+│ └── dieu-khoan.pdf
 ├── src/
-│ ├── assets/
-│ │ └── images/
-│ │ ├── ....
-│ ├── components/ # các component được sử dụng trong /pages
-│ │ ├── AdvertisingBanner.jsx
-│ │ ├── BackButton.jsx
-│ │ ├── Booking.jsx
-│ │ ├── Breadcrumb.jsx
-│ │ ├── CatalogBar.jsx
-│ │ ├── Footer.jsx
-│ │ ├── Form.jsx
-│ │ ├── HeaderBar.jsx
-│ │ ├── HeroBanner.jsx
-│ │ ├── Info.jsx
-│ │ ├── ListEvent.jsx
-│ │ ├── MoreEvent.jsx
-│ │ ├── Paying.jsx
-│ │ ├── SeachEvent.jsx
-│ │ └── TicketDetail.jsx
-│ │ └── Profile.jsx
-│ ├── database/ # mockdata, có thể remove
-│ │ ├── Event.js
-│ │ ├── Events.js
-│ │ └── TrendingEvent.js
-│ │ └── User.js
-│ ├── pages/ # các trang hiển thị
-│ │ ├── AboutEvent.jsx
-│ │ ├── BookingTicket.jsx
-│ │ ├── Home.jsx
-│ │ ├── Pay.jsx
-│ │ ├── QuestionForm.jsx
-│ │ └── Search.jsx
-│ │ └── MyProfile.jsx
-│ ├── services/ # cấu hình để call API
-│ │ ├── ...
-│ ├── App.jsx # Chứa các routes
-│ ├── App.css
-│ ├── index.css
-│ └── index.jsx
-├── tailwind.config.js
+│ ├── assets/ # Images and static resources
+│ ├── components/ # Reusable UI components
+│ ├── context/ # React Context (global state)
+│ ├── createEvents/ # Event creation flow (multi-step pages)
+│ ├── dashboard/ # Dashboard pages
+│ ├── eventorderpage/ # Orders, vouchers, admin views
+│ ├── information/ # Admin / organizer profile pages
+│ ├── myEventsPage/ # Organizer event management
+│ ├── organizerlayout/ # Organizer layout & terms
+│ ├── pages/ # Application pages (routing targets)
+│ ├── services/ # API services (Axios clients)
+│ ├── App.jsx # Main app & routing
+│ ├── index.jsx # Entry point
+│ └── index.css # Global styles
 ├── index.html
 ├── vite.config.js
+├── tailwind.config.js
 ├── package.json
 └── package-lock.json
 ```
 
-## Cài đặt và chạy Local
-1. Cài dependencies
+## Requirements
 
-```npm install```
+- Node.js >= 16
+- npm
 
-2. Chạy ứng dụng
+---
 
-```npm run dev```
+## Installation
 
-Ứng dụng sẽ chạy ở ```http://localhost:3000/``` vì server chạy ở port này.
+Install project dependencies:
+
+```bash
+npm install
+```
+
+## Running the Project (Local)
+
+Start the development server:
+```bash
+npm run dev
+```
+
+The application will be available at: `http://localhost:3000`
+
+## Notes
+
+- This frontend communicates with the backend via REST APIs defined in src/services.
+
+- Environment variables (if needed) should be configured according to the backend setup.
+
+- The project uses Vite, so hot-reload is enabled by default.
+
+## Scripts
+
+Commonly used commands:
+```bash
+npm run dev       # Run development server
+npm run build     # Build for production
+npm run preview   # Preview production build
+```

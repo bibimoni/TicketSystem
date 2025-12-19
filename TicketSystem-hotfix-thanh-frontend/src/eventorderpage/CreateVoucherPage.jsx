@@ -10,7 +10,7 @@ const CreateVoucherPage = () => {
   const navigate = useNavigate();
   const { eventId, voucherId } = useParams();
   
-  // Xác định chế độ
+  // Xác định chế độ: Nếu có voucherId và khác 'new' thì là Edit Mode
   const isEditMode = Boolean(voucherId) && voucherId !== 'new';
   const [loading, setLoading] = useState(false);
 
@@ -20,7 +20,7 @@ const CreateVoucherPage = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [noiDung, setNoiDung] = useState('');
-  const [loaiKhuyenMai, setLoaiKhuyenMai] = useState('so-tien');
+  const [loaiKhuyenMai, setLoaiKhuyenMai] = useState('so-tien'); // mặc định là số tiền (FIXED)
   const [mucGiam, setMucGiam] = useState('');
   const [ticketLimit, setTicketLimit] = useState('limited');
   const [tongSoVe, setTongSoVe] = useState('');
@@ -32,32 +32,47 @@ const CreateVoucherPage = () => {
     const loadData = async () => {
         if (isEditMode && token) {
             try {
-                // Phải lấy từ customer_events vì không có API get voucher detail public
+                // Lấy danh sách sự kiện của customer
                 const response = await axios.get(`${API_BASE_URL}/event/customer_events`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
-                const allEvents = Array.isArray(response.data) ? response.data : (response.data.events || response.data.data || []);
-                const currentEvent = allEvents.find(e => e.id === eventId || e._id === eventId);
+                // Dựa trên JSON bạn cung cấp: response.data là một Array []
+                const allEvents = response.data || [];
+                
+                // 1. Tìm sự kiện chứa voucher
+                const currentEvent = allEvents.find(e => e.id === eventId);
                 
                 if (currentEvent && currentEvent.vouchers) {
-                    const voucher = currentEvent.vouchers.find(v => v.id === voucherId || v._id === voucherId || v.code === voucherId);
+                    // 2. Tìm voucher cụ thể trong mảng vouchers của sự kiện đó
+                    const voucher = currentEvent.vouchers.find(v => v.id === voucherId);
                     
                     if (voucher) {
-                        setTenChuongTrinh(voucher.name || "");
+                        // Fill dữ liệu vào form
+                        setTenChuongTrinh(voucher.name || ""); // API có thể không trả name, để trống
                         setMaVoucher(voucher.code || "");
+                        
+                        // Cắt chuỗi lấy YYYY-MM-DD cho input type="date"
                         setStartDate(voucher.start_date ? voucher.start_date.substring(0, 10) : '');
                         setEndDate(voucher.end_date ? voucher.end_date.substring(0, 10) : '');
-                        setNoiDung(voucher.description || '');
                         
-                        // [cite: 189, 190] Mapping dữ liệu từ Swagger
+                        setNoiDung(voucher.description || ''); // API JSON mẫu chưa thấy field này, dự phòng
+                        
+                        // Mapping loại giảm giá
                         setLoaiKhuyenMai(voucher.reduce_type === 'PERCENTAGE' ? 'phan-tram' : 'so-tien');
                         setMucGiam(voucher.reduce_price || '');
                         
-                        // Xử lý số lượng
-                        const qty = voucher.quantity;
-                        if (qty >= 999999) { setTicketLimit('unlimited'); setTongSoVe(''); } 
-                        else { setTicketLimit('limited'); setTongSoVe(qty || ''); }
+                        // Xử lý số lượng (nếu API có trả về quantity)
+                        const qty = voucher.quantity; 
+                        // Lưu ý: JSON mẫu chưa thấy field quantity trong voucher object, 
+                        // nhưng nếu backend trả về thì xử lý như sau:
+                        if (qty && qty >= 999999) { 
+                            setTicketLimit('unlimited'); 
+                            setTongSoVe(''); 
+                        } else { 
+                            setTicketLimit('limited'); 
+                            setTongSoVe(qty || ''); 
+                        }
                     }
                 }
             } catch (error) {
@@ -66,7 +81,7 @@ const CreateVoucherPage = () => {
         }
     };
     loadData();
-}, [isEditMode, voucherId, token, eventId]);
+  }, [isEditMode, voucherId, token, eventId]);
 
   const handleCancel = () => {
     navigate(`/event/${eventId}/voucher`);
@@ -83,39 +98,28 @@ const CreateVoucherPage = () => {
           return;
         }
 
-        // [cite: 186-193] Chuẩn bị Payload ĐÚNG CHUẨN Swagger
+        // Chuẩn bị Payload
         const voucherPayload = {
-            code: maVoucher,
-            reduce_type: loaiKhuyenMai === 'so-tien' ? 'FIXED' : 'PERCENTAGE',
-            reduce_price: Number(mucGiam),
-            
-            // [cite: 191] Swagger yêu cầu field 'price', dù UI không có. Ta gửi 0 hoặc giá trị tượng trưng.
-            price: 0, 
-            
-            // [cite: 192, 193] Ngày tháng bắt buộc ISO String
-            start_date: new Date(startDate).toISOString(),
-            end_date: new Date(endDate).toISOString(),
+        code: maVoucher,
+        reduce_type: loaiKhuyenMai === 'so-tien' ? 'FIXED' : 'PERCENTAGE',
+        reduce_price: Number(mucGiam), // Bắt buộc là số
+        price: 0, 
+        start_date: new Date(startDate).toISOString(),
+        end_date: new Date(endDate).toISOString(),
+    };
 
-            // Các trường bổ sung (Có thể Backend sẽ lưu hoặc bỏ qua)
-            name: tenChuongTrinh,
-            description: noiDung,
-            quantity: ticketLimit === 'unlimited' ? 999999 : Number(tongSoVe),
-        };
+    if (isEditMode) {
+        voucherPayload.id = voucherId; // ID voucher nằm trong body
+    }
 
-        // Nếu là Update, thêm ID vào payload [cite: 269]
-        if (isEditMode) {
-            voucherPayload.id = voucherId;
-        }
+    console.log("📦 Payload Clean:", voucherPayload);
 
-        console.log("📦 Payload:", voucherPayload);
-
-        // --- CHIA ENDPOINT THEO SWAGGER ---
         let endpoint = "";
         if (isEditMode) {
-            //  API Update
+            // Update: POST /event/update-vouchers/{eventId}
             endpoint = `${API_BASE_URL}/event/update-vouchers/${eventId}`;
         } else {
-            //  API Create
+            // Create: POST /event/create-vouchers/{eventId}
             endpoint = `${API_BASE_URL}/event/create-vouchers/${eventId}`;
         }
 
@@ -165,7 +169,6 @@ const CreateVoucherPage = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#F9614A]"
                     value={tenChuongTrinh}
                     onChange={(e) => setTenChuongTrinh(e.target.value)}
-                    required
                   />
                 </div>
               </div>
@@ -182,8 +185,6 @@ const CreateVoucherPage = () => {
                     maxLength={12}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#F9614A]"
                     required
-                    // [cite: 269] Khi update, thường ID/Code là định danh, nếu backend không cho sửa code thì disable
-                    // Tuy nhiên trong Swagger update body vẫn có code, nên cứ để sửa nếu cần.
                   />
                 </div>
               </div>
@@ -251,7 +252,7 @@ const CreateVoucherPage = () => {
                 </div>
               </div>
 
-              <div className="flex items-start">
+              {/* <div className="flex items-start">
                 <label className="w-1/4 text-right pr-6 font-semibold text-sm text-gray-700 pt-2">Số lượng:</label>
                 <div className="w-3/4">
                   <div className="flex items-center space-x-6 mb-2">
@@ -282,7 +283,7 @@ const CreateVoucherPage = () => {
                     />
                   )}
                 </div>
-              </div>
+              </div> */}
 
             </div>
           </div>

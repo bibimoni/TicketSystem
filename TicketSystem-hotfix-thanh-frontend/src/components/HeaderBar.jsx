@@ -33,10 +33,11 @@ const HeaderBar = () => {
         }
     };
 
-    const handleLogout = () => {
+    const handleLogout = () => { 
         localStorage.removeItem("token");
         localStorage.removeItem("userToken");
         setIsLoggedIn(false);
+        navigate('/'); 
     };
 
     return (

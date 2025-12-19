@@ -98,7 +98,7 @@ function Ticket() {
     const categories = [
         { label: "Thông tin tài khoản", active: false, icon: User, href: "/my-profile" },
         { label: "Vé của tôi", active: true, icon: TicketIcon, href: "/my-ticket" },
-        { label: "Sự kiện của tôi", active: false, icon: Calendar, href: "/" },
+        { label: "Sự kiện của tôi", active: false, icon: Calendar, href: "/su-kien-cua-toi" },
     ];
 
     return (

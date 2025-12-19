@@ -112,8 +112,8 @@ export const EventPage4 = ({ isAdmin = false }) => {
         const finalPoster = posterUrl || bannerUrl; 
         const finalBanner = bannerUrl || posterUrl;
         const description = eventData.description || "";
-        const combinedInformation = `${description}\n\n[Banner]: ${finalBanner}\n[suKien]: ${finalPoster}\n[Logo]: ${logoUrl}`;
-
+        // const combinedInformation = `${description}\n\n[Banner]: ${finalBanner}\n[suKien]: ${finalPoster}\n[Logo]: ${logoUrl}`;
+        const combinedInformation = description;
         // ==========================================================
         // 3. CHUẨN BỊ DỮ LIỆU VÉ (TẠO CẢ 2 DẠNG ĐỂ CHỌN)
         // ==========================================================

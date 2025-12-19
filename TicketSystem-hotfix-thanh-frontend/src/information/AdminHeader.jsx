@@ -63,7 +63,7 @@ const AdminHeader = () => {
   return (
    <div className="absolute top-0 left-[272px] right-0 h-20 flex gap-[11px] bg-white shadow-[0px_4px_4px_#00000040]">
     
-         <div className="absolute top-[15px] right-[40px] flex items-center gap-3">
+         <div className="absolute top-[15px] right-[40px] flex items-center gap-3 z-50">
             <div className="text-right hidden md:block">
                 {/* HIỂN THỊ TÊN TỪ STATE RIÊNG */}
                 <p className="text-sm font-bold text-gray-800 leading-none mb-0.5">
@@ -77,7 +77,7 @@ const AdminHeader = () => {
                   // HIỂN THỊ AVATAR TỪ STATE RIÊNG
                   src={adminInfo.avatar} 
                   alt="Avatar" 
-                  className="w-10 h-10 rounded-full object-cover mb-1 border border-gray-300" 
+                  className="w-10 h-10 rounded-full object-cover mb-1 border border-gray-300 " 
                   onError={(e) => { e.target.onerror = null; e.target.src = DEFAULT_AVATAR; }}
                 />
                 

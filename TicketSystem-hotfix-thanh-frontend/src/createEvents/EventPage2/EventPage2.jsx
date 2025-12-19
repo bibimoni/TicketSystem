@@ -285,7 +285,7 @@ export const EventPage2 = ({ isAdmin = false }) => {
   </div>
 
   {/* 3. Nút "Tạo vé" - Đã bỏ `absolute` và bọc trong div `justify-center` */}
-<div className="flex justify-center">
+<div className="flex justify-center z-50">
       {!isAdmin && (
         <TicketCreator 
           editingTicket={editingTicket}

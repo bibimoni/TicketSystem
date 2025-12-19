@@ -167,7 +167,7 @@ function Profile() {
     const category = [
         { label: "Thông tin tài khoản", active: true, icon: User, href: "/my-profile" },
         { label: "Vé của tôi", active: false, icon: Ticket, href: "/my-ticket" },
-        { label: "Sự kiện của tôi", active: false, icon: Calendar, href: "/" },
+        { label: "Sự kiện của tôi", active: false, icon: Calendar, href: "/su-kien-cua-toi" },
     ];
 
     if (loading) return (

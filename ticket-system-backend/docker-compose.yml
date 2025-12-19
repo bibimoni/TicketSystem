@@ -1,0 +1,14 @@
+services:
+  api:
+    build:
+      context: .
+      target: ${BUILD_TARGET:-dev}
+    container_name: nest-api
+    env_file: .env
+    ports:
+      - "${APP_PORT:-3001}:3001"
+    environment:
+      - MONGO_URI=${MONGO_URI}
+    volumes:
+      - .:/app
+      - /app/node_modules

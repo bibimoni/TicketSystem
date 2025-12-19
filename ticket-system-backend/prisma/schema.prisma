@@ -1,0 +1,215 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGO_URI")
+}
+
+generator client {
+  provider      = "prisma-client-js"
+  // It's good practice to keep the generated client separate
+  output        = "../generated/prisma"
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+}
+
+model User {
+  id               String        @id @default(auto()) @map("_id") @db.ObjectId
+  name             String?
+  email            String        @unique
+  sex              String?
+  address          String?
+  birth_date       DateTime?
+  information      String?
+  phone_number     String?
+  hashed_password  String
+  username         String        @unique
+  avatar           String?
+  avatar_public_id String?
+  created_at       DateTime?     @default(now())
+  updated_at       DateTime?     @updatedAt
+  events           Event[]
+  transactions     Transaction[]
+  Customer         Customer?
+  Admin            Admin?
+}
+
+model Customer {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  user_id     String        @unique @db.ObjectId
+  user        User          @relation(fields: [user_id], references: [id])
+  Event       Event[]
+  Transaction Transaction[]
+}
+
+model Admin {
+  id      String  @id @default(auto()) @map("_id") @db.ObjectId
+  user_id String  @unique @db.ObjectId
+  user    User    @relation(fields: [user_id], references: [id])
+  Event   Event[]
+}
+
+model Event {
+  id                    String    @id @default(auto()) @map("_id") @db.ObjectId
+  name                  String
+  information           String?
+  destination           String?
+  organizer             String?
+  organizer_logo        String?
+  organizer_information String?
+  // --- Relationships to Admin and Customer ---
+  admin_id              String?   @db.ObjectId
+  admin                 Admin?    @relation(fields: [admin_id], references: [id])
+  customer_id           String    @db.ObjectId
+  customer              Customer? @relation(fields: [customer_id], references: [id])
+
+  // --- Embedded Data using Composite Types ---
+  eventTime        DateTime
+  eventTicketStart DateTime
+  eventTicketEnd   DateTime
+
+  status            event_status @default(DRAFT)
+  format            event_format
+  event_picture_url String?
+  event_banner_url  String?
+  event_custom_slug String
+  messages          String
+
+  ticketTypes TicketType[]
+  User        User?        @relation(fields: [userId], references: [id])
+  userId      String?      @db.ObjectId
+
+  created_at DateTime? @default(now())
+  updated_at DateTime? @updatedAt
+  vouchers   Voucher[]
+}
+
+enum event_status {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+  COMPLETED
+}
+
+enum event_format {
+  ONLINE
+  OFFLINE
+}
+
+model TicketType {
+  id           String  @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  amount       Int
+  remaining    Int
+  // -- Adopted field from the old TicketPrice
+  price        Float?
+  benefit_info String?
+
+  // --- Relationships to other collections ---
+  event_id String @db.ObjectId
+  event    Event  @relation(fields: [event_id], references: [id])
+
+  created_at DateTime? @default(now())
+  updated_at DateTime? @updatedAt
+  tickets    Ticket[]
+}
+
+model Ticket {
+  id             String     @id @default(auto()) @map("_id") @db.ObjectId
+  ticket_type_id String     @db.ObjectId
+  ticket_type    TicketType @relation(fields: [ticket_type_id], references: [id])
+
+  code String @unique
+
+  qr_code_url String?
+  status      ticket_status @default(AVAILABLE)
+
+  created_at DateTime? @default(now())
+  updated_at DateTime? @updatedAt
+
+  transactionHasTicket TransactionHasTicket?
+}
+
+enum ticket_status {
+  USED
+  AVAILABLE
+  SOLD
+}
+
+model Transaction {
+  id                   String                    @id @default(auto()) @map("_id") @db.ObjectId
+  time_date            DateTime
+  method               transaction_method
+  status               transaction_status        @default(PENDING)
+  price_before_voucher Float
+  total_price          Float
+  event_id             String                    @db.ObjectId
+  ticket_count         Int                       @default(0)
+  customer_id          String                    @db.ObjectId
+  customer             Customer                  @relation(fields: [customer_id], references: [id])
+  tickets              TransactionHasTicket[]
+  vouchers             TransactionApplyVoucher[]
+  User                 User?                     @relation(fields: [userId], references: [id])
+  userId               String?                   @db.ObjectId
+
+  created_at DateTime? @default(now())
+}
+
+enum transaction_status {
+  PENDING
+  SUCCESS
+  CANCELLED
+}
+
+enum transaction_method {
+  CREDIT_CARD
+  BANK_TRANSFER
+}
+
+model Voucher {
+  id           String                    @id @default(auto()) @map("_id") @db.ObjectId
+  code         String
+  reduce_type  voucher_reduce_type
+  reduce_price Float
+  price        Float
+  start_date   DateTime
+  end_date     DateTime
+  transactions TransactionApplyVoucher[]
+  event_id     String                    @db.ObjectId
+  event        Event                     @relation(fields: [event_id], references: [id])
+
+  created_at DateTime? @default(now())
+  updated_at DateTime? @updatedAt
+}
+
+enum voucher_reduce_type {
+  PERCENTAGE
+  FIXED
+}
+
+// ---- Step 3: Correct the Many-to-Many "Join" Models ----
+// These models still exist but now follow MongoDB's rules.
+
+model TransactionHasTicket {
+  // Add a single primary key for MongoDB
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  transaction_id String      @db.ObjectId
+  transaction    Transaction @relation(fields: [transaction_id], references: [id])
+  ticket_id      String      @db.ObjectId
+  ticket         Ticket      @relation(fields: [ticket_id], references: [id])
+  amount         Int
+
+  @@unique([ticket_id]) // ensure a ticket appears at most once across TransactionHasTicket
+}
+
+model TransactionApplyVoucher {
+  // Add a single primary key for MongoDB
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  transaction_id String      @db.ObjectId
+  transaction    Transaction @relation(fields: [transaction_id], references: [id])
+  voucher_id     String      @db.ObjectId
+  voucher        Voucher     @relation(fields: [voucher_id], references: [id])
+  // apply_count    Int
+
+  // Use a unique constraint to prevent duplicate pairs
+  @@unique([transaction_id, voucher_id])
+}

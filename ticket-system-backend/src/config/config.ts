@@ -1,0 +1,84 @@
+export class Config {
+  private static instance: Config;
+  private _config: any = {};
+
+  private constructor() { }
+
+  static getInstance(): Config {
+    if (!Config.instance) {
+      Config.instance = new Config();
+    }
+    return Config.instance;
+  }
+
+  load() {
+    this._config = {
+      port: parseInt(process.env.PORT!) || 3000,
+      mongoUser: process.env.MONGO_USER || 'mongo',
+      mongoPassword: process.env.MONGO_PASS || 'mongo',
+      mongoDB: process.env.MONGO_DB || 'mongo',
+      jwtSecret: process.env.JWT_SECRET || 'secret',
+      jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
+      isDevelopment: process.env.NODE_ENV || 'development'
+
+    };
+    this._config.mongoUri = process.env.MONGO_URI || `mongodb://${this._config.mongoUser}:${this._config.mongoPassword}@mongodb:27017/${this._config.mongoDB}`
+
+    this._config.stripeApiKey = process.env.STRIPE_API_KEY || ''
+
+    this._config.stripeCheckoutSuccessUrl =
+      process.env.STRIPE_CHECKOUT_SUCCESS_URL || 'http://localhost:3000/checkout/success'
+
+    this._config.stripeCheckoutCancelUrl =
+      process.env.STRIPE_CHECKOUT_CANCEL_URL || 'http://localhost:3000/checkout/cancel'
+
+    this._config.stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET ||
+      'http://localhost:3000/stripe-webhook'
+
+    this._config.cloudName = process.env.CLOUDINARY_NAME
+    this._config.cloudApiKey = process.env.CLOUDINARY_API_KEY
+    this._config.cloudSecretKey = process.env.CLOUDINARY_SECRET
+
+    this._config.smtpHost = process.env.SMTP_HOST
+    this._config.smtpPort = process.env.SMTP_PORT
+    this._config.smtpUser = process.env.SMTP_USER
+    this._config.smtpPass = process.env.SMTP_PASS
+
+    this._config.googleClientId = process.env.GOOGLE_CLIENT_ID || ''
+    this._config.googleClientSecret = process.env.GOOGLE_CLIENT_SECRET || ''
+    this._config.googleCallbackURL = process.env.GOOGLE_CALLBACK_URL || ''
+    return this;
+  }
+  get googleCallbackURL() { return this._config.googleCallbackURL }
+  get googleClientSecret() { return this._config.googleClientSecret }
+  get googleClientId() { return this._config.googleClientId }
+  get isDevelopment() { return this._config.isDevelopment }
+  get jwtExpiresIn() { return this._config.jwtExpiresIn }
+  get port() { return this._config.port }
+  get mongoUri() { return this._config.mongoUri }
+  get jwtSecret() { return this._config.jwtSecret }
+  get mongoDB() { return this._config.mongoDB }
+  get mongoUser() { return this._config.mongoUser }
+  get mongoPassword() { return this._config.mongoPassword }
+  get stripeApiKey() { return this._config.stripeApiKey }
+  get stripeCheckoutSuccessUrl() { return this._config.stripeCheckoutSuccessUrl }
+  get stripeCheckoutCancelUrl() { return this._config.stripeCheckoutCancelUrl }
+  get stripeWebhookSecret() { return this._config.stripeWebhookSecret }
+  get cloudName() { return this._config.cloudName }
+  get cloudApiKey() { return this._config.cloudApiKey }
+  get cloudSecretKey() { return this._config.cloudSecretKey }
+  get smtpHost() { return this._config.smtpHost }
+  get smtpPort() { return this._config.smtpPort }
+  get smtpUser() { return this._config.smtpUser }
+  get smtpPass() { return this._config.smtpPass }
+
+  get(key: string) {
+    return this._config[key];
+  }
+
+  getAll() {
+    return { ...this._config };
+  }
+}
+
+export const config = Config.getInstance();

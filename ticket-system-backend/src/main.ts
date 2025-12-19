@@ -1,0 +1,48 @@
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import { config } from 'src/config/config';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { ValidationPipe } from '@nestjs/common';
+import * as bodyParser from 'body-parser';
+
+async function bootstrap() {
+  config.load();
+  const app = await NestFactory.create(AppModule, {
+    logger: config.isDevelopment === 'development'
+      ? ['log', 'debug', 'error', 'verbose', 'warn']
+      : ['error', 'warn'],
+  });
+
+  app.use(bodyParser.json({
+    verify: (req: any, res, buf) => {
+      if (req.originalUrl.startsWith('/stripe/stripe-webhook')) {
+        req.rawBody = buf;
+      }
+    }
+  }));
+
+  const swaggerCfg = new DocumentBuilder()
+    .setTitle('Ticket System')
+    .setDescription('This documentation will contain API description for all the available api')
+    .setVersion('1.0')
+    .addBearerAuth({
+      type: 'http',
+      scheme: 'bearer',
+      bearerFormat: 'JWT',
+      description: 'JWT authorization method',
+      in: 'header'
+    }, 'JWT-auth')
+    .build()
+
+  const documentFactory = () => SwaggerModule.createDocument(app, swaggerCfg)
+  SwaggerModule.setup('api', app, documentFactory)
+
+  app.useGlobalPipes(new ValidationPipe({
+    transform: true
+  }))
+
+  app.enableCors();
+
+  await app.listen(config.port);
+}
+bootstrap();

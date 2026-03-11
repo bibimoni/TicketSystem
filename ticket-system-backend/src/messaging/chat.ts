@@ -16,8 +16,10 @@
 import { io } from 'socket.io-client';
 import readline from 'readline';
 
-// ─── CONFIG ────────────────────────────────────────────────────────────────
-const SERVER_URL = 'http://localhost:3001';
+// ─── CONFIG ──────────────────────────────────────────────────────────────────
+// Ưu tiên biến môi trường, fallback về localhost
+// Cách set: SERVER_URL=https://your-server.com node chat.ts ...
+const SERVER_URL = process.env.SERVER_URL ?? 'http://localhost:3001';
 // ─────────────────────────────────────────────────────────────────────────────
 
 const [, , TOKEN, CONVERSATION_ID, DISPLAY_NAME] = process.argv;
@@ -50,7 +52,17 @@ function colorize(color, text) {
 }
 
 function timestamp() {
-  return colorize(C.gray, new Date().toLocaleTimeString('vi-VN'));
+  const now = new Date();
+  const date = now.toLocaleDateString('vi-VN'); // dd/mm/yyyy
+  const time = now.toLocaleTimeString('vi-VN'); // hh:mm:ss
+  return colorize(C.gray, `[${date} ${time}]`);
+}
+
+function formatDateTime(dateInput: string | Date) {
+  const d = new Date(dateInput);
+  const date = d.toLocaleDateString('vi-VN');
+  const time = d.toLocaleTimeString('vi-VN');
+  return colorize(C.gray, `[${date} ${time}]`);
 }
 
 function clearLine() {
@@ -126,6 +138,7 @@ const socket = io(`${SERVER_URL}/messaging`, {
 let typingTimer = null;
 let isTyping = false;
 let otherTyping = false;
+let myEmail: string | null = null;
 
 socket.on('connect', () => {
   printSystem(`Kết nối thành công! (${socket.id})`);
@@ -166,14 +179,11 @@ socket.on('conversation_data', (data) => {
   );
   console.log(colorize(C.gray, '  ' + '─'.repeat(40)));
 
-  // Messages returned in reverse chronological order, we need to reverse it back
-  [...data.messages].reverse().forEach((msg) => {
+  // Messages returned in desc order (newest first) — giữ nguyên, mới nhất trên cùng
+  data.messages.forEach((msg) => {
     const isSelf =
       msg.sender_email === undefined ? false : msg.sender_name === DISPLAY_NAME;
-    const time = colorize(
-      C.gray,
-      new Date(msg.created_at).toLocaleTimeString('vi-VN'),
-    );
+    const time = formatDateTime(msg.created_at);
     const name = msg.sender_name || msg.sender_email;
     const isMine =
       msg.sender_name === DISPLAY_NAME || msg.content.startsWith('[Bạn');
@@ -195,16 +205,21 @@ socket.on('conversation_data', (data) => {
 
 // receive new message
 socket.on('receive_message', (msg) => {
+  const isSelf = msg.sender_email === myEmail;
+
+  // Bỏ qua tin của chính mình (đã in optimistic rồi)
+  if (isSelf) return;
+
   const name = msg.sender_name || msg.sender_email;
   printMessage(name, msg.content, false);
 
-  // Auto mark as read
+  // Chỉ mark as read khi tin của người KHÁC
   socket.emit('mark_as_read', { conversation_id: CONVERSATION_ID });
 });
 
-// Echo message sent (optional, since we already print it immediately)
+// Echo message sent — dùng để biết email của mình
 socket.on('message_sent', (msg) => {
-  // already printed in 'line' event, can ignore or use to update message status
+  if (!myEmail) myEmail = msg.sender_email;
 });
 
 // Typing indicator

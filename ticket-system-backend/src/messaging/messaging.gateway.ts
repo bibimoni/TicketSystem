@@ -64,6 +64,9 @@ export class MessagingGateway
   async handleConnection(client: Socket) {
     try {
       const token = client.handshake.auth?.token as string | undefined;
+      // const token =
+      //   (client.handshake.auth?.token as string) ||
+      //   client.handshake.headers?.token;
 
       if (!token) throw new WsException('Missing token');
 

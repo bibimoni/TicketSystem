@@ -60,110 +60,108 @@ export class MessagingController {
   /**
    * List all conversations for the authenticated user.
    */
-  @Get('conversations')
-  @ApiOperation({ summary: 'Get all conversations of current user' })
-  async getConversations(@Req() req: any) {
-    const userId: string = req.user.id;
+  // @Get('conversations')
+  // @ApiOperation({ summary: 'Get all conversations of current user' })
+  // async getConversations(@Req() req: any) {
+  //   const userId: string = req.user.id;
 
-    const conversations = await this.messagingService.getConversations(userId);
-    const total_unread = await this.messagingService.getUnreadCount(userId);
+  //   const conversations = await this.messagingService.getConversations(userId);
+  //   const total_unread = await this.messagingService.getUnreadCount(userId);
 
-    return { conversations, total_unread };
-  }
+  //   return { conversations, total_unread };
+  // }
 
-  /**
-   * Get messages in a specific conversation (paginated).
-   * Also marks incoming messages as read.
-   */
-  @Get('conversations/:conversationId/messages')
-  @ApiParam({ name: 'conversationId', description: 'Conversation ID' })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
-  @ApiQuery({ name: 'skip', required: false, type: Number })
-  @ApiOperation({ summary: 'Get messages in a conversation' })
-  async getConversationMessages(
-    @Req() req: any,
-    @Param('conversationId') conversationId: string,
-    @Query('limit', new ParseIntPipe({ optional: true })) limit = 50,
-    @Query('skip', new ParseIntPipe({ optional: true })) skip = 0,
-  ): Promise<MessageResponseDto[]> {
-    const userId: string = req.user.id;
+  // /**
+  //  * Get messages in a specific conversation (paginated).
+  //  * Also marks incoming messages as read.
+  //  */
+  // @Get('conversations/:conversationId/messages')
+  // @ApiParam({ name: 'conversationId', description: 'Conversation ID' })
+  // @ApiQuery({ name: 'limit', required: false, type: Number })
+  // @ApiQuery({ name: 'skip', required: false, type: Number })
+  // @ApiOperation({ summary: 'Get messages in a conversation' })
+  // async getConversationMessages(
+  //   @Req() req: any,
+  //   @Param('conversationId') conversationId: string,
+  //   @Query('limit', new ParseIntPipe({ optional: true })) limit = 50,
+  //   @Query('skip', new ParseIntPipe({ optional: true })) skip = 0,
+  // ): Promise<MessageResponseDto[]> {
+  //   const userId: string = req.user.id;
 
-    return this.messagingService.getConversationMessages(
-      conversationId,
-      userId,
-      limit,
-      skip,
-    );
-  }
+  //   return this.messagingService.getConversationMessages(
+  //     conversationId,
+  //     userId,
+  //     limit,
+  //     skip,
+  //   );
+  // }
 
-  /**
-   * Mark all messages in a conversation as read.
-   */
-  @Patch('conversations/:conversationId/read')
-  @HttpCode(HttpStatus.OK)
-  @ApiParam({ name: 'conversationId' })
-  @ApiOperation({ summary: 'Mark all messages in a conversation as read' })
-  async markAsRead(
-    @Req() req: any,
-    @Param('conversationId') conversationId: string,
-  ): Promise<{ success: boolean }> {
-    const userId: string = req.user.id;
+  // /**
+  //  * Mark all messages in a conversation as read.
+  //  */
+  // @Patch('conversations/:conversationId/read')
+  // @HttpCode(HttpStatus.OK)
+  // @ApiParam({ name: 'conversationId' })
+  // @ApiOperation({ summary: 'Mark all messages in a conversation as read' })
+  // async markAsRead(
+  //   @Req() req: any,
+  //   @Param('conversationId') conversationId: string,
+  // ): Promise<{ success: boolean }> {
+  //   const userId: string = req.user.id;
 
-    await this.messagingService.markAsRead(conversationId, userId);
+  //   await this.messagingService.markAsRead(conversationId, userId);
 
-    return { success: true };
-  }
+  //   return { success: true };
+  // }
 
-  // ─── Messages ──────────────────────────────────────────────────────────────
+  // /**
+  //  * Send a message via HTTP (alternative to WebSocket).
+  //  */
+  // @Post('messages')
+  // @HttpCode(HttpStatus.CREATED)
+  // @ApiOperation({ summary: 'Send a message (REST fallback)' })
+  // async sendMessage(
+  //   @Req() req: any,
+  //   @Body() createMessageDto: CreateMessageDto,
+  // ): Promise<MessageResponseDto> {
+  //   const userId: string = req.user.id;
 
-  /**
-   * Send a message via HTTP (alternative to WebSocket).
-   */
-  @Post('messages')
-  @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Send a message (REST fallback)' })
-  async sendMessage(
-    @Req() req: any,
-    @Body() createMessageDto: CreateMessageDto,
-  ): Promise<MessageResponseDto> {
-    const userId: string = req.user.id;
+  //   return this.messagingService.createMessage(userId, createMessageDto);
+  // }
 
-    return this.messagingService.createMessage(userId, createMessageDto);
-  }
+  // /**
+  //  * Get total unread message count for the authenticated user.
+  //  */
+  // @Get('unread-count')
+  // @ApiOperation({
+  //   summary: 'Get unread message count across all conversations',
+  // })
+  // async getUnreadCount(@Req() req: any): Promise<{ count: number }> {
+  //   const userId: string = req.user.id;
 
-  /**
-   * Get total unread message count for the authenticated user.
-   */
-  @Get('unread-count')
-  @ApiOperation({
-    summary: 'Get unread message count across all conversations',
-  })
-  async getUnreadCount(@Req() req: any): Promise<{ count: number }> {
-    const userId: string = req.user.id;
+  //   const count = await this.messagingService.getUnreadCount(userId);
 
-    const count = await this.messagingService.getUnreadCount(userId);
+  //   return { count };
+  // }
 
-    return { count };
-  }
+  // /**
+  //  * Full-text search across messages the user can see.
+  //  */
+  // @Get('messages/search')
+  // @ApiQuery({ name: 'q', description: 'Search keyword' })
+  // @ApiQuery({ name: 'limit', required: false, type: Number })
+  // @ApiOperation({ summary: 'Search messages' })
+  // async searchMessages(
+  //   @Req() req: any,
+  //   @Query('q') query: string,
+  //   @Query('limit', new ParseIntPipe({ optional: true })) limit = 20,
+  // ): Promise<MessageResponseDto[]> {
+  //   if (!query?.trim()) {
+  //     throw new BadRequestException('Search query is required');
+  //   }
 
-  /**
-   * Full-text search across messages the user can see.
-   */
-  @Get('messages/search')
-  @ApiQuery({ name: 'q', description: 'Search keyword' })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
-  @ApiOperation({ summary: 'Search messages' })
-  async searchMessages(
-    @Req() req: any,
-    @Query('q') query: string,
-    @Query('limit', new ParseIntPipe({ optional: true })) limit = 20,
-  ): Promise<MessageResponseDto[]> {
-    if (!query?.trim()) {
-      throw new BadRequestException('Search query is required');
-    }
+  //   const userId: string = req.user.id;
 
-    const userId: string = req.user.id;
-
-    return this.messagingService.searchMessages(userId, query, limit);
-  }
+  //   return this.messagingService.searchMessages(userId, query, limit);
+  // }
 }

@@ -1,4 +1,5 @@
 <!-- Improved compatibility of back to top link: See: https://github.com/bibimoni/TicketSystem/pull/73 -->
+
 <a id="readme-top"></a>
 
 <!-- PROJECT SHIELDS -->
@@ -9,13 +10,12 @@
 *** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
 *** https://www.markdownguide.org/basic-syntax/#reference-style-links
 -->
+
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
-
-
 
 <!-- PROJECT LOGO -->
 <br />
@@ -37,8 +37,6 @@
     <a href="#issues">Request Feature</a>
   </p>
 </div>
-
-
 
 <!-- TABLE OF CONTENTS -->
 <details>
@@ -65,47 +63,45 @@
   </ol>
 </details>
 
-
-
 <!-- ABOUT THE PROJECT -->
+
 ## About The Project
 
 This project is a robust solution designed to facilitate the entire lifecycle of event management. It serves three main user roles: Customers, Event Organizers, and Administrators. The system allows organizers to create and manage events, customers to browse and book tickets, and administrators to oversee the platform's operations.
 
 Key capabilities include:
-*   **Event Management**: Comprehensive tools for organizers to create, update, and manage event details.
-*   **Ticket Booking**: Real-time availability checks and secure booking flows for customers.
-*   **Payment Processing**: Integrated secure payments for seamless transactions.
-*   **Administration**: Content moderation and user management features for system admins.
+
+- **Event Management**: Comprehensive tools for organizers to create, update, and manage event details.
+- **Ticket Booking**: Real-time availability checks and secure booking flows for customers.
+- **Payment Processing**: Integrated secure payments for seamless transactions.
+- **Administration**: Content moderation and user management features for system admins.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
 
 ### Built With
 
 This project leverages a modern, scalable technology stack.
 
-* [![NestJS][NestJS]][NestJS-url]
-* [![React][React.js]][React-url]
-* [![TailwindCSS][TailwindCSS]][TailwindCSS-url]
-* [![MongoDB][MongoDB]][MongoDB-url]
-* [![Docker][Docker]][Docker-url]
-* [![Prisma][Prisma]][Prisma-url]
+- [![NestJS][NestJS]][NestJS-url]
+- [![React][React.js]][React-url]
+- [![TailwindCSS][TailwindCSS]][TailwindCSS-url]
+- [![MongoDB][MongoDB]][MongoDB-url]
+- [![Docker][Docker]][Docker-url]
+- [![Prisma][Prisma]][Prisma-url]
+- [![Socket.io][Socketio]][Socketio-url]
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
 <!-- GETTING STARTED -->
+
 ## Getting Started
 
 To get a local copy up and running, please refer to the detailed instructions provided in the respective directories.
 
 ### Prerequisites
 
-*   Node.js (v18+)
-*   Docker (Recommended for Database)
+- Node.js (v18+)
+- Docker (Recommended for Database)
 
 ### Installation
 
@@ -117,9 +113,8 @@ To get a local copy up and running, please refer to the detailed instructions pr
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
 <!-- USAGE EXAMPLES -->
+
 ## Usage
 
 The application is divided into two main components:
@@ -131,29 +126,46 @@ Once both services are running, you can access the application via your browser.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+<!-- REALTIME MESSAGING -->
 
+## Realtime Messaging (WebSocket)
+
+The backend includes a WebSocket gateway built with Socket.io for realtime chat between users.
+
+- **Namespace**: `/messaging` (runs on the same port as the HTTP server)
+- **Auth**: connect with `{ auth: { token: '<jwt>' } }`
+- **Key events**: `send_message`, `join_conversation`, `typing`, `mark_as_read`
+
+For full documentation on the event flow and how to run the terminal chat tool, see the [Messaging README](ticket-system-backend/src/messaging/README.md).
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- ROADMAP -->
+
 ## Roadmap
 
 - [x] Requirements Elicitation & Analysis
 - [x] System Modeling (Use Case, Activity, Sequence, Class Diagrams)
 - [x] Architecture Design (Clean Architecture, Database Design)
 - [x] Sprint 1: Core Features
-    - [x] Authentication & Authorization
-    - [x] Event Creation & Management
-    - [x] Admin Approval Workflow
+  - [x] Authentication & Authorization
+  - [x] Event Creation & Management
+  - [x] Admin Approval Workflow
 - [x] Sprint 2: Advanced Features
-    - [x] Ticket Booking & Payment Integration
-    - [x] User Dashboard & History
+  - [x] Ticket Booking & Payment Integration
+  - [x] User Dashboard & History
+- [x] Sprint 3: Realtime Features
+  - [x] WebSocket Gateway (`/messaging` namespace)
+  - [x] Realtime chat between users
+  - [x] Typing indicators & read receipts
+  - [x] Online/offline presence
 - [ ] Cloud Deployment & CI/CD
 - [ ] Advanced Testing & Validation
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
 <!-- CONTRIBUTING -->
+
 ## Contributing
 
 Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
@@ -169,28 +181,25 @@ Don't forget to give the project a star! Thanks again!
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
 <!-- LICENSE -->
+
 ## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
 <!-- CONTACT -->
+
 ## Contact
 
 Project Link: [https://github.com/bibimoni/TicketSystem](https://github.com/bibimoni/TicketSystem)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+
 [contributors-shield]: https://img.shields.io/github/contributors/bibimoni/TicketSystem.svg?style=for-the-badge
 [contributors-url]: https://github.com/bibimoni/TicketSystem/graphs/contributors
 [forks-shield]: https://img.shields.io/github/forks/bibimoni/TicketSystem.svg?style=for-the-badge
@@ -213,4 +222,5 @@ Project Link: [https://github.com/bibimoni/TicketSystem](https://github.com/bibi
 [Docker-url]: https://www.docker.com/
 [Prisma]: https://img.shields.io/badge/Prisma-3982CE?style=for-the-badge&logo=Prisma&logoColor=white
 [Prisma-url]: https://www.prisma.io/
-
+[Socketio]: https://img.shields.io/badge/Socket.io-black?style=for-the-badge&logo=socket.io&badgeColor=010101
+[Socketio-url]: https://socket.io/

@@ -17,8 +17,6 @@ import { io } from 'socket.io-client';
 import readline from 'readline';
 
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
-// Ưu tiên biến môi trường, fallback về localhost
-// Cách set: SERVER_URL=https://your-server.com node chat.ts ...
 const SERVER_URL = process.env.SERVER_URL ?? 'http://localhost:3001';
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -117,14 +115,12 @@ function printError(msg) {
   rl.prompt(true);
 }
 
-// ─── READLINE ────────────────────────────────────────────────────────────────
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
   prompt: colorize(C.bold + C.green, `${DISPLAY_NAME} > `),
 });
 
-// ─── SOCKET ──────────────────────────────────────────────────────────────────
 printHeader();
 console.log(colorize(C.yellow, '  ⏳ Đang kết nối...'));
 
@@ -143,7 +139,6 @@ let myEmail: string | null = null;
 socket.on('connect', () => {
   printSystem(`Kết nối thành công! (${socket.id})`);
 
-  // Join conversation và load history
   socket.emit('join_conversation', {
     conversation_id: CONVERSATION_ID,
     limit: 20,
@@ -166,7 +161,6 @@ socket.on('reconnect', () => {
   socket.emit('join_conversation', { conversation_id: CONVERSATION_ID });
 });
 
-// Messages history when join conversation
 socket.on('conversation_data', (data) => {
   if (data.messages.length === 0) {
     printSystem('Chưa có tin nhắn nào. Hãy bắt đầu cuộc trò chuyện!');
@@ -179,7 +173,6 @@ socket.on('conversation_data', (data) => {
   );
   console.log(colorize(C.gray, '  ' + '─'.repeat(40)));
 
-  // Messages returned in desc order (newest first) — giữ nguyên, mới nhất trên cùng
   data.messages.forEach((msg) => {
     const isSelf =
       msg.sender_email === undefined ? false : msg.sender_name === DISPLAY_NAME;
@@ -203,26 +196,20 @@ socket.on('conversation_data', (data) => {
   rl.prompt(true);
 });
 
-// receive new message
 socket.on('receive_message', (msg) => {
   const isSelf = msg.sender_email === myEmail;
-
-  // Bỏ qua tin của chính mình (đã in optimistic rồi)
   if (isSelf) return;
 
   const name = msg.sender_name || msg.sender_email;
   printMessage(name, msg.content, false);
 
-  // Chỉ mark as read khi tin của người KHÁC
   socket.emit('mark_as_read', { conversation_id: CONVERSATION_ID });
 });
 
-// Echo message sent — dùng để biết email của mình
 socket.on('message_sent', (msg) => {
   if (!myEmail) myEmail = msg.sender_email;
 });
 
-// Typing indicator
 socket.on('user_typing', (data) => {
   if (data.is_typing) {
     clearLine();
@@ -237,7 +224,6 @@ socket.on('user_typing', (data) => {
   }
 });
 
-// User online/offline
 socket.on('user_status', (data) => {
   const status = data.is_online
     ? colorize(C.green, 'online 🟢')
@@ -245,7 +231,6 @@ socket.on('user_status', (data) => {
   printSystem(`User ${data.user_id} ${status}`);
 });
 
-// Messages read
 socket.on('messages_read', (data) => {
   clearLine();
   process.stdout.write(colorize(C.dim, '  ✓✓ Đã xem'));
@@ -259,7 +244,6 @@ socket.on('error', (err) => {
   printError(`Lỗi: ${JSON.stringify(err)}`);
 });
 
-// ─── INPUT ───────────────────────────────────────────────────────────────────
 rl.on('line', (line) => {
   const content = line.trim();
 
@@ -268,7 +252,6 @@ rl.on('line', (line) => {
     return;
   }
 
-  // Commands
   if (content === '/quit' || content === '/exit') {
     console.log(colorize(C.yellow, '  👋 Tạm biệt!'));
     socket.disconnect();
@@ -289,20 +272,17 @@ rl.on('line', (line) => {
     rl.prompt();
     return;
   }
-  // Send message
   socket.emit('send_message', {
     conversation_id: CONVERSATION_ID,
     content,
   });
 
-  // Show message immediately (optimistic UI)
   const time = timestamp();
   clearLine();
   console.log(
     `${time} ${colorize(C.bold + C.green, `[Bạn - ${DISPLAY_NAME}]`)} ${content}`,
   );
 
-  // Stop typing
   if (isTyping) {
     socket.emit('stop_typing', { conversation_id: CONVERSATION_ID });
     isTyping = false;
@@ -312,7 +292,6 @@ rl.on('line', (line) => {
   rl.prompt();
 });
 
-// Typing indicator
 rl.input.on('keypress', (char, key) => {
   if (!socket.connected) return;
   if (key?.name === 'return') return;

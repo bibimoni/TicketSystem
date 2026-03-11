@@ -21,11 +21,12 @@ import { TransactionModule } from './transaction/transaction.module';
 import { VoucherModule } from './voucher/voucher.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { MailModule } from './mail/mail.module';
+import { MessagingModule } from './messaging/messaging.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true
+      isGlobal: true,
     }),
     PrismaModule,
     UserModule,
@@ -40,14 +41,27 @@ import { MailModule } from './mail/mail.module';
         apiKey: config.stripeApiKey || '',
         options: {
           apiVersion: '2025-09-30.clover',
-        }
-      })
+        },
+      }),
+      imports: undefined,
     }),
     CloudinaryModule,
     MailModule,
+    MessagingModule,
   ],
-  controllers: [CustomerController, AuthController, EventController, AdminController],
-  providers: [PrismaService, AuthService, CustomerService, EventService, AdminService],
-  exports: [PrismaService]
+  controllers: [
+    CustomerController,
+    AuthController,
+    EventController,
+    AdminController,
+  ],
+  providers: [
+    PrismaService,
+    AuthService,
+    CustomerService,
+    EventService,
+    AdminService,
+  ],
+  exports: [PrismaService],
 })
-export class AppModule { }
+export class AppModule {}
